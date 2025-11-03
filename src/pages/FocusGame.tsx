@@ -128,7 +128,7 @@ const FocusGame = () => {
         onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
-        Powrót do Dodaj pomiar
+        Powrót
       </Button>
       
       <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
