@@ -205,7 +205,7 @@ const ScanGame = () => {
         {gameState === "finished" && (
           <Card className="max-w-md w-full border-slate-700 bg-slate-800 animate-scale-in">
             <CardContent className="pt-6 text-center space-y-6">
-              <h2 className="text-2xl font-bold text-white">Wyniki Testu Scan</h2>
+              <h2 className="text-2xl font-bold text-white">Wynik wyzwania Sigma Scan</h2>
               
               <div className="space-y-4 py-4">
                 <div className="bg-slate-700/50 p-4 rounded-lg">
