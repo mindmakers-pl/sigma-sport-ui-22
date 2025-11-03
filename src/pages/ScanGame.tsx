@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 
-type GameState = "ready" | "playing" | "finished";
+type GameState = "ready" | "playing" | "transition" | "finished";
 type Shape = "circle" | "square" | "triangle" | "diamond" | "hexagon";
 type Color = "black" | "gray" | "white" | "emerald" | "violet";
 
@@ -46,6 +46,7 @@ const ScanGame = () => {
     };
 
     setGrid(newGrid);
+    setGameState("playing");
     setStartTime(Date.now());
   };
 
@@ -72,7 +73,12 @@ const ScanGame = () => {
         setGameState("finished");
         console.log("Gra zakończona - zapisano wynik automatycznie");
       } else {
-        setupTrial();
+        // Przejście do ciemnego ekranu między próbami
+        setGameState("transition");
+        const transitionTime = Math.random() * 2500 + 500; // 500-3000ms
+        setTimeout(() => {
+          setupTrial();
+        }, transitionTime);
       }
     } else {
       // Kliknięto dystraktor
@@ -85,11 +91,11 @@ const ScanGame = () => {
       black: "bg-slate-900",
       gray: "bg-slate-500",
       white: "bg-white border border-slate-400",
-      emerald: item.isTarget ? "bg-green-500" : "bg-emerald-300",
+      emerald: "bg-emerald-300",
       violet: "bg-violet-50 border border-violet-200",
     };
 
-    const baseClass = "w-full h-full transition-transform duration-150";
+    const baseClass = "w-[85%] h-[85%] transition-transform duration-150";
     const colorClass = colorMap[item.color];
 
     switch (item.shape) {
@@ -163,7 +169,7 @@ const ScanGame = () => {
                 Próba {currentTrial} / {MAX_TRIALS}
               </p>
             </div>
-            <div className="grid grid-cols-10 gap-2 bg-slate-800 p-4 rounded-lg">
+            <div className="grid grid-cols-10 gap-3 bg-slate-800 p-6 rounded-lg">
               {grid.map((item, index) => (
                 <button
                   key={index}
@@ -173,6 +179,14 @@ const ScanGame = () => {
                   <div className={getShapeClass(item)} />
                 </button>
               ))}
+            </div>
+          </div>
+        )}
+
+        {gameState === "transition" && (
+          <div className="w-full max-w-4xl animate-fade-in">
+            <div className="h-96 flex items-center justify-center">
+              <div className="w-4 h-4 bg-slate-600 rounded-full animate-pulse" />
             </div>
           </div>
         )}
