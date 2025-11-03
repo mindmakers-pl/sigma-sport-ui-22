@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts";
+import ScanGame from "./ScanGame";
+import ControlGame from "./ControlGame";
+import FocusGame from "./FocusGame";
 
 const AthleteProfile = () => {
   const { id } = useParams();
@@ -17,6 +20,8 @@ const AthleteProfile = () => {
   
   const [sessionA, setSessionA] = useState("baseline-m1");
   const [sessionB, setSessionB] = useState("ewaluacja-m7");
+  
+  const [currentView, setCurrentView] = useState('kokpit');
   
   const [taskStatus, setTaskStatus] = useState({
     kwestionariusz: 'pending',
@@ -41,6 +46,17 @@ const AthleteProfile = () => {
     hrv_challenge: '',
     hrv_training: ''
   });
+
+  const handleTaskComplete = (taskName: string, result: any) => {
+    // Krok 1: Zaktualizuj status (żeby 'odhaczyć' kafelek)
+    setTaskStatus(prev => ({ ...prev, [taskName]: 'completed' }));
+
+    // Krok 2: Zapisz wynik (na razie do konsoli)
+    console.log(`Wynik z ${taskName}:`, result);
+
+    // Krok 3: Wróć do widoku kokpitu
+    setCurrentView('kokpit');
+  };
 
   // Mock data - w przyszłości z API/bazy danych
   const athleteData: Record<string, { name: string; club: string }> = {
@@ -180,7 +196,31 @@ const AthleteProfile = () => {
         </TabsContent>
 
         <TabsContent value="dodaj-pomiar" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {currentView === 'showing_questionnaire' && (
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">Kwestionariusz</h2>
+              <p className="text-slate-600 mb-8">Komponent kwestionariusza będzie tutaj...</p>
+              <Button onClick={() => handleTaskComplete('kwestionariusz', { score: 85 })}>
+                Zakończ kwestionariusz
+              </Button>
+            </div>
+          )}
+
+          {currentView === 'playing_scan' && (
+            <ScanGame onComplete={handleTaskComplete} />
+          )}
+
+          {currentView === 'playing_control' && (
+            <ControlGame onComplete={handleTaskComplete} />
+          )}
+
+          {currentView === 'playing_focus' && (
+            <FocusGame onComplete={handleTaskComplete} />
+          )}
+
+          {currentView === 'kokpit' && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">Kwestionariusz</h3>
@@ -220,7 +260,7 @@ const AthleteProfile = () => {
                   <Button 
                     variant="outline" 
                     className="w-full"
-                    onClick={() => setManualInputMode(prev => ({ ...prev, kwestionariusz: true }))}
+                    onClick={() => setCurrentView('showing_questionnaire')}
                   >
                     Rozpocznij
                   </Button>
@@ -282,7 +322,7 @@ const AthleteProfile = () => {
                   <Button 
                     variant="outline" 
                     className="w-full"
-                    onClick={() => setTaskStatus(prev => ({ ...prev, scan: 'completed' }))}
+                    onClick={() => setCurrentView('playing_scan')}
                   >
                     Rozpocznij
                   </Button>
@@ -302,7 +342,7 @@ const AthleteProfile = () => {
                   <Button 
                     variant="outline" 
                     className="w-full"
-                    onClick={() => setTaskStatus(prev => ({ ...prev, control: 'completed' }))}
+                    onClick={() => setCurrentView('playing_control')}
                   >
                     Rozpocznij
                   </Button>
@@ -322,7 +362,7 @@ const AthleteProfile = () => {
                   <Button 
                     variant="outline" 
                     className="w-full"
-                    onClick={() => setTaskStatus(prev => ({ ...prev, focus: 'completed' }))}
+                    onClick={() => setCurrentView('playing_focus')}
                   >
                     Rozpocznij
                   </Button>
@@ -430,15 +470,17 @@ const AthleteProfile = () => {
             </Card>
           </div>
           
-          <div className="mt-8 flex justify-center">
-            <Button 
-              variant="default" 
-              size="lg"
-              className="px-12"
-            >
-              Zakończ i Zapisz Sesję
-            </Button>
-          </div>
+              <div className="mt-8 flex justify-center">
+                <Button 
+                  variant="default" 
+                  size="lg"
+                  className="px-12"
+                >
+                  Zakończ i Zapisz Sesję
+                </Button>
+              </div>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="raporty" className="mt-6">

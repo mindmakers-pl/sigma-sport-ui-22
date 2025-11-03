@@ -14,7 +14,11 @@ interface Trial {
   type: "congruent" | "incongruent";
 }
 
-const FocusGame = () => {
+interface FocusGameProps {
+  onComplete?: (taskName: string, result: any) => void;
+}
+
+const FocusGame = ({ onComplete }: FocusGameProps) => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
   const MAX_TRIALS = 20;
@@ -272,7 +276,20 @@ const FocusGame = () => {
               <Button 
                 size="lg"
                 variant="outline"
-                onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
+                onClick={() => {
+                  if (onComplete) {
+                    onComplete('focus', {
+                      avgCongruent: calculateAvgCongruentTime(),
+                      avgIncongruent: calculateAvgIncongruentTime(),
+                      focusScore: calculateFocusScore(),
+                      errorCount,
+                      congruentTimes,
+                      incongruentTimes
+                    });
+                  } else {
+                    navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                  }
+                }}
                 className="flex-1"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />

@@ -22,7 +22,11 @@ interface Trial {
   reactionTime?: number;
 }
 
-const ControlGame = () => {
+interface ControlGameProps {
+  onComplete?: (taskName: string, result: any) => void;
+}
+
+const ControlGame = ({ onComplete }: ControlGameProps) => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
   
@@ -470,7 +474,21 @@ const ControlGame = () => {
                 <Button 
                   size="lg" 
                   className="flex-1"
-                  onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
+                  onClick={() => {
+                    if (onComplete) {
+                      onComplete('control', {
+                        averageRT: calculateAverageRT(),
+                        minRT: calculateMinRT(),
+                        maxRT: calculateMaxRT(),
+                        goHits: results.goHits,
+                        goMisses: results.goMisses,
+                        noGoErrors: results.noGoErrors,
+                        reactionTimes
+                      });
+                    } else {
+                      navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                    }
+                  }}
                 >
                   Powrót
                 </Button>

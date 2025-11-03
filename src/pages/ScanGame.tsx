@@ -16,7 +16,11 @@ interface GridItem {
 
 const MAX_TRIALS = 10;
 
-const ScanGame = () => {
+interface ScanGameProps {
+  onComplete?: (taskName: string, result: any) => void;
+}
+
+const ScanGame = ({ onComplete }: ScanGameProps) => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
   const [gameState, setGameState] = useState<GameState>("ready");
@@ -235,7 +239,19 @@ const ScanGame = () => {
                 <Button 
                   size="lg" 
                   className="w-full"
-                  onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
+                  onClick={() => {
+                    if (onComplete) {
+                      onComplete('scan', {
+                        average: calculateStats().average,
+                        median: calculateStats().median,
+                        accuracy: calculateStats().accuracy,
+                        errors: errorCount,
+                        results: resultsList
+                      });
+                    } else {
+                      navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                    }
+                  }}
                 >
                   Powrót
                 </Button>
