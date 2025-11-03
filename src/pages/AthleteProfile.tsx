@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts";
 
 const AthleteProfile = () => {
@@ -15,6 +15,16 @@ const AthleteProfile = () => {
   
   const [sessionA, setSessionA] = useState("baseline-m1");
   const [sessionB, setSessionB] = useState("ewaluacja-m7");
+  
+  const [taskStatus, setTaskStatus] = useState({
+    kwestionariusz: 'pending',
+    hrv_baseline: 'pending',
+    scan: 'pending',
+    control: 'pending',
+    focus: 'pending',
+    hrv_challenge: 'pending',
+    hrv_training: 'pending'
+  });
 
   // Mock data - w przyszłości z API/bazy danych
   const athleteData: Record<string, { name: string; club: string }> = {
@@ -155,77 +165,155 @@ const AthleteProfile = () => {
 
         <TabsContent value="dodaj-pomiar" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">Kwestionariusz</h3>
-                <Button variant="outline" className="w-full">
-                  Rozpocznij
-                </Button>
+                {taskStatus.kwestionariusz === 'pending' ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setTaskStatus(prev => ({ ...prev, kwestionariusz: 'completed' }))}
+                  >
+                    Rozpocznij
+                  </Button>
+                ) : (
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="font-medium">Ukończono</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">HRV Baseline</h3>
-                <Button variant="outline" className="w-full">
-                  Rozpocznij
-                </Button>
+                {taskStatus.hrv_baseline === 'pending' ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setTaskStatus(prev => ({ ...prev, hrv_baseline: 'completed' }))}
+                  >
+                    Rozpocznij
+                  </Button>
+                ) : (
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="font-medium">Ukończono</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            <Card 
-              className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => navigate(`/scan/${id}`)}
-            >
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">Sigma Scan</h3>
-                <Button variant="outline" className="w-full">
-                  Rozpocznij
-                </Button>
+                {taskStatus.scan === 'pending' ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setTaskStatus(prev => ({ ...prev, scan: 'completed' }))}
+                  >
+                    Rozpocznij
+                  </Button>
+                ) : (
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="font-medium">Ukończono</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            <Card 
-              className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => navigate(`/control/${id}`)}
-            >
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">Sigma Control</h3>
-                <Button variant="outline" className="w-full">
-                  Rozpocznij
-                </Button>
+                {taskStatus.control === 'pending' ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setTaskStatus(prev => ({ ...prev, control: 'completed' }))}
+                  >
+                    Rozpocznij
+                  </Button>
+                ) : (
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="font-medium">Ukończono</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            <Card 
-              className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => navigate(`/focus/${id}`)}
-            >
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">Sigma Focus</h3>
-                <Button variant="outline" className="w-full">
-                  Rozpocznij
-                </Button>
+                {taskStatus.focus === 'pending' ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setTaskStatus(prev => ({ ...prev, focus: 'completed' }))}
+                  >
+                    Rozpocznij
+                  </Button>
+                ) : (
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="font-medium">Ukończono</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">HRV Challenge</h3>
-                <Button variant="outline" className="w-full">
-                  Rozpocznij
-                </Button>
+                {taskStatus.hrv_challenge === 'pending' ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setTaskStatus(prev => ({ ...prev, hrv_challenge: 'completed' }))}
+                  >
+                    Rozpocznij
+                  </Button>
+                ) : (
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="font-medium">Ukończono</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">HRV Training</h3>
-                <Button variant="outline" className="w-full">
-                  Rozpocznij
-                </Button>
+                {taskStatus.hrv_training === 'pending' ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setTaskStatus(prev => ({ ...prev, hrv_training: 'completed' }))}
+                  >
+                    Rozpocznij
+                  </Button>
+                ) : (
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="font-medium">Ukończono</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
+          </div>
+          
+          <div className="mt-8 flex justify-center">
+            <Button 
+              variant="default" 
+              size="lg"
+              className="px-12"
+            >
+              Zakończ i Zapisz Sesję
+            </Button>
           </div>
         </TabsContent>
 
