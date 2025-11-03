@@ -29,6 +29,7 @@ const AthleteProfile = () => {
   
   const [currentView, setCurrentView] = useState('kokpit');
   const [measurementConditions, setMeasurementConditions] = useState('trening');
+  const [selectedChallengeType, setSelectedChallengeType] = useState('');
   
   const [taskStatus, setTaskStatus] = useState({
     kwestionariusz: 'pending',
@@ -396,13 +397,31 @@ const AthleteProfile = () => {
                     <span className="font-medium">Ukończono</span>
                   </div>
                 ) : (
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => setCurrentView('measuring_move')}
-                  >
-                    Rozpocznij
-                  </Button>
+                  <>
+                    <div className="text-left">
+                      <Label className="text-sm text-slate-700 mb-2 block">
+                        Wybierz typ wyzwania
+                      </Label>
+                      <Select value={selectedChallengeType} onValueChange={setSelectedChallengeType}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Wybierz typ wyzwania" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white z-50">
+                          <SelectItem value="move_1_czas">Move 1 (Czas)</SelectItem>
+                          <SelectItem value="move_2_powtorzenia">Move 2 (Powtórzenia)</SelectItem>
+                          <SelectItem value="move_3_skutecznosc">Move 3 (% Skuteczność)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setCurrentView('measuring_move')}
+                      disabled={!selectedChallengeType}
+                    >
+                      Rozpocznij
+                    </Button>
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -626,7 +645,10 @@ const AthleteProfile = () => {
           )}
 
           {currentView === 'measuring_move' && (
-            <SigmaMoveForm onComplete={handleTaskComplete} />
+            <SigmaMoveForm 
+              challengeType={selectedChallengeType} 
+              onComplete={handleTaskComplete} 
+            />
           )}
 
           {currentView === 'measuring_training' && (

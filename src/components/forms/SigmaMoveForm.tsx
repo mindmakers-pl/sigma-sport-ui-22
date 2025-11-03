@@ -5,21 +5,51 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface SigmaMoveFormProps {
+  challengeType: string;
   onComplete: (taskName: string, result: any) => void;
 }
 
-const SigmaMoveForm = ({ onComplete }: SigmaMoveFormProps) => {
-  const [challengeResult, setChallengeResult] = useState("");
+const SigmaMoveForm = ({ challengeType, onComplete }: SigmaMoveFormProps) => {
+  // Pola dla różnych typów wyzwań
+  const [timeResult, setTimeResult] = useState("");
+  const [repsResult, setRepsResult] = useState("");
+  const [successCount, setSuccessCount] = useState("");
+  const [attemptCount, setAttemptCount] = useState("");
   const [avgHrv, setAvgHrv] = useState("");
 
   const handleSave = () => {
-    if (challengeResult.trim() && avgHrv.trim()) {
-      console.log('Zapisuję dane Sigma Move:', { challengeResult, avgHrv });
-      onComplete('sigma_move', { challengeResult, avgHrv });
+    let resultPayload: any = {
+      type: challengeType,
+      hrv: avgHrv
+    };
+
+    // Dodaj odpowiednie dane w zależności od typu wyzwania
+    if (challengeType === 'move_1_czas') {
+      resultPayload.result = timeResult;
+    } else if (challengeType === 'move_2_powtorzenia') {
+      resultPayload.result = repsResult;
+    } else if (challengeType === 'move_3_skutecznosc') {
+      resultPayload.successCount = successCount;
+      resultPayload.attemptCount = attemptCount;
     }
+
+    console.log('Zapisuję dane Sigma Move:', resultPayload);
+    onComplete('sigma_move', resultPayload);
   };
 
-  const isFormValid = challengeResult.trim() && avgHrv.trim();
+  // Walidacja w zależności od typu wyzwania
+  const isFormValid = () => {
+    if (!avgHrv.trim()) return false;
+    
+    if (challengeType === 'move_1_czas') {
+      return timeResult.trim() !== '';
+    } else if (challengeType === 'move_2_powtorzenia') {
+      return repsResult.trim() !== '';
+    } else if (challengeType === 'move_3_skutecznosc') {
+      return successCount.trim() !== '' && attemptCount.trim() !== '';
+    }
+    return false;
+  };
 
   return (
     <div className="flex items-center justify-center h-full p-4">
@@ -31,21 +61,72 @@ const SigmaMoveForm = ({ onComplete }: SigmaMoveFormProps) => {
           </div>
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="challenge-result" className="text-slate-200">
-                Wynik wyzwania (s)
-              </Label>
-              <Input
-                id="challenge-result"
-                type="number"
-                step="0.1"
-                value={challengeResult}
-                onChange={(e) => setChallengeResult(e.target.value)}
-                placeholder="np. 12.5"
-                className="bg-slate-700 border-slate-600 text-white"
-              />
-            </div>
+            {/* Warunkowe renderowanie pól w zależności od typu wyzwania */}
+            {challengeType === 'move_1_czas' && (
+              <div className="space-y-2">
+                <Label htmlFor="time-result" className="text-slate-200">
+                  Wynik (s)
+                </Label>
+                <Input
+                  id="time-result"
+                  type="number"
+                  step="0.1"
+                  value={timeResult}
+                  onChange={(e) => setTimeResult(e.target.value)}
+                  placeholder="np. 12.5"
+                  className="bg-slate-700 border-slate-600 text-white"
+                />
+              </div>
+            )}
 
+            {challengeType === 'move_2_powtorzenia' && (
+              <div className="space-y-2">
+                <Label htmlFor="reps-result" className="text-slate-200">
+                  Liczba Powtórzeń
+                </Label>
+                <Input
+                  id="reps-result"
+                  type="number"
+                  value={repsResult}
+                  onChange={(e) => setRepsResult(e.target.value)}
+                  placeholder="np. 25"
+                  className="bg-slate-700 border-slate-600 text-white"
+                />
+              </div>
+            )}
+
+            {challengeType === 'move_3_skutecznosc' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="success-count" className="text-slate-200">
+                    Liczba Sukcesów
+                  </Label>
+                  <Input
+                    id="success-count"
+                    type="number"
+                    value={successCount}
+                    onChange={(e) => setSuccessCount(e.target.value)}
+                    placeholder="np. 18"
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="attempt-count" className="text-slate-200">
+                    Liczba Prób
+                  </Label>
+                  <Input
+                    id="attempt-count"
+                    type="number"
+                    value={attemptCount}
+                    onChange={(e) => setAttemptCount(e.target.value)}
+                    placeholder="np. 20"
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Pole HRV zawsze widoczne na dole */}
             <div className="space-y-2">
               <Label htmlFor="avg-hrv" className="text-slate-200">
                 Śr. HRV (ms)
@@ -63,7 +144,7 @@ const SigmaMoveForm = ({ onComplete }: SigmaMoveFormProps) => {
 
           <Button 
             onClick={handleSave}
-            disabled={!isFormValid}
+            disabled={!isFormValid()}
             className="w-full"
             size="lg"
           >
