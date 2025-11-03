@@ -38,7 +38,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="text-slate-300 hover:bg-slate-800 hover:text-white data-[active=true]:bg-primary data-[active=true]:text-white">
+                  <SidebarMenuButton asChild className="text-slate-900 hover:bg-slate-800 hover:text-white data-[active=true]:bg-primary data-[active=true]:text-white">
                     <NavLink to={item.url} end>
                       {({ isActive }) => (
                         <>
@@ -58,7 +58,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="text-slate-300 hover:bg-slate-800 hover:text-white">
+            <SidebarMenuButton asChild className="text-slate-900 hover:bg-slate-800 hover:text-white">
               <NavLink to="/ustawienia">
                 <Settings className="h-5 w-5" />
                 {!isCollapsed && <span>Ustawienia</span>}
