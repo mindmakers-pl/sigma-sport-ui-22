@@ -44,7 +44,7 @@ const HRVBaselineForm = ({ onComplete }: HRVBaselineFormProps) => {
           <Button 
             onClick={handleSave}
             disabled={!hrvValue.trim()}
-            className="w-full"
+            className="w-full bg-green-600 hover:bg-green-700"
             size="lg"
           >
             Zapisz

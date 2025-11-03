@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +21,7 @@ import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
 const AthleteProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "informacje";
   
   const [sessionA, setSessionA] = useState("baseline-m1");
@@ -40,6 +40,10 @@ const AthleteProfile = () => {
     sigma_move: 'pending',
     hrv_training: 'pending'
   });
+
+  const [sessionResults, setSessionResults] = useState<Record<string, any>>({});
+  const [savedSessions, setSavedSessions] = useState<any[]>([]);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   
   const [manualInputMode, setManualInputMode] = useState({
     kwestionariusz: false,
@@ -55,15 +59,53 @@ const AthleteProfile = () => {
     hrv_training: ''
   });
 
+  // Load sessions on mount
+  useEffect(() => {
+    const sessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
+    setSavedSessions(sessions.filter((s: any) => s.athlete_id === id));
+  }, [id]);
+
   const handleTaskComplete = (taskName: string, result: any) => {
-    // Krok 1: Zaktualizuj status (żeby 'odhaczyć' kafelek)
     setTaskStatus(prev => ({ ...prev, [taskName]: 'completed' }));
-
-    // Krok 2: Zapisz wynik (na razie do konsoli)
+    setSessionResults(prev => ({ ...prev, [taskName]: result }));
     console.log(`Wynik z ${taskName}:`, result);
-
-    // Krok 3: Wróć do widoku kokpitu
     setCurrentView('kokpit');
+  };
+
+  const handleSaveSession = () => {
+    const sessionData = {
+      id: `session_${Date.now()}`,
+      athlete_id: id,
+      athlete_name: athlete?.name || 'Unknown',
+      date: new Date().toISOString(),
+      conditions: measurementConditions,
+      results: sessionResults,
+      taskStatus: taskStatus
+    };
+
+    // Save to localStorage
+    const existingSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
+    const updatedSessions = [...existingSessions, sessionData];
+    localStorage.setItem('athlete_sessions', JSON.stringify(updatedSessions));
+
+    // Update local state
+    setSavedSessions(updatedSessions.filter((s: any) => s.athlete_id === id));
+
+    // Navigate to reports
+    setSearchParams({ tab: 'raporty' });
+    
+    // Reset session
+    setSessionResults({});
+    setTaskStatus({
+      kwestionariusz: 'pending',
+      hrv_baseline: 'pending',
+      scan: 'pending',
+      control: 'pending',
+      focus: 'pending',
+      sigma_move: 'pending',
+      hrv_training: 'pending',
+    });
+    setSelectedChallengeType('');
   };
 
   // Mock data - w przyszłości z API/bazy danych
@@ -114,7 +156,7 @@ const AthleteProfile = () => {
         <p className="text-slate-600">{athlete.club}</p>
       </div>
 
-      <Tabs defaultValue={activeTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={(value) => setSearchParams({ tab: value })} className="w-full">
         <TabsList className="bg-white border border-slate-200">
           <TabsTrigger value="informacje">Informacje o zawodniku</TabsTrigger>
           <TabsTrigger value="dodaj-pomiar">Dodaj pomiar</TabsTrigger>
@@ -242,33 +284,6 @@ const AthleteProfile = () => {
                     <CheckCircle2 className="h-5 w-5" />
                     <span className="font-medium">Ukończono</span>
                   </div>
-                ) : manualInputMode.kwestionariusz ? (
-                  <div className="space-y-3">
-                    <div className="text-left">
-                      <Label htmlFor="kwestionariusz-input" className="text-sm text-slate-700">
-                        Wprowadź wynik
-                      </Label>
-                      <Input
-                        id="kwestionariusz-input"
-                        type="text"
-                        value={inputValues.kwestionariusz}
-                        onChange={(e) => setInputValues(prev => ({ ...prev, kwestionariusz: e.target.value }))}
-                        className="mt-1"
-                        placeholder="Wpisz wynik"
-                      />
-                    </div>
-                    <Button 
-                      variant="secondary" 
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        setTaskStatus(prev => ({ ...prev, kwestionariusz: 'completed' }));
-                        setManualInputMode(prev => ({ ...prev, kwestionariusz: false }));
-                      }}
-                    >
-                      Zapisz
-                    </Button>
-                  </div>
                 ) : (
                   <Button 
                     variant="outline" 
@@ -288,33 +303,6 @@ const AthleteProfile = () => {
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <CheckCircle2 className="h-5 w-5" />
                     <span className="font-medium">Ukończono</span>
-                  </div>
-                ) : manualInputMode.hrv_baseline ? (
-                  <div className="space-y-3">
-                    <div className="text-left">
-                      <Label htmlFor="hrv-baseline-input" className="text-sm text-slate-700">
-                        Wprowadź wynik (ms)
-                      </Label>
-                      <Input
-                        id="hrv-baseline-input"
-                        type="text"
-                        value={inputValues.hrv_baseline}
-                        onChange={(e) => setInputValues(prev => ({ ...prev, hrv_baseline: e.target.value }))}
-                        className="mt-1"
-                        placeholder="Wpisz wynik w ms"
-                      />
-                    </div>
-                    <Button 
-                      variant="secondary" 
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        setTaskStatus(prev => ({ ...prev, hrv_baseline: 'completed' }));
-                        setManualInputMode(prev => ({ ...prev, hrv_baseline: false }));
-                      }}
-                    >
-                      Zapisz
-                    </Button>
                   </div>
                 ) : (
                   <Button 
@@ -434,33 +422,6 @@ const AthleteProfile = () => {
                     <CheckCircle2 className="h-5 w-5" />
                     <span className="font-medium">Ukończono</span>
                   </div>
-                ) : manualInputMode.hrv_training ? (
-                  <div className="space-y-3">
-                    <div className="text-left">
-                      <Label htmlFor="hrv-training-input" className="text-sm text-slate-700">
-                        Wprowadź wynik (ms)
-                      </Label>
-                      <Input
-                        id="hrv-training-input"
-                        type="text"
-                        value={inputValues.hrv_training}
-                        onChange={(e) => setInputValues(prev => ({ ...prev, hrv_training: e.target.value }))}
-                        className="mt-1"
-                        placeholder="Wpisz wynik w ms"
-                      />
-                    </div>
-                    <Button 
-                      variant="secondary" 
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        setTaskStatus(prev => ({ ...prev, hrv_training: 'completed' }));
-                        setManualInputMode(prev => ({ ...prev, hrv_training: false }));
-                      }}
-                    >
-                      Zapisz
-                    </Button>
-                  </div>
                 ) : (
                   <Button 
                     variant="outline" 
@@ -476,136 +437,249 @@ const AthleteProfile = () => {
           
           <div className="mt-8 flex justify-center">
             <Button 
-              variant="default" 
-              size="lg"
-              className="px-12"
+              size="lg" 
+              className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white px-12"
+              onClick={handleSaveSession}
             >
               Zakończ i Zapisz Sesję
             </Button>
           </div>
         </TabsContent>
 
-        <TabsContent value="raporty" className="mt-6">
-          <div className="space-y-6">
-            <div className="flex gap-4 items-center">
-              <div className="flex-1">
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Sesja A:</label>
-                <Select value={sessionA} onValueChange={setSessionA}>
-                  <SelectTrigger className="w-full bg-white">
-                    <SelectValue placeholder="Wybierz sesję A" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
-                    <SelectItem value="baseline-m1">Baseline M1</SelectItem>
-                    <SelectItem value="baseline-m2">Baseline M2</SelectItem>
-                    <SelectItem value="mid-m4">Mid-season M4</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+        <TabsContent value="raporty" className="space-y-6">
+          {!selectedSessionId ? (
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-6">Historia Pomiarów: {athlete.name}</h2>
               
-              <div className="flex-1">
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Sesja B:</label>
-                <Select value={sessionB} onValueChange={setSessionB}>
-                  <SelectTrigger className="w-full bg-white">
-                    <SelectValue placeholder="Wybierz sesję B" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
-                    <SelectItem value="mid-m4">Mid-season M4</SelectItem>
-                    <SelectItem value="ewaluacja-m7">Ewaluacja M7</SelectItem>
-                    <SelectItem value="final-m12">Final M12</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {savedSessions.length === 0 ? (
+                <Card className="bg-white border-slate-200 p-8 text-center">
+                  <p className="text-slate-600">Brak zapisanych sesji. Rozpocznij nowy pomiar w zakładce "Dodaj pomiar".</p>
+                </Card>
+              ) : (
+                <div className="grid gap-4">
+                  {savedSessions.map((session) => (
+                    <Card key={session.id} className="bg-white border-slate-200 p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-xl font-bold text-slate-900 mb-2">
+                            Sesja {new Date(session.date).toLocaleDateString('pl-PL')}
+                          </h3>
+                          <p className="text-slate-600">
+                            Warunki: {session.conditions === 'gabinet' ? 'Gabinet (Cisza)' : 'Trening (Hałas)'}
+                          </p>
+                          <p className="text-slate-500 text-sm mt-1">
+                            {new Date(session.date).toLocaleTimeString('pl-PL')}
+                          </p>
+                        </div>
+                        <Button 
+                          onClick={() => setSelectedSessionId(session.id)}
+                          className="bg-primary hover:bg-primary/90"
+                        >
+                          Zobacz Raport
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="border-slate-200 bg-white">
-                <CardHeader>
-                  <CardTitle className="text-slate-900">Profil Kognitywny</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RadarChart data={cognitiveData}>
-                      <PolarGrid stroke="#cbd5e1" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b' }} />
-                      <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#64748b' }} />
-                      <Radar name="Sesja A" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.5} />
-                      <Radar name="Sesja B" dataKey="B" stroke="#10b981" fill="#10b981" fillOpacity={0.5} />
-                      <Legend />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card className="border-slate-200 bg-white">
-                <CardHeader>
-                  <CardTitle className="text-slate-900">Profil Psychometryczny</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={psychometricData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} />
-                      <YAxis domain={[0, 10]} tick={{ fill: '#64748b' }} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #cbd5e1' }}
-                        labelStyle={{ color: '#334155' }}
-                      />
-                      <Legend />
-                      <Bar dataKey="A" fill="#3b82f6" name="Sesja A" />
-                      <Bar dataKey="B" fill="#10b981" name="Sesja B" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card className="border-slate-200 bg-white">
-                <CardHeader>
-                  <CardTitle className="text-slate-900">Postęp Motoryczny</CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center justify-center h-[300px]">
-                  <div className="text-center">
-                    <p className="text-slate-600 text-lg mb-4">Sigma Agility</p>
-                    <div className="flex items-center justify-center gap-4">
-                      <span className="text-4xl font-bold text-slate-400">12.5s</span>
-                      <span className="text-3xl text-slate-400">→</span>
-                      <span className="text-4xl font-bold text-green-500">11.9s</span>
+          ) : (
+            <div>
+              <Button 
+                variant="ghost" 
+                onClick={() => setSelectedSessionId(null)}
+                className="mb-6"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Powrót do Listy Sesji
+              </Button>
+              
+              {(() => {
+                const session = savedSessions.find(s => s.id === selectedSessionId);
+                if (!session) return null;
+                
+                return (
+                  <div className="space-y-6">
+                    <div className="bg-white border border-slate-200 rounded-lg p-6">
+                      <h2 className="text-2xl font-bold text-slate-900">
+                        Raport Sesji: {new Date(session.date).toLocaleDateString('pl-PL')}
+                      </h2>
+                      <p className="text-slate-600 mt-2">
+                        Data: {new Date(session.date).toLocaleString('pl-PL')} | 
+                        Warunki: {session.conditions === 'gabinet' ? 'Gabinet (Cisza)' : 'Trening (Hałas)'}
+                      </p>
                     </div>
-                    <p className="text-green-600 font-semibold mt-4 text-xl">-0.6s (-4.8%)</p>
-                  </div>
-                </CardContent>
-              </Card>
 
-              <Card className="border-slate-200 bg-white">
-                <CardHeader>
-                  <CardTitle className="text-slate-900">Profil Fizjologiczny</CardTitle>
-                  <p className="text-sm text-slate-600">Reaktywność HRV na Stres</p>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={280}>
-                    <LineChart data={hrvData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis 
-                        dataKey="time" 
-                        label={{ value: 'Czas (min)', position: 'insideBottom', offset: -5, fill: '#64748b' }}
-                        tick={{ fill: '#64748b' }}
-                      />
-                      <YAxis 
-                        label={{ value: 'HRV', angle: -90, position: 'insideLeft', fill: '#64748b' }}
-                        tick={{ fill: '#64748b' }}
-                      />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #cbd5e1' }}
-                        labelStyle={{ color: '#334155' }}
-                      />
-                      <Legend />
-                      <Line type="monotone" dataKey="A" stroke="#3b82f6" strokeWidth={2} name="Sesja A" />
-                      <Line type="monotone" dataKey="B" stroke="#10b981" strokeWidth={2} name="Sesja B" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {/* Profil Kognitywny */}
+                      <Card className="bg-white border-slate-200 lg:col-span-2">
+                        <CardHeader>
+                          <CardTitle className="text-slate-900">Profil Kognitywny</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="h-80">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <RadarChart data={[
+                                { subject: 'Skanowanie', value: session.results.scan?.avgReactionTime ? Math.max(0, 100 - session.results.scan.avgReactionTime / 10) : 0 },
+                                { subject: 'Kontrola', value: session.results.control?.errors ? Math.max(0, 100 - session.results.control.errors * 5) : 0 },
+                                { subject: 'Focus', value: session.results.focus?.focusScore || 0 },
+                              ]}>
+                                <PolarGrid stroke="#cbd5e1" />
+                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b' }} />
+                                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#64748b' }} />
+                                <Radar name="Wynik" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
+                              </RadarChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <div className="mt-4 space-y-2 text-sm text-slate-700">
+                            {session.results.scan && (
+                              <p>Scan: {session.results.scan.avgReactionTime}ms, {session.results.scan.accuracy}%</p>
+                            )}
+                            {session.results.control && (
+                              <p>Control: {session.results.control.errors} błędów</p>
+                            )}
+                            {session.results.focus && (
+                              <p>Focus: Efekt Interferencji {session.results.focus.interferenceEffect}ms</p>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Samoocena Psychometryczna */}
+                      <Card className="bg-white border-slate-200">
+                        <CardHeader>
+                          <CardTitle className="text-slate-900">Profil Psychometryczny</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {session.results.kwestionariusz ? (
+                            <>
+                              <div>
+                                <div className="flex justify-between text-sm mb-1">
+                                  <span className="text-slate-600">Pewność Siebie</span>
+                                  <span className="text-slate-900 font-bold">{session.results.kwestionariusz.confidence}/10</span>
+                                </div>
+                                <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="bg-blue-500 h-2 rounded-full" style={{width: `${(session.results.kwestionariusz.confidence / 10) * 100}%`}}></div>
+                                </div>
+                              </div>
+                              <div>
+                                <div className="flex justify-between text-sm mb-1">
+                                  <span className="text-slate-600">Kontrola Emocji</span>
+                                  <span className="text-slate-900 font-bold">{session.results.kwestionariusz.emotionalControl}/10</span>
+                                </div>
+                                <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="bg-green-500 h-2 rounded-full" style={{width: `${(session.results.kwestionariusz.emotionalControl / 10) * 100}%`}}></div>
+                                </div>
+                              </div>
+                              <div>
+                                <div className="flex justify-between text-sm mb-1">
+                                  <span className="text-slate-600">Motywacja</span>
+                                  <span className="text-slate-900 font-bold">{session.results.kwestionariusz.motivation}/10</span>
+                                </div>
+                                <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="bg-purple-500 h-2 rounded-full" style={{width: `${(session.results.kwestionariusz.motivation / 10) * 100}%`}}></div>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <p className="text-slate-500">Brak danych</p>
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      {/* Reaktywność Fizjologiczna HRV */}
+                      <Card className="bg-white border-slate-200 lg:col-span-2">
+                        <CardHeader>
+                          <CardTitle className="text-slate-900">Reaktywność Fizjologiczna (HRV)</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="h-80">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={[
+                                { name: 'Baseline', hrv: session.results.hrv_baseline?.hrv || 0 },
+                                { name: 'Scan', hrv: session.results.scan?.hrv || 0 },
+                                { name: 'Control', hrv: session.results.control?.hrv || 0 },
+                                { name: 'Focus', hrv: session.results.focus?.hrv || 0 },
+                                { name: 'Move', hrv: session.results.sigma_move?.hrv || 0 },
+                              ]}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                <XAxis dataKey="name" tick={{ fill: '#64748b' }} />
+                                <YAxis tick={{ fill: '#64748b' }} />
+                                <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #cbd5e1' }} />
+                                <Bar dataKey="hrv" fill="#3b82f6" />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Trening Biofeedback */}
+                      <Card className="bg-white border-slate-200">
+                        <CardHeader>
+                          <CardTitle className="text-slate-900">Efekt Treningu Regulacji</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3 text-slate-700">
+                          {session.results.hrv_training ? (
+                            <>
+                              <div>
+                                <span className="text-slate-600">Technika:</span>{' '}
+                                <span className="text-slate-900 font-medium">{session.results.hrv_training.technique}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-600">Czas:</span>{' '}
+                                <span className="text-slate-900 font-medium">{session.results.hrv_training.duration}s</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-600">Zmiana HRV:</span>{' '}
+                                <span className="text-slate-900 font-medium">
+                                  {session.results.hrv_training.hrvStart}ms → {session.results.hrv_training.hrvEnd}ms
+                                </span>
+                              </div>
+                              {session.results.hrv_training.comment && (
+                                <div>
+                                  <span className="text-slate-600">Komentarz:</span>{' '}
+                                  <span className="text-slate-900">{session.results.hrv_training.comment}</span>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <p className="text-slate-500">Brak danych</p>
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      {/* Sigma Move */}
+                      <Card className="bg-white border-slate-200 lg:col-span-3">
+                        <CardHeader>
+                          <CardTitle className="text-slate-900">Wydajność Motoryczna (Sigma Move)</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2 text-slate-700">
+                          {session.results.sigma_move ? (
+                            <>
+                              <div>
+                                <span className="text-slate-600">Wyzwanie:</span>{' '}
+                                <span className="text-slate-900 font-medium">{session.results.sigma_move.type}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-600">Wynik:</span>{' '}
+                                <span className="text-slate-900 font-medium">{session.results.sigma_move.result}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-600">Śr. HRV:</span>{' '}
+                                <span className="text-slate-900 font-medium">{session.results.sigma_move.hrv}ms</span>
+                              </div>
+                            </>
+                          ) : (
+                            <p className="text-slate-500">Brak danych</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
-          </div>
+          )}
         </TabsContent>
       </Tabs>
 

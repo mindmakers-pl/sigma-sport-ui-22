@@ -145,7 +145,7 @@ const SigmaMoveForm = ({ challengeType, onComplete }: SigmaMoveFormProps) => {
           <Button 
             onClick={handleSave}
             disabled={!isFormValid()}
-            className="w-full"
+            className="w-full bg-green-600 hover:bg-green-700"
             size="lg"
           >
             Zapisz
