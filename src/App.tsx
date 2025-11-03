@@ -9,6 +9,7 @@ import Athletes from "./pages/Athletes";
 import AthleteProfile from "./pages/AthleteProfile";
 import Clubs from "./pages/Clubs";
 import Settings from "./pages/Settings";
+import ScanGame from "./pages/ScanGame";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/zawodnicy/:id" element={<AppLayout><AthleteProfile /></AppLayout>} />
           <Route path="/kluby" element={<AppLayout><Clubs /></AppLayout>} />
           <Route path="/ustawienia" element={<AppLayout><Settings /></AppLayout>} />
+          <Route path="/scan" element={<ScanGame />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
