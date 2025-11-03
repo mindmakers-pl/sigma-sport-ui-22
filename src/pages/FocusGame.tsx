@@ -140,7 +140,7 @@ const FocusGame = () => {
                 Wybierz przycisk odpowiadający <span className="font-semibold">KOLOROWI NAPISU</span>, ignorując znaczenie słowa. Wykonaj zadanie najszybciej jak potrafisz.
               </p>
               <p className="text-sm text-slate-400">
-                Test składa się z {MAX_TRIALS} prób
+                Wyzwanie
               </p>
               <Button 
                 size="lg" 
