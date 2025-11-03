@@ -25,7 +25,7 @@ const AthleteProfile = () => {
     "5": { name: "Tomasz Zieliński", club: "Legia Warszawa" },
   };
 
-  const athlete = athleteData[id || "1"];
+  const athlete = athleteData[id || "1"] || { name: "Nieznany zawodnik", club: "Brak danych" };
 
   // Mock data dla wykresów
   const cognitiveData = [
