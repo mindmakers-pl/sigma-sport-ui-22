@@ -203,7 +203,7 @@ const FocusGame = () => {
 
         {gameState === "finished" && (
           <div className="w-full max-w-4xl space-y-6 animate-fade-in">
-            <h2 className="text-3xl font-bold text-white text-center mb-8">Wyniki Testu Focus</h2>
+            <h2 className="text-3xl font-bold text-white text-center mb-8">Wyniki wyzwania Sigma Focus</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Średni Czas Reakcji Zgodne */}
