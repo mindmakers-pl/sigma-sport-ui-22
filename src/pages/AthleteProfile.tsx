@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts";
 
@@ -24,6 +26,20 @@ const AthleteProfile = () => {
     focus: 'pending',
     hrv_challenge: 'pending',
     hrv_training: 'pending'
+  });
+  
+  const [manualInputMode, setManualInputMode] = useState({
+    kwestionariusz: false,
+    hrv_baseline: false,
+    hrv_challenge: false,
+    hrv_training: false
+  });
+  
+  const [inputValues, setInputValues] = useState({
+    kwestionariusz: '',
+    hrv_baseline: '',
+    hrv_challenge: '',
+    hrv_training: ''
   });
 
   // Mock data - w przyszłości z API/bazy danych
@@ -168,19 +184,46 @@ const AthleteProfile = () => {
             <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">Kwestionariusz</h3>
-                {taskStatus.kwestionariusz === 'pending' ? (
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => setTaskStatus(prev => ({ ...prev, kwestionariusz: 'completed' }))}
-                  >
-                    Rozpocznij
-                  </Button>
-                ) : (
+                {taskStatus.kwestionariusz === 'completed' ? (
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <CheckCircle2 className="h-5 w-5" />
                     <span className="font-medium">Ukończono</span>
                   </div>
+                ) : manualInputMode.kwestionariusz ? (
+                  <div className="space-y-3">
+                    <div className="text-left">
+                      <Label htmlFor="kwestionariusz-input" className="text-sm text-slate-700">
+                        Wprowadź wynik
+                      </Label>
+                      <Input
+                        id="kwestionariusz-input"
+                        type="text"
+                        value={inputValues.kwestionariusz}
+                        onChange={(e) => setInputValues(prev => ({ ...prev, kwestionariusz: e.target.value }))}
+                        className="mt-1"
+                        placeholder="Wpisz wynik"
+                      />
+                    </div>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        setTaskStatus(prev => ({ ...prev, kwestionariusz: 'completed' }));
+                        setManualInputMode(prev => ({ ...prev, kwestionariusz: false }));
+                      }}
+                    >
+                      Zapisz
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setManualInputMode(prev => ({ ...prev, kwestionariusz: true }))}
+                  >
+                    Rozpocznij
+                  </Button>
                 )}
               </CardContent>
             </Card>
@@ -188,19 +231,46 @@ const AthleteProfile = () => {
             <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">HRV Baseline</h3>
-                {taskStatus.hrv_baseline === 'pending' ? (
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => setTaskStatus(prev => ({ ...prev, hrv_baseline: 'completed' }))}
-                  >
-                    Rozpocznij
-                  </Button>
-                ) : (
+                {taskStatus.hrv_baseline === 'completed' ? (
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <CheckCircle2 className="h-5 w-5" />
                     <span className="font-medium">Ukończono</span>
                   </div>
+                ) : manualInputMode.hrv_baseline ? (
+                  <div className="space-y-3">
+                    <div className="text-left">
+                      <Label htmlFor="hrv-baseline-input" className="text-sm text-slate-700">
+                        Wprowadź wynik (ms)
+                      </Label>
+                      <Input
+                        id="hrv-baseline-input"
+                        type="text"
+                        value={inputValues.hrv_baseline}
+                        onChange={(e) => setInputValues(prev => ({ ...prev, hrv_baseline: e.target.value }))}
+                        className="mt-1"
+                        placeholder="Wpisz wynik w ms"
+                      />
+                    </div>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        setTaskStatus(prev => ({ ...prev, hrv_baseline: 'completed' }));
+                        setManualInputMode(prev => ({ ...prev, hrv_baseline: false }));
+                      }}
+                    >
+                      Zapisz
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setManualInputMode(prev => ({ ...prev, hrv_baseline: true }))}
+                  >
+                    Rozpocznij
+                  </Button>
                 )}
               </CardContent>
             </Card>
@@ -268,19 +338,46 @@ const AthleteProfile = () => {
             <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">HRV Challenge</h3>
-                {taskStatus.hrv_challenge === 'pending' ? (
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => setTaskStatus(prev => ({ ...prev, hrv_challenge: 'completed' }))}
-                  >
-                    Rozpocznij
-                  </Button>
-                ) : (
+                {taskStatus.hrv_challenge === 'completed' ? (
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <CheckCircle2 className="h-5 w-5" />
                     <span className="font-medium">Ukończono</span>
                   </div>
+                ) : manualInputMode.hrv_challenge ? (
+                  <div className="space-y-3">
+                    <div className="text-left">
+                      <Label htmlFor="hrv-challenge-input" className="text-sm text-slate-700">
+                        Wprowadź wynik (ms)
+                      </Label>
+                      <Input
+                        id="hrv-challenge-input"
+                        type="text"
+                        value={inputValues.hrv_challenge}
+                        onChange={(e) => setInputValues(prev => ({ ...prev, hrv_challenge: e.target.value }))}
+                        className="mt-1"
+                        placeholder="Wpisz wynik w ms"
+                      />
+                    </div>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        setTaskStatus(prev => ({ ...prev, hrv_challenge: 'completed' }));
+                        setManualInputMode(prev => ({ ...prev, hrv_challenge: false }));
+                      }}
+                    >
+                      Zapisz
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setManualInputMode(prev => ({ ...prev, hrv_challenge: true }))}
+                  >
+                    Rozpocznij
+                  </Button>
                 )}
               </CardContent>
             </Card>
@@ -288,19 +385,46 @@ const AthleteProfile = () => {
             <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">HRV Training</h3>
-                {taskStatus.hrv_training === 'pending' ? (
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => setTaskStatus(prev => ({ ...prev, hrv_training: 'completed' }))}
-                  >
-                    Rozpocznij
-                  </Button>
-                ) : (
+                {taskStatus.hrv_training === 'completed' ? (
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <CheckCircle2 className="h-5 w-5" />
                     <span className="font-medium">Ukończono</span>
                   </div>
+                ) : manualInputMode.hrv_training ? (
+                  <div className="space-y-3">
+                    <div className="text-left">
+                      <Label htmlFor="hrv-training-input" className="text-sm text-slate-700">
+                        Wprowadź wynik (ms)
+                      </Label>
+                      <Input
+                        id="hrv-training-input"
+                        type="text"
+                        value={inputValues.hrv_training}
+                        onChange={(e) => setInputValues(prev => ({ ...prev, hrv_training: e.target.value }))}
+                        className="mt-1"
+                        placeholder="Wpisz wynik w ms"
+                      />
+                    </div>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        setTaskStatus(prev => ({ ...prev, hrv_training: 'completed' }));
+                        setManualInputMode(prev => ({ ...prev, hrv_training: false }));
+                      }}
+                    >
+                      Zapisz
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setManualInputMode(prev => ({ ...prev, hrv_training: true }))}
+                  >
+                    Rozpocznij
+                  </Button>
                 )}
               </CardContent>
             </Card>
