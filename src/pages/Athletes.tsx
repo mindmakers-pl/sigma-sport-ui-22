@@ -7,9 +7,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Athletes = () => {
+  const navigate = useNavigate();
+  
   const athletes = [
     { id: 1, name: "Kowalski Jan", club: "KS Górnik" },
     { id: 2, name: "Nowak Anna", club: "MKS Cracovia" },
@@ -40,8 +42,12 @@ const Athletes = () => {
                 <TableCell className="font-medium text-slate-900">{athlete.name}</TableCell>
                 <TableCell className="text-slate-600">{athlete.club}</TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate(`/zawodnicy/${athlete.id}`)}
+                  >
+                    Zobacz Profil
                   </Button>
                 </TableCell>
               </TableRow>

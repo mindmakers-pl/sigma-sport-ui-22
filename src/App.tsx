@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Athletes from "./pages/Athletes";
+import AthleteProfile from "./pages/AthleteProfile";
 import Clubs from "./pages/Clubs";
 import Settings from "./pages/Settings";
 import Index from "./pages/Index";
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/landing" element={<Index />} />
           <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
           <Route path="/zawodnicy" element={<AppLayout><Athletes /></AppLayout>} />
+          <Route path="/zawodnicy/:id" element={<AppLayout><AthleteProfile /></AppLayout>} />
           <Route path="/kluby" element={<AppLayout><Clubs /></AppLayout>} />
           <Route path="/ustawienia" element={<AppLayout><Settings /></AppLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
