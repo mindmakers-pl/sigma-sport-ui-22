@@ -11,6 +11,7 @@ import Clubs from "./pages/Clubs";
 import Settings from "./pages/Settings";
 import ScanGame from "./pages/ScanGame";
 import ControlGame from "./pages/ControlGame";
+import FocusGame from "./pages/FocusGame";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/ustawienia" element={<AppLayout><Settings /></AppLayout>} />
           <Route path="/scan/:athleteId" element={<ScanGame />} />
           <Route path="/control/:athleteId" element={<ControlGame />} />
+          <Route path="/focus/:athleteId" element={<FocusGame />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
