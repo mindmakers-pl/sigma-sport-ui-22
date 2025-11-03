@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts";
 import ScanGame from "./ScanGame";
@@ -196,31 +197,7 @@ const AthleteProfile = () => {
         </TabsContent>
 
         <TabsContent value="dodaj-pomiar" className="mt-6">
-          {currentView === 'showing_questionnaire' && (
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">Kwestionariusz</h2>
-              <p className="text-slate-600 mb-8">Komponent kwestionariusza będzie tutaj...</p>
-              <Button onClick={() => handleTaskComplete('kwestionariusz', { score: 85 })}>
-                Zakończ kwestionariusz
-              </Button>
-            </div>
-          )}
-
-          {currentView === 'playing_scan' && (
-            <ScanGame onComplete={handleTaskComplete} />
-          )}
-
-          {currentView === 'playing_control' && (
-            <ControlGame onComplete={handleTaskComplete} />
-          )}
-
-          {currentView === 'playing_focus' && (
-            <FocusGame onComplete={handleTaskComplete} />
-          )}
-
-          {currentView === 'kokpit' && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">Kwestionariusz</h3>
@@ -470,17 +447,15 @@ const AthleteProfile = () => {
             </Card>
           </div>
           
-              <div className="mt-8 flex justify-center">
-                <Button 
-                  variant="default" 
-                  size="lg"
-                  className="px-12"
-                >
-                  Zakończ i Zapisz Sesję
-                </Button>
-              </div>
-            </>
-          )}
+          <div className="mt-8 flex justify-center">
+            <Button 
+              variant="default" 
+              size="lg"
+              className="px-12"
+            >
+              Zakończ i Zapisz Sesję
+            </Button>
+          </div>
         </TabsContent>
 
         <TabsContent value="raporty" className="mt-6">
@@ -606,6 +581,37 @@ const AthleteProfile = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Pełnoekranowy Dialog dla gier */}
+      <Dialog open={currentView !== 'kokpit'} onOpenChange={(open) => {
+        if (!open) setCurrentView('kokpit');
+      }}>
+        <DialogContent className="w-screen h-screen max-w-none p-0 border-0 bg-slate-900">
+          {currentView === 'showing_questionnaire' && (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center py-12 bg-slate-800 p-8 rounded-lg">
+                <h2 className="text-2xl font-bold text-white mb-4">Kwestionariusz</h2>
+                <p className="text-slate-300 mb-8">Komponent kwestionariusza będzie tutaj...</p>
+                <Button onClick={() => handleTaskComplete('kwestionariusz', { score: 85 })}>
+                  Zakończ kwestionariusz
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentView === 'playing_scan' && (
+            <ScanGame onComplete={handleTaskComplete} />
+          )}
+
+          {currentView === 'playing_control' && (
+            <ControlGame onComplete={handleTaskComplete} />
+          )}
+
+          {currentView === 'playing_focus' && (
+            <FocusGame onComplete={handleTaskComplete} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
