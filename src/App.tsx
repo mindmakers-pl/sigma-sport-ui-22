@@ -29,8 +29,8 @@ const App = () => (
           <Route path="/zawodnicy/:id" element={<AppLayout><AthleteProfile /></AppLayout>} />
           <Route path="/kluby" element={<AppLayout><Clubs /></AppLayout>} />
           <Route path="/ustawienia" element={<AppLayout><Settings /></AppLayout>} />
-          <Route path="/scan" element={<ScanGame />} />
-          <Route path="/control" element={<ControlGame />} />
+          <Route path="/scan/:athleteId" element={<ScanGame />} />
+          <Route path="/control/:athleteId" element={<ControlGame />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

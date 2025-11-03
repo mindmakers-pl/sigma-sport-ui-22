@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,8 @@ import { ArrowLeft } from "lucide-react";
 const AthleteProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "informacje";
 
   // Mock data - w przyszłości z API/bazy danych
   const athleteData: Record<string, { name: string; club: string }> = {
@@ -35,7 +37,7 @@ const AthleteProfile = () => {
         <p className="text-slate-600">{athlete.club}</p>
       </div>
 
-      <Tabs defaultValue="informacje" className="w-full">
+      <Tabs defaultValue={activeTab} className="w-full">
         <TabsList className="bg-white border border-slate-200">
           <TabsTrigger value="informacje">Informacje o zawodniku</TabsTrigger>
           <TabsTrigger value="dodaj-pomiar">Dodaj pomiar</TabsTrigger>
@@ -146,7 +148,7 @@ const AthleteProfile = () => {
 
             <Card 
               className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => navigate("/scan")}
+              onClick={() => navigate(`/scan/${id}`)}
             >
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">Sigma Scan</h3>
@@ -158,7 +160,7 @@ const AthleteProfile = () => {
 
             <Card 
               className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => navigate("/control")}
+              onClick={() => navigate(`/control/${id}`)}
             >
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">Sigma Control</h3>

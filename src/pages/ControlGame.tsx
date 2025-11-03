@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
@@ -9,6 +9,7 @@ type Symbol = "O" | "X" | null;
 
 const ControlGame = () => {
   const navigate = useNavigate();
+  const { athleteId } = useParams();
   const [gameState, setGameState] = useState<GameState>("start");
   const [currentSymbol, setCurrentSymbol] = useState<Symbol>(null);
   const [correctHits, setCorrectHits] = useState<number>(0);
@@ -81,10 +82,10 @@ const ControlGame = () => {
       <Button 
         variant="ghost" 
         className="text-white hover:bg-slate-800 mb-4"
-        onClick={() => navigate(-1)}
+        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
-        Powrót
+        Powrót do Dodaj pomiar
       </Button>
       
       <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
