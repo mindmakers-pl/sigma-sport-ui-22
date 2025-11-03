@@ -1,33 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 
-type GameState = "start" | "playing" | "finished";
+type GameState = "ready" | "playing" | "finished";
 type Color = "red" | "green" | "blue";
 type Word = "CZERWONY" | "ZIELONY" | "NIEBIESKI";
 
 interface Trial {
   word: Word;
   color: Color;
-  isCongruent: boolean;
-}
-
-interface Result {
-  correct: boolean;
-  reactionTime: number;
-  isCongruent: boolean;
+  type: "congruent" | "incongruent";
 }
 
 const FocusGame = () => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
-  const [gameState, setGameState] = useState<GameState>("start");
+  const MAX_TRIALS = 20;
+  
+  const [gameState, setGameState] = useState<GameState>("ready");
   const [currentTrial, setCurrentTrial] = useState<Trial | null>(null);
-  const [trialCount, setTrialCount] = useState<number>(0);
-  const [results, setResults] = useState<Result[]>([]);
-  const [trialStartTime, setTrialStartTime] = useState<number>(0);
+  const [congruentTimes, setCongruentTimes] = useState<number[]>([]);
+  const [incongruentTimes, setIncongruentTimes] = useState<number[]>([]);
+  const [errorCount, setErrorCount] = useState<number>(0);
+  const [lastTrialStartTime, setLastTrialStartTime] = useState<number | null>(null);
+  const [totalTrials, setTotalTrials] = useState<number>(0);
 
   const colors: Color[] = ["red", "green", "blue"];
   const words: Word[] = ["CZERWONY", "ZIELONY", "NIEBIESKI"];
@@ -50,83 +48,77 @@ const FocusGame = () => {
     blue: "bg-blue-500 hover:bg-blue-600 text-white"
   };
 
-  const generateTrial = (): Trial => {
+  const handleStartGame = () => {
+    setCongruentTimes([]);
+    setIncongruentTimes([]);
+    setErrorCount(0);
+    setTotalTrials(0);
+    setGameState("playing");
+    runNextTrial();
+  };
+
+  const runNextTrial = () => {
+    if (totalTrials >= MAX_TRIALS) {
+      endGame();
+      return;
+    }
+
+    setTotalTrials((prev) => prev + 1);
+
+    // Losuj słowo i kolor
     const word = words[Math.floor(Math.random() * words.length)];
     const color = colors[Math.floor(Math.random() * colors.length)];
-    const isCongruent = colorMap[word] === color;
-    
-    return { word, color, isCongruent };
+    const type = colorMap[word] === color ? "congruent" : "incongruent";
+
+    setCurrentTrial({ word, color, type });
+    setLastTrialStartTime(Date.now());
   };
 
-  const startGame = () => {
-    setGameState("playing");
-    setTrialCount(0);
-    setResults([]);
-    startNewTrial();
-  };
+  const handleColorClick = (clickedColor: Color) => {
+    if (!currentTrial || !lastTrialStartTime) return;
 
-  const startNewTrial = () => {
-    const trial = generateTrial();
-    setCurrentTrial(trial);
-    setTrialStartTime(Date.now());
-  };
+    const correctColor = currentTrial.color;
+    const trialType = currentTrial.type;
 
-  const handleColorClick = (selectedColor: Color) => {
-    if (!currentTrial || gameState !== "playing") return;
-
-    const reactionTime = Date.now() - trialStartTime;
-    const correct = selectedColor === currentTrial.color;
-
-    const result: Result = {
-      correct,
-      reactionTime,
-      isCongruent: currentTrial.isCongruent
-    };
-
-    setResults([...results, result]);
-    setTrialCount(trialCount + 1);
-
-    if (trialCount + 1 >= 20) {
-      setGameState("finished");
-      setCurrentTrial(null);
+    if (clickedColor === correctColor) {
+      // Poprawne trafienie
+      const rt = Date.now() - lastTrialStartTime;
+      if (trialType === "congruent") {
+        setCongruentTimes((prev) => [...prev, rt]);
+      } else {
+        setIncongruentTimes((prev) => [...prev, rt]);
+      }
     } else {
-      startNewTrial();
+      // Błąd
+      setErrorCount((prev) => prev + 1);
     }
-  };
 
-  const calculateStats = () => {
-    const correctResults = results.filter(r => r.correct);
-    const congruentResults = results.filter(r => r.isCongruent);
-    const incongruentResults = results.filter(r => !r.isCongruent);
-    
-    const congruentCorrect = congruentResults.filter(r => r.correct);
-    const incongruentCorrect = incongruentResults.filter(r => r.correct);
-
-    const avgCongruentTime = congruentCorrect.length > 0
-      ? Math.round(congruentCorrect.reduce((sum, r) => sum + r.reactionTime, 0) / congruentCorrect.length)
-      : 0;
-
-    const avgIncongruentTime = incongruentCorrect.length > 0
-      ? Math.round(incongruentCorrect.reduce((sum, r) => sum + r.reactionTime, 0) / incongruentCorrect.length)
-      : 0;
-
-    return {
-      totalCorrect: correctResults.length,
-      accuracy: Math.round((correctResults.length / results.length) * 100),
-      avgCongruentTime,
-      avgIncongruentTime,
-      stroopEffect: avgIncongruentTime - avgCongruentTime
-    };
-  };
-
-  const handleReset = () => {
-    setGameState("start");
+    // Ustaw pusty ekran i zaplanuj kolejną próbę
     setCurrentTrial(null);
-    setTrialCount(0);
-    setResults([]);
+    setTimeout(() => {
+      runNextTrial();
+    }, 500);
   };
 
-  const stats = gameState === "finished" ? calculateStats() : null;
+  const endGame = () => {
+    setGameState("finished");
+  };
+
+  const calculateAvgCongruentTime = () => {
+    if (congruentTimes.length === 0) return 0;
+    const sum = congruentTimes.reduce((acc, val) => acc + val, 0);
+    return Math.round(sum / congruentTimes.length);
+  };
+
+  const calculateAvgIncongruentTime = () => {
+    if (incongruentTimes.length === 0) return 0;
+    const sum = incongruentTimes.reduce((acc, val) => acc + val, 0);
+    return Math.round(sum / incongruentTimes.length);
+  };
+
+  const calculateFocusScore = () => {
+    return calculateAvgIncongruentTime() - calculateAvgCongruentTime();
+  };
 
   return (
     <div className="min-h-screen bg-slate-900 p-4">
@@ -140,20 +132,20 @@ const FocusGame = () => {
       </Button>
       
       <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
-        {gameState === "start" && (
+        {gameState === "ready" && (
           <Card className="max-w-md w-full border-slate-700 bg-slate-800 animate-scale-in">
             <CardContent className="pt-6 text-center space-y-6">
-              <h1 className="text-3xl font-bold text-white mb-2">Focus</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">Test Focus</h1>
               <p className="text-lg text-slate-300 leading-relaxed">
-                Kliknij przycisk odpowiadający <span className="font-semibold">KOLOROWI czcionki</span>, nie znaczeniu słowa.
+                Kliknij przycisk odpowiadający <span className="font-semibold">KOLOROWI CZCIONKI</span>, ignorując znaczenie słowa.
               </p>
               <p className="text-sm text-slate-400">
-                Test składa się z 20 prób
+                Test składa się z {MAX_TRIALS} prób
               </p>
               <Button 
                 size="lg" 
                 className="w-full text-lg"
-                onClick={startGame}
+                onClick={handleStartGame}
               >
                 Start
               </Button>
@@ -165,7 +157,7 @@ const FocusGame = () => {
           <div className="w-full max-w-2xl animate-fade-in">
             <div className="text-center mb-8">
               <p className="text-white text-lg mb-2">
-                Próba {trialCount + 1} / 20
+                Próba {totalTrials} / {MAX_TRIALS}
               </p>
             </div>
 
@@ -201,55 +193,100 @@ const FocusGame = () => {
           </div>
         )}
 
-        {gameState === "finished" && stats && (
-          <Card className="max-w-md w-full border-slate-700 bg-slate-800 animate-scale-in">
-            <CardContent className="pt-6 text-center space-y-6">
-              <h2 className="text-2xl font-bold text-white">Wyniki!</h2>
-              <div className="space-y-4 py-4">
-                <div>
-                  <p className="text-slate-400 mb-2">Poprawne odpowiedzi:</p>
-                  <p className="text-4xl font-bold text-primary">{stats.totalCorrect} / 20</p>
-                </div>
-                <div>
-                  <p className="text-slate-400 mb-2">Dokładność:</p>
-                  <p className="text-3xl font-bold text-green-500">{stats.accuracy}%</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4 pt-4">
-                  <div className="bg-slate-700 rounded-lg p-4">
-                    <p className="text-slate-400 text-sm mb-1">Próby zgodne:</p>
-                    <p className="text-2xl font-bold text-white">{stats.avgCongruentTime} ms</p>
+        {gameState === "playing" && !currentTrial && (
+          <div className="w-full max-w-2xl">
+            <div className="bg-slate-800 rounded-lg p-12 text-center">
+              <div className="text-4xl text-slate-500">...</div>
+            </div>
+          </div>
+        )}
+
+        {gameState === "finished" && (
+          <div className="w-full max-w-4xl space-y-6 animate-fade-in">
+            <h2 className="text-3xl font-bold text-white text-center mb-8">Wyniki Testu Focus</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Średni Czas Reakcji Zgodne */}
+              <Card className="border-slate-700 bg-slate-800">
+                <CardHeader>
+                  <CardTitle className="text-lg text-slate-300">Średni Czas Reakcji (Zgodne)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold text-green-400 mb-2">
+                    {calculateAvgCongruentTime()} ms
                   </div>
-                  <div className="bg-slate-700 rounded-lg p-4">
-                    <p className="text-slate-400 text-sm mb-1">Próby niezgodne:</p>
-                    <p className="text-2xl font-bold text-yellow-500">{stats.avgIncongruentTime} ms</p>
+                  <p className="text-sm text-slate-400">
+                    Próby gdzie słowo i kolor są zgodne
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Średni Czas Reakcji Konflikt */}
+              <Card className="border-slate-700 bg-slate-800">
+                <CardHeader>
+                  <CardTitle className="text-lg text-slate-300">Średni Czas Reakcji (Konflikt)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold text-yellow-400 mb-2">
+                    {calculateAvgIncongruentTime()} ms
                   </div>
+                  <p className="text-sm text-slate-400">
+                    Próby gdzie słowo i kolor są niezgodne
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Wynik Focus (Efekt Interferencji) */}
+              <Card className="border-slate-700 bg-slate-800">
+                <CardHeader>
+                  <CardTitle className="text-lg text-slate-300">Wynik Focus</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold text-orange-400 mb-2">
+                    +{calculateFocusScore()} ms
+                  </div>
+                  <p className="text-sm text-slate-400">
+                    Efekt interferencji (różnica czasów)
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Błędy */}
+            <Card className="border-slate-700 bg-slate-800">
+              <CardHeader>
+                <CardTitle className="text-lg text-slate-300">Liczba Błędów</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-red-400">
+                  {errorCount}
                 </div>
-                <div className="bg-slate-700 rounded-lg p-4">
-                  <p className="text-slate-400 text-sm mb-1">Efekt Stroopa:</p>
-                  <p className="text-2xl font-bold text-orange-500">+{stats.stroopEffect} ms</p>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <Button 
-                  size="lg" 
-                  className="w-full"
-                  onClick={() => {
-                    console.log("Zapisz wyniki:", stats);
-                  }}
-                >
-                  Zapisz Wynik
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleReset}
-                >
-                  Zagraj Ponownie
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                <p className="text-sm text-slate-400 mt-2">
+                  Nieprawidłowe odpowiedzi w trakcie testu
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Przyciski */}
+            <div className="flex gap-4 justify-between pt-4">
+              <Button 
+                size="lg"
+                variant="outline"
+                onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
+                className="flex-1"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Powrót
+              </Button>
+              <Button 
+                size="lg"
+                onClick={() => navigate(`/scan/${athleteId}`)}
+                className="flex-1"
+              >
+                Następne wyzwanie
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </div>
