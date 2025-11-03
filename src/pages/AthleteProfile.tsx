@@ -17,6 +17,7 @@ import Kwestionariusz from "@/components/forms/Kwestionariusz";
 import HRVBaselineForm from "@/components/forms/HRVBaselineForm";
 import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
 import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
+import { loadMockSessionsToStorage } from "@/utils/mockSessionData";
 
 const AthleteProfile = () => {
   const { id } = useParams();
@@ -59,10 +60,25 @@ const AthleteProfile = () => {
     hrv_training: ''
   });
 
+  // Mock data - w przyszłości z API/bazy danych
+  const athleteData: Record<string, { name: string; club: string }> = {
+    "1": { name: "Jan Kowalski", club: "KS Górnik" },
+    "2": { name: "Anna Nowak", club: "MKS Cracovia" },
+    "3": { name: "Piotr Wiśniewski", club: "KS Górnik" },
+    "4": { name: "Maria Kowalczyk", club: "Wisła Kraków" },
+    "5": { name: "Tomasz Zieliński", club: "Legia Warszawa" },
+  };
+
+  const athlete = athleteData[id || "1"] || { name: "Nieznany zawodnik", club: "Brak danych" };
+
   // Load sessions on mount
   useEffect(() => {
-    const sessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-    setSavedSessions(sessions.filter((s: any) => s.athlete_id === id));
+    if (id) {
+      const athleteName = athleteData[id]?.name || 'Unknown';
+      const sessions = loadMockSessionsToStorage(id, athleteName);
+      const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
+      setSavedSessions(allSessions.filter((s: any) => s.athlete_id === id));
+    }
   }, [id]);
 
   const handleTaskComplete = (taskName: string, result: any) => {
@@ -108,18 +124,7 @@ const AthleteProfile = () => {
     setSelectedChallengeType('');
   };
 
-  // Mock data - w przyszłości z API/bazy danych
-  const athleteData: Record<string, { name: string; club: string }> = {
-    "1": { name: "Jan Kowalski", club: "KS Górnik" },
-    "2": { name: "Anna Nowak", club: "MKS Cracovia" },
-    "3": { name: "Piotr Wiśniewski", club: "KS Górnik" },
-    "4": { name: "Maria Kowalczyk", club: "Wisła Kraków" },
-    "5": { name: "Tomasz Zieliński", club: "Legia Warszawa" },
-  };
-
-  const athlete = athleteData[id || "1"] || { name: "Nieznany zawodnik", club: "Brak danych" };
-
-  // Mock data dla wykresów
+  // Mock data for charts
   const cognitiveData = [
     { subject: "Scan", A: 85, B: 92 },
     { subject: "Control", A: 78, B: 88 },
