@@ -35,13 +35,14 @@ const AthleteProfile = () => {
         <p className="text-slate-600">{athlete.club}</p>
       </div>
 
-      <Tabs defaultValue="pomiary" className="w-full">
+      <Tabs defaultValue="informacje" className="w-full">
         <TabsList className="bg-white border border-slate-200">
-          <TabsTrigger value="pomiary">Pomiary</TabsTrigger>
+          <TabsTrigger value="informacje">Informacje o zawodniku</TabsTrigger>
+          <TabsTrigger value="dodaj-pomiar">Dodaj pomiar</TabsTrigger>
           <TabsTrigger value="raporty">Raporty</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pomiary" className="mt-6">
+        <TabsContent value="informacje" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="border-slate-200 bg-white">
               <CardHeader>
@@ -117,6 +118,76 @@ const AthleteProfile = () => {
                 <p className="text-sm text-slate-600 mb-4">15 stycznia 2024</p>
                 <Button variant="outline" className="w-full">
                   Dodaj nowy pomiar
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="dodaj-pomiar" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6 text-center space-y-4">
+                <h3 className="text-xl font-semibold text-slate-900">Kwestionariusz</h3>
+                <Button variant="outline" className="w-full">
+                  Rozpocznij
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6 text-center space-y-4">
+                <h3 className="text-xl font-semibold text-slate-900">HRV Baseline</h3>
+                <Button variant="outline" className="w-full">
+                  Rozpocznij
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => navigate("/scan")}
+            >
+              <CardContent className="pt-6 text-center space-y-4">
+                <h3 className="text-xl font-semibold text-slate-900">Sigma Scan</h3>
+                <Button variant="outline" className="w-full">
+                  Rozpocznij
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6 text-center space-y-4">
+                <h3 className="text-xl font-semibold text-slate-900">Sigma Control</h3>
+                <Button variant="outline" className="w-full">
+                  Rozpocznij
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6 text-center space-y-4">
+                <h3 className="text-xl font-semibold text-slate-900">Sigma Focus</h3>
+                <Button variant="outline" className="w-full">
+                  Rozpocznij
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6 text-center space-y-4">
+                <h3 className="text-xl font-semibold text-slate-900">HRV Challenge</h3>
+                <Button variant="outline" className="w-full">
+                  Rozpocznij
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6 text-center space-y-4">
+                <h3 className="text-xl font-semibold text-slate-900">HRV Training</h3>
+                <Button variant="outline" className="w-full">
+                  Rozpocznij
                 </Button>
               </CardContent>
             </Card>
