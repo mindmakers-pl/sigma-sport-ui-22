@@ -62,7 +62,7 @@ const ControlGame = () => {
 
   // Funkcja rekurencyjna pętli gry
   const runGameLoop = () => {
-    // 1. Pusta przerwa (1 sekunda)
+    // 1. Pusta przerwa (ISI: 1.5 sekundy)
     setCurrentStimulus(null);
     
     loopTimerRef.current = window.setTimeout(() => {
@@ -79,7 +79,7 @@ const ControlGame = () => {
       trialCounterRef.current += 1;
       currentTrialTypeRef.current = stimulusType;
       
-      // 5. Timer na omission (tylko dla bodźca 'Go')
+      // 5. Timer na omission (tylko dla bodźca 'Go' - 500ms)
       if (stimulusType === "Go") {
         omissionTimerRef.current = window.setTimeout(() => {
           setCurrentStimulus((currentStim) => {
@@ -102,7 +102,7 @@ const ControlGame = () => {
             }
             return null;
           });
-        }, 1000);
+        }, 500);
       } else {
         // Dla NoGo - jeśli nie kliknął, to dobrze (correct)
         omissionTimerRef.current = window.setTimeout(() => {
@@ -120,17 +120,17 @@ const ControlGame = () => {
             }
             return null;
           });
-        }, 1000);
+        }, 500);
       }
       
-      // 6. Ukrycie bodźca po 1 sekundzie i kontynuacja pętli
+      // 6. Ukrycie bodźca po 500ms i kontynuacja pętli
       stimulusTimerRef.current = window.setTimeout(() => {
         setCurrentStimulus(null);
         
         // 7. Rekurencja - kolejna próba
         runGameLoop();
-      }, 1000);
-    }, 1000);
+      }, 500);
+    }, 1500);
   };
 
   // Funkcja zakończenia gry
@@ -272,6 +272,41 @@ const ControlGame = () => {
     return Math.round(sum / reactionTimes.length);
   };
 
+  // Obliczanie najszybszej i najwolniejszej reakcji
+  const calculateMinRT = () => {
+    if (reactionTimes.length === 0) return 0;
+    return Math.round(Math.min(...reactionTimes));
+  };
+
+  const calculateMaxRT = () => {
+    if (reactionTimes.length === 0) return 0;
+    return Math.round(Math.max(...reactionTimes));
+  };
+
+  // Obliczanie średniej kroczącej dla wykresu trendu
+  const calculateMovingAverage = (windowSize: number = 5) => {
+    const goHits = trialHistory.filter(t => t.result === 'goHit' && t.reactionTime);
+    if (goHits.length === 0) return [];
+    
+    const movingAvg: Array<{ trialNumber: number; avgRT: number }> = [];
+    
+    for (let i = 0; i < goHits.length; i++) {
+      const start = Math.max(0, i - Math.floor(windowSize / 2));
+      const end = Math.min(goHits.length, i + Math.ceil(windowSize / 2));
+      const window = goHits.slice(start, end);
+      
+      const sum = window.reduce((acc, trial) => acc + (trial.reactionTime || 0), 0);
+      const avg = sum / window.length;
+      
+      movingAvg.push({
+        trialNumber: goHits[i].trialNumber,
+        avgRT: Math.round(avg)
+      });
+    }
+    
+    return movingAvg;
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 p-4">
       <Button 
@@ -337,8 +372,18 @@ const ControlGame = () => {
               
               <div className="space-y-4 py-4">
                 <div className="bg-slate-900 rounded-lg p-4">
-                  <p className="text-slate-400 text-sm mb-1">Średni Czas Reakcji "Go"</p>
-                  <p className="text-3xl font-bold text-emerald-300">{calculateAverageRT()} ms</p>
+                  <p className="text-slate-400 text-sm mb-2">Średni Czas Reakcji "Go"</p>
+                  <p className="text-3xl font-bold text-emerald-300 mb-3">{calculateAverageRT()} ms</p>
+                  <div className="flex justify-between text-sm">
+                    <div>
+                      <span className="text-slate-500">Najszybsza: </span>
+                      <span className="text-emerald-400 font-semibold">{calculateMinRT()} ms</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Najwolniejsza: </span>
+                      <span className="text-amber-400 font-semibold">{calculateMaxRT()} ms</span>
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="bg-slate-900 rounded-lg p-4">
@@ -355,8 +400,8 @@ const ControlGame = () => {
               {/* Wykres trendu */}
               <div className="bg-slate-900 rounded-lg p-4">
                 <p className="text-slate-400 text-sm mb-4">Trend Czasów Reakcji</p>
-                <ResponsiveContainer width="100%" height={200}>
-                  <ScatterChart margin={{ top: 10, right: 10, bottom: 20, left: 0 }}>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart margin={{ top: 10, right: 10, bottom: 20, left: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                     <XAxis 
                       dataKey="trialNumber" 
@@ -365,41 +410,59 @@ const ControlGame = () => {
                       label={{ value: 'Próby', position: 'insideBottom', offset: -10, fill: '#94a3b8' }}
                     />
                     <YAxis 
-                      dataKey="reactionTime"
                       stroke="#94a3b8"
                       label={{ value: 'ms', angle: -90, position: 'insideLeft', fill: '#94a3b8' }}
                     />
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
                       labelStyle={{ color: '#94a3b8' }}
-                      formatter={(value: any, name: string, props: any) => {
-                        const result = props.payload.result;
-                        const labels: Record<string, string> = {
-                          goHit: 'Trafienie',
-                          goMiss: 'Przeoczenie',
-                          noGoError: 'Impulsywność',
-                          correct: 'Poprawne powstrzymanie'
-                        };
-                        return [value ? `${value} ms` : 'Brak reakcji', labels[result] || result];
+                      formatter={(value: any, name: string) => {
+                        if (name === 'avgRT') return [`${value} ms`, 'Średnia krocząca'];
+                        return [`${value} ms`, 'Czas reakcji'];
                       }}
                     />
-                    <ZAxis range={[64, 64]} />
-                    {/* Poprawne trafienia Go - zielone */}
+                    
+                    {/* Warstwa 1: Punkty - wszystkie pojedyncze próby (mniejsze, jaśniejsze) */}
                     <Scatter 
                       data={trialHistory.filter(t => t.result === 'goHit')} 
                       fill="#6ee7b7" 
-                    />
-                    {/* Błędy przeoczenia - amber */}
+                      fillOpacity={0.4}
+                      shape="circle"
+                    >
+                      <ZAxis range={[20, 20]} />
+                    </Scatter>
+                    
+                    {/* Błędy przeoczenia - małe kropki na dole */}
                     <Scatter 
                       data={trialHistory.filter(t => t.result === 'goMiss').map(t => ({ ...t, reactionTime: 0 }))} 
                       fill="#fbbf24" 
-                    />
-                    {/* Błędy impulsywności - czerwone */}
+                      fillOpacity={0.6}
+                      shape="circle"
+                    >
+                      <ZAxis range={[20, 20]} />
+                    </Scatter>
+                    
+                    {/* Błędy impulsywności - małe czerwone kropki na dole */}
                     <Scatter 
                       data={trialHistory.filter(t => t.result === 'noGoError').map(t => ({ ...t, reactionTime: 0 }))} 
                       fill="#f87171" 
+                      fillOpacity={0.6}
+                      shape="circle"
+                    >
+                      <ZAxis range={[20, 20]} />
+                    </Scatter>
+                    
+                    {/* Warstwa 2: Linia trendu - średnia krocząca (grubsza linia) */}
+                    <Line 
+                      data={calculateMovingAverage(5)}
+                      type="monotone"
+                      dataKey="avgRT"
+                      stroke="#10b981"
+                      strokeWidth={3}
+                      dot={false}
+                      name="Średnia krocząca"
                     />
-                  </ScatterChart>
+                  </LineChart>
                 </ResponsiveContainer>
               </div>
               
