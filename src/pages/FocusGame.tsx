@@ -129,7 +129,20 @@ const FocusGame = ({ onComplete }: FocusGameProps) => {
       <Button 
         variant="ghost" 
         className="text-white hover:bg-slate-800 mb-4"
-        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
+        onClick={() => {
+          if (onComplete) {
+            onComplete('focus', {
+              avgCongruent: calculateAvgCongruentTime(),
+              avgIncongruent: calculateAvgIncongruentTime(),
+              focusScore: calculateFocusScore(),
+              errorCount,
+              congruentTimes,
+              incongruentTimes
+            });
+          } else {
+            navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+          }
+        }}
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Powrót

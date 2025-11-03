@@ -149,7 +149,19 @@ const ScanGame = ({ onComplete }: ScanGameProps) => {
       <Button 
         variant="ghost" 
         className="text-white hover:bg-slate-800 mb-4"
-        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
+        onClick={() => {
+          if (onComplete) {
+            onComplete('scan', {
+              average: calculateStats().average,
+              median: calculateStats().median,
+              accuracy: calculateStats().accuracy,
+              errors: errorCount,
+              results: resultsList
+            });
+          } else {
+            navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+          }
+        }}
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Powrót do Dodaj pomiar

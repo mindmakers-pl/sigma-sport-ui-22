@@ -316,7 +316,21 @@ const ControlGame = ({ onComplete }: ControlGameProps) => {
       <Button 
         variant="ghost" 
         className="text-white hover:bg-slate-800 mb-4"
-        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
+        onClick={() => {
+          if (onComplete) {
+            onComplete('control', {
+              averageRT: calculateAverageRT(),
+              minRT: calculateMinRT(),
+              maxRT: calculateMaxRT(),
+              goHits: results.goHits,
+              goMisses: results.goMisses,
+              noGoErrors: results.noGoErrors,
+              reactionTimes
+            });
+          } else {
+            navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+          }
+        }}
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Powrót do Dodaj pomiar
