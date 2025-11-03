@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
 
 type GameState = "start" | "playing" | "finished";
 
 const ScanGame = () => {
+  const navigate = useNavigate();
   const [gameState, setGameState] = useState<GameState>("start");
   const [grid, setGrid] = useState<Array<{ type: "circle" | "square"; isTarget: boolean }>>([]);
   const [startTime, setStartTime] = useState<number>(0);
@@ -44,8 +47,18 @@ const ScanGame = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      {gameState === "start" && (
+    <div className="min-h-screen bg-slate-900 p-4">
+      <Button 
+        variant="ghost" 
+        className="text-white hover:bg-slate-800 mb-4"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Powrót
+      </Button>
+      
+      <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
+        {gameState === "start" && (
         <Card className="max-w-md w-full border-slate-700 bg-slate-800 animate-scale-in">
           <CardContent className="pt-6 text-center space-y-6">
             <h1 className="text-3xl font-bold text-white mb-2">Scan</h1>
@@ -114,6 +127,7 @@ const ScanGame = () => {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 };
