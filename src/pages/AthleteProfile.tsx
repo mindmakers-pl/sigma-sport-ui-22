@@ -156,7 +156,10 @@ const AthleteProfile = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+            <Card 
+              className="border-slate-200 bg-white hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => navigate("/control")}
+            >
               <CardContent className="pt-6 text-center space-y-4">
                 <h3 className="text-xl font-semibold text-slate-900">Sigma Control</h3>
                 <Button variant="outline" className="w-full">

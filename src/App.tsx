@@ -10,6 +10,7 @@ import AthleteProfile from "./pages/AthleteProfile";
 import Clubs from "./pages/Clubs";
 import Settings from "./pages/Settings";
 import ScanGame from "./pages/ScanGame";
+import ControlGame from "./pages/ControlGame";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/kluby" element={<AppLayout><Clubs /></AppLayout>} />
           <Route path="/ustawienia" element={<AppLayout><Settings /></AppLayout>} />
           <Route path="/scan" element={<ScanGame />} />
+          <Route path="/control" element={<ControlGame />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
