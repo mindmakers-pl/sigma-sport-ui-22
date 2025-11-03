@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 interface HRVTrainingFormProps {
   onComplete: (taskName: string, result: any) => void;
@@ -12,11 +14,20 @@ const HRVTrainingForm = ({ onComplete }: HRVTrainingFormProps) => {
   const [hrvStart, setHrvStart] = useState("");
   const [hrvEnd, setHrvEnd] = useState("");
   const [duration, setDuration] = useState("");
+  const [technique, setTechnique] = useState("");
+  const [comment, setComment] = useState("");
 
   const handleSave = () => {
     if (hrvStart.trim() && hrvEnd.trim() && duration.trim()) {
-      console.log('Zapisuję dane HRV Training:', { hrvStart, hrvEnd, duration });
-      onComplete('hrv_training', { hrvStart, hrvEnd, duration });
+      const result = {
+        hrvStart,
+        hrvEnd,
+        duration,
+        technique,
+        comment
+      };
+      console.log('Zapisuję dane HRV Training:', result);
+      onComplete('hrv_training', result);
     }
   };
 
@@ -71,6 +82,39 @@ const HRVTrainingForm = ({ onComplete }: HRVTrainingFormProps) => {
                 onChange={(e) => setDuration(e.target.value)}
                 placeholder="np. 120"
                 className="bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="technique" className="text-slate-200">
+                Zastosowana Technika
+              </Label>
+              <Select value={technique} onValueChange={setTechnique}>
+                <SelectTrigger id="technique" className="bg-slate-700 border-slate-600 text-white">
+                  <SelectValue placeholder="Wybierz technikę" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-700 border-slate-600">
+                  <SelectItem value="oddech-rezonansowy" className="text-white">Oddech Rezonansowy</SelectItem>
+                  <SelectItem value="oddech-pudełkowy" className="text-white">Oddech Pudełkowy</SelectItem>
+                  <SelectItem value="oddech-4-7-8" className="text-white">Oddech 4-7-8</SelectItem>
+                  <SelectItem value="skanowanie-ciała" className="text-white">Skanowanie Ciała / Uważność</SelectItem>
+                  <SelectItem value="kotwica" className="text-white">Kotwica</SelectItem>
+                  <SelectItem value="wizualizacja" className="text-white">Wizualizacja</SelectItem>
+                  <SelectItem value="inna" className="text-white">Inna</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="comment" className="text-slate-200">
+                Komentarz (Opcjonalne)
+              </Label>
+              <Textarea
+                id="comment"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="np. zawodnik zgłaszał trudności..."
+                className="bg-slate-700 border-slate-600 text-white min-h-[80px]"
               />
             </div>
           </div>
