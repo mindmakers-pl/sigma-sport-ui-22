@@ -146,26 +146,28 @@ const ScanGame = ({ onComplete }: ScanGameProps) => {
 
   return (
     <div className="min-h-screen bg-slate-900 p-4">
-      <Button 
-        variant="ghost" 
-        className="text-white hover:bg-slate-800 mb-4"
-        onClick={() => {
-          if (onComplete) {
-            onComplete('scan', {
-              average: calculateStats().average,
-              median: calculateStats().median,
-              accuracy: calculateStats().accuracy,
-              errors: errorCount,
-              results: resultsList
-            });
-          } else {
-            navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-          }
-        }}
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Powrót do Dodaj pomiar
-      </Button>
+      {!onComplete && (
+        <Button 
+          variant="ghost" 
+          className="text-white hover:bg-slate-800 mb-4"
+          onClick={() => {
+            if (onComplete) {
+              onComplete('scan', {
+                average: calculateStats().average,
+                median: calculateStats().median,
+                accuracy: calculateStats().accuracy,
+                errors: errorCount,
+                results: resultsList
+              });
+            } else {
+              navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+            }
+          }}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Powrót do Dodaj pomiar
+        </Button>
+      )}
       
       <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
         {gameState === "ready" && (

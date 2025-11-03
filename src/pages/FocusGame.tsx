@@ -126,27 +126,29 @@ const FocusGame = ({ onComplete }: FocusGameProps) => {
 
   return (
     <div className="min-h-screen bg-slate-900 p-4">
-      <Button 
-        variant="ghost" 
-        className="text-white hover:bg-slate-800 mb-4"
-        onClick={() => {
-          if (onComplete) {
-            onComplete('focus', {
-              avgCongruent: calculateAvgCongruentTime(),
-              avgIncongruent: calculateAvgIncongruentTime(),
-              focusScore: calculateFocusScore(),
-              errorCount,
-              congruentTimes,
-              incongruentTimes
-            });
-          } else {
-            navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-          }
-        }}
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Powrót
-      </Button>
+      {!onComplete && (
+        <Button 
+          variant="ghost" 
+          className="text-white hover:bg-slate-800 mb-4"
+          onClick={() => {
+            if (onComplete) {
+              onComplete('focus', {
+                avgCongruent: calculateAvgCongruentTime(),
+                avgIncongruent: calculateAvgIncongruentTime(),
+                focusScore: calculateFocusScore(),
+                errorCount,
+                congruentTimes,
+                incongruentTimes
+              });
+            } else {
+              navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+            }
+          }}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Powrót
+        </Button>
+      )}
       
       <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
         {gameState === "ready" && (
