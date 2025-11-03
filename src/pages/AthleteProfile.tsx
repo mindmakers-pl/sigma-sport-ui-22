@@ -511,7 +511,7 @@ const AthleteProfile = () => {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      {/* Profil Kognitywny */}
+                      {/* Row 1: Profil Kognitywny (2/3) + Samoocena (1/3) */}
                       <Card className="bg-white border-slate-200 lg:col-span-2">
                         <CardHeader>
                           <CardTitle className="text-slate-900">Profil Kognitywny</CardTitle>
@@ -531,146 +531,161 @@ const AthleteProfile = () => {
                               </RadarChart>
                             </ResponsiveContainer>
                           </div>
-                          <div className="mt-4 space-y-2 text-sm text-slate-700">
+                          <div className="mt-4 space-y-1 text-sm text-slate-700 border-t pt-3">
+                            <p className="font-semibold mb-2 text-slate-900">Surowe Dane:</p>
                             {session.results.scan && (
-                              <p>Scan: {session.results.scan.avgReactionTime}ms, {session.results.scan.accuracy}%</p>
+                              <p><span className="text-slate-600">Scan:</span> {session.results.scan.avgReactionTime}ms, {session.results.scan.accuracy}% celności</p>
                             )}
                             {session.results.control && (
-                              <p>Control: {session.results.control.errors} błędów</p>
+                              <p><span className="text-slate-600">Control:</span> {session.results.control.omissionErrors || 0} przeoczenia, {session.results.control.commissionErrors || 0} impulsywności</p>
                             )}
                             {session.results.focus && (
-                              <p>Focus: Efekt Interferencji {session.results.focus.interferenceEffect}ms</p>
+                              <p><span className="text-slate-600">Focus:</span> {session.results.focus.interferenceEffect}ms Efekt Interferencji</p>
                             )}
                           </div>
                         </CardContent>
                       </Card>
 
-                      {/* Samoocena Psychometryczna */}
                       <Card className="bg-white border-slate-200">
                         <CardHeader>
                           <CardTitle className="text-slate-900">Profil Psychometryczny</CardTitle>
+                          <p className="text-xs text-slate-500">Samoocena</p>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-6">
                           {session.results.kwestionariusz ? (
                             <>
                               <div>
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="text-slate-600">Pewność Siebie</span>
-                                  <span className="text-slate-900 font-bold">{session.results.kwestionariusz.confidence}/10</span>
+                                <div className="flex justify-between text-sm mb-2">
+                                  <span className="text-slate-600 font-medium">Pewność Siebie</span>
+                                  <span className="text-slate-900 font-bold text-lg">{session.results.kwestionariusz.confidence}/10</span>
                                 </div>
-                                <div className="w-full bg-slate-200 rounded-full h-2">
-                                  <div className="bg-blue-500 h-2 rounded-full" style={{width: `${(session.results.kwestionariusz.confidence / 10) * 100}%`}}></div>
-                                </div>
-                              </div>
-                              <div>
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="text-slate-600">Kontrola Emocji</span>
-                                  <span className="text-slate-900 font-bold">{session.results.kwestionariusz.emotionalControl}/10</span>
-                                </div>
-                                <div className="w-full bg-slate-200 rounded-full h-2">
-                                  <div className="bg-green-500 h-2 rounded-full" style={{width: `${(session.results.kwestionariusz.emotionalControl / 10) * 100}%`}}></div>
+                                <div className="w-full bg-slate-200 rounded-full h-3">
+                                  <div className="bg-blue-500 h-3 rounded-full transition-all" style={{width: `${(session.results.kwestionariusz.confidence / 10) * 100}%`}}></div>
                                 </div>
                               </div>
                               <div>
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="text-slate-600">Motywacja</span>
-                                  <span className="text-slate-900 font-bold">{session.results.kwestionariusz.motivation}/10</span>
+                                <div className="flex justify-between text-sm mb-2">
+                                  <span className="text-slate-600 font-medium">Kontrola Emocji</span>
+                                  <span className="text-slate-900 font-bold text-lg">{session.results.kwestionariusz.emotionalControl}/10</span>
                                 </div>
-                                <div className="w-full bg-slate-200 rounded-full h-2">
-                                  <div className="bg-purple-500 h-2 rounded-full" style={{width: `${(session.results.kwestionariusz.motivation / 10) * 100}%`}}></div>
+                                <div className="w-full bg-slate-200 rounded-full h-3">
+                                  <div className="bg-green-500 h-3 rounded-full transition-all" style={{width: `${(session.results.kwestionariusz.emotionalControl / 10) * 100}%`}}></div>
+                                </div>
+                              </div>
+                              <div>
+                                <div className="flex justify-between text-sm mb-2">
+                                  <span className="text-slate-600 font-medium">Motywacja</span>
+                                  <span className="text-slate-900 font-bold text-lg">{session.results.kwestionariusz.motivation}/10</span>
+                                </div>
+                                <div className="w-full bg-slate-200 rounded-full h-3">
+                                  <div className="bg-purple-500 h-3 rounded-full transition-all" style={{width: `${(session.results.kwestionariusz.motivation / 10) * 100}%`}}></div>
                                 </div>
                               </div>
                             </>
                           ) : (
-                            <p className="text-slate-500">Brak danych</p>
+                            <p className="text-slate-500 text-center py-8">Brak danych z kwestionariusza</p>
                           )}
                         </CardContent>
                       </Card>
 
-                      {/* Reaktywność Fizjologiczna HRV */}
+                      {/* Row 2: HRV (2/3) + Biofeedback (1/3) */}
                       <Card className="bg-white border-slate-200 lg:col-span-2">
                         <CardHeader>
                           <CardTitle className="text-slate-900">Reaktywność Fizjologiczna (HRV)</CardTitle>
+                          <p className="text-xs text-slate-500">Spadek HRV pod presją zadań</p>
                         </CardHeader>
                         <CardContent>
                           <div className="h-80">
                             <ResponsiveContainer width="100%" height="100%">
                               <BarChart data={[
-                                { name: 'Baseline', hrv: session.results.hrv_baseline?.hrv || 0 },
-                                { name: 'Scan', hrv: session.results.scan?.hrv || 0 },
-                                { name: 'Control', hrv: session.results.control?.hrv || 0 },
-                                { name: 'Focus', hrv: session.results.focus?.hrv || 0 },
-                                { name: 'Move', hrv: session.results.sigma_move?.hrv || 0 },
+                                { name: 'Baseline', hrv: parseInt(session.results.hrv_baseline?.hrv) || 0 },
+                                { name: 'Scan', hrv: parseInt(session.results.scan?.hrv) || 0 },
+                                { name: 'Control', hrv: parseInt(session.results.control?.hrv) || 0 },
+                                { name: 'Focus', hrv: parseInt(session.results.focus?.hrv) || 0 },
+                                { name: 'Move', hrv: parseInt(session.results.sigma_move?.hrv) || 0 },
                               ]}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                <XAxis dataKey="name" tick={{ fill: '#64748b' }} />
-                                <YAxis tick={{ fill: '#64748b' }} />
-                                <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #cbd5e1' }} />
-                                <Bar dataKey="hrv" fill="#3b82f6" />
+                                <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} />
+                                <YAxis 
+                                  tick={{ fill: '#64748b' }} 
+                                  label={{ value: 'HRV (ms)', angle: -90, position: 'insideLeft', style: { fill: '#64748b' } }}
+                                />
+                                <Tooltip 
+                                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                                  labelStyle={{ fontWeight: 'bold', color: '#1e293b' }}
+                                  formatter={(value: any) => [`${value} ms`, 'HRV']}
+                                />
+                                <Bar dataKey="hrv" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                               </BarChart>
                             </ResponsiveContainer>
                           </div>
                         </CardContent>
                       </Card>
 
-                      {/* Trening Biofeedback */}
                       <Card className="bg-white border-slate-200">
                         <CardHeader>
                           <CardTitle className="text-slate-900">Efekt Treningu Regulacji</CardTitle>
+                          <p className="text-xs text-slate-500">Trening Biofeedback</p>
                         </CardHeader>
-                        <CardContent className="space-y-3 text-slate-700">
+                        <CardContent className="space-y-4">
                           {session.results.hrv_training ? (
                             <>
-                              <div>
-                                <span className="text-slate-600">Technika:</span>{' '}
-                                <span className="text-slate-900 font-medium">{session.results.hrv_training.technique}</span>
+                              <div className="space-y-1">
+                                <p className="text-xs text-slate-500">Technika</p>
+                                <p className="text-slate-900 font-semibold">{session.results.hrv_training.technique}</p>
                               </div>
-                              <div>
-                                <span className="text-slate-600">Czas:</span>{' '}
-                                <span className="text-slate-900 font-medium">{session.results.hrv_training.duration}s</span>
+                              <div className="space-y-1">
+                                <p className="text-xs text-slate-500">Czas Trwania</p>
+                                <p className="text-slate-900 font-semibold">{session.results.hrv_training.duration}s</p>
                               </div>
-                              <div>
-                                <span className="text-slate-600">Zmiana HRV:</span>{' '}
-                                <span className="text-slate-900 font-medium">
-                                  {session.results.hrv_training.hrvStart}ms → {session.results.hrv_training.hrvEnd}ms
-                                </span>
+                              <div className="space-y-1">
+                                <p className="text-xs text-slate-500">Zmiana HRV</p>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg font-bold text-slate-700">{session.results.hrv_training.hrvStart}ms</span>
+                                  <span className="text-slate-400">→</span>
+                                  <span className="text-lg font-bold text-green-600">{session.results.hrv_training.hrvEnd}ms</span>
+                                </div>
+                                <p className="text-sm text-green-600 font-medium">
+                                  +{parseInt(session.results.hrv_training.hrvEnd) - parseInt(session.results.hrv_training.hrvStart)}ms
+                                </p>
                               </div>
                               {session.results.hrv_training.comment && (
-                                <div>
-                                  <span className="text-slate-600">Komentarz:</span>{' '}
-                                  <span className="text-slate-900">{session.results.hrv_training.comment}</span>
+                                <div className="space-y-1 pt-2 border-t">
+                                  <p className="text-xs text-slate-500">Komentarz</p>
+                                  <p className="text-sm text-slate-700 italic">{session.results.hrv_training.comment}</p>
                                 </div>
                               )}
                             </>
                           ) : (
-                            <p className="text-slate-500">Brak danych</p>
+                            <p className="text-slate-500 text-center py-8">Brak danych z treningu HRV</p>
                           )}
                         </CardContent>
                       </Card>
 
-                      {/* Sigma Move */}
-                      <Card className="bg-white border-slate-200 lg:col-span-3">
+                      {/* Row 3: Sigma Move (1/3 width) */}
+                      <Card className="bg-white border-slate-200">
                         <CardHeader>
-                          <CardTitle className="text-slate-900">Wydajność Motoryczna (Sigma Move)</CardTitle>
+                          <CardTitle className="text-slate-900">Sigma Move</CardTitle>
+                          <p className="text-xs text-slate-500">Wydajność Motoryczna</p>
                         </CardHeader>
-                        <CardContent className="space-y-2 text-slate-700">
+                        <CardContent className="space-y-4">
                           {session.results.sigma_move ? (
                             <>
-                              <div>
-                                <span className="text-slate-600">Wyzwanie:</span>{' '}
-                                <span className="text-slate-900 font-medium">{session.results.sigma_move.type}</span>
+                              <div className="space-y-1">
+                                <p className="text-xs text-slate-500">Wyzwanie</p>
+                                <p className="text-slate-900 font-semibold">{session.results.sigma_move.type}</p>
                               </div>
-                              <div>
-                                <span className="text-slate-600">Wynik:</span>{' '}
-                                <span className="text-slate-900 font-medium">{session.results.sigma_move.result}</span>
+                              <div className="space-y-1">
+                                <p className="text-xs text-slate-500">Wynik</p>
+                                <p className="text-2xl font-bold text-slate-900">{session.results.sigma_move.result}</p>
                               </div>
-                              <div>
-                                <span className="text-slate-600">Śr. HRV:</span>{' '}
-                                <span className="text-slate-900 font-medium">{session.results.sigma_move.hrv}ms</span>
+                              <div className="space-y-1">
+                                <p className="text-xs text-slate-500">Średnie HRV</p>
+                                <p className="text-slate-900 font-semibold">{session.results.sigma_move.hrv}ms</p>
                               </div>
                             </>
                           ) : (
-                            <p className="text-slate-500">Brak danych</p>
+                            <p className="text-slate-500 text-center py-8">Brak danych z Sigma Move</p>
                           )}
                         </CardContent>
                       </Card>
