@@ -6,8 +6,10 @@ interface AppLayoutProps {
 }
 
 const AppLayout = ({ children }: AppLayoutProps) => {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+  
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={!isMobile}>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <main className="flex-1 bg-slate-50">

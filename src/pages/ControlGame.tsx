@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Scatter, ScatterChart, ZAxis } from "recharts";
 
@@ -48,6 +49,9 @@ const ControlGame = ({ onComplete }: ControlGameProps) => {
   
   // Historia wszystkich prób (do wykresu)
   const [trialHistory, setTrialHistory] = useState<Trial[]>([]);
+  
+  // HRV manual input
+  const [manualHRV, setManualHRV] = useState<string>("");
   
   // Licznik prób
   const trialCounterRef = useRef<number>(0);
@@ -287,6 +291,23 @@ const ControlGame = ({ onComplete }: ControlGameProps) => {
     return Math.round(Math.max(...reactionTimes));
   };
 
+  const handleSaveAndContinue = () => {
+    const finalPayload = {
+      gameData: {
+        averageRT: calculateAverageRT(),
+        minRT: calculateMinRT(),
+        maxRT: calculateMaxRT(),
+        goHits: results.goHits,
+        goMisses: results.goMisses,
+        noGoErrors: results.noGoErrors,
+        reactionTimes
+      },
+      hrvData: manualHRV
+    };
+    console.log('Zapisuję dane:', finalPayload);
+    // TODO: Navigate to next challenge
+  };
+
   // Obliczanie średniej kroczącej dla wykresu trendu
   const calculateMovingAverage = (windowSize: number = 5) => {
     const goHits = trialHistory.filter(t => t.result === 'goHit' && t.reactionTime);
@@ -415,6 +436,21 @@ const ControlGame = ({ onComplete }: ControlGameProps) => {
                   <p className="text-slate-400 text-sm mb-1">Błędy Impulsywności (Commission)</p>
                   <p className="text-3xl font-bold text-red-400">{results.noGoErrors}</p>
                 </div>
+
+                {/* Formularz HRV */}
+                <div className="bg-slate-900 rounded-lg p-4">
+                  <p className="text-slate-400 text-sm mb-3">Powiązany pomiar HRV (ms)</p>
+                  <Input
+                    type="number"
+                    value={manualHRV}
+                    onChange={(e) => setManualHRV(e.target.value)}
+                    placeholder="np. 35"
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                  <p className="text-xs text-slate-500 mt-2">
+                    Wprowadź wartość HRV zmierzoną podczas tego wyzwania
+                  </p>
+                </div>
               </div>
               
               {/* Wykres trendu */}
@@ -488,7 +524,8 @@ const ControlGame = ({ onComplete }: ControlGameProps) => {
               
               <div className="flex gap-3">
                 <Button 
-                  size="lg" 
+                  size="lg"
+                  variant="outline"
                   className="flex-1"
                   onClick={() => {
                     if (onComplete) {
@@ -506,15 +543,16 @@ const ControlGame = ({ onComplete }: ControlGameProps) => {
                     }
                   }}
                 >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
                   Powrót
                 </Button>
                 <Button 
                   size="lg" 
-                  variant="outline"
                   className="flex-1"
-                  onClick={() => navigate(`/focus/${athleteId}`)}
+                  onClick={handleSaveAndContinue}
+                  disabled={!manualHRV.trim()}
                 >
-                  Następne wyzwanie
+                  Następne Wyzwanie
                 </Button>
               </div>
             </CardContent>

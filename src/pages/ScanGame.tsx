@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 
 type GameState = "ready" | "playing" | "transition" | "finished";
@@ -29,6 +30,7 @@ const ScanGame = ({ onComplete }: ScanGameProps) => {
   const [errorCount, setErrorCount] = useState<number>(0);
   const [grid, setGrid] = useState<GridItem[]>([]);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [manualHRV, setManualHRV] = useState<string>("");
 
   const setupTrial = () => {
     const shapes: Shape[] = ["circle", "square", "triangle", "diamond", "hexagon"];
@@ -140,8 +142,22 @@ const ScanGame = ({ onComplete }: ScanGameProps) => {
       : sorted[Math.floor(sorted.length / 2)];
     
     const accuracy = Math.round(((MAX_TRIALS / (MAX_TRIALS + errorCount)) * 100));
-
+    
     return { average, median, accuracy };
+  };
+
+  const handleSaveAndContinue = () => {
+    const finalPayload = {
+      gameData: {
+        average: calculateStats().average,
+        median: calculateStats().median,
+        accuracy: calculateStats().accuracy,
+        errors: errorCount,
+        results: resultsList
+      },
+      hrvData: manualHRV
+    };
+    console.log('Zapisuję dane:', finalPayload);
   };
 
   return (
@@ -243,16 +259,32 @@ const ScanGame = ({ onComplete }: ScanGameProps) => {
                     Błędy: {errorCount} / Próby: {MAX_TRIALS}
                   </p>
                 </div>
+
+                {/* Formularz HRV */}
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-3">Powiązany pomiar HRV (ms)</p>
+                  <Input
+                    type="number"
+                    value={manualHRV}
+                    onChange={(e) => setManualHRV(e.target.value)}
+                    placeholder="np. 35"
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                  <p className="text-xs text-slate-500 mt-2">
+                    Wprowadź wartość HRV zmierzoną podczas tego wyzwania
+                  </p>
+                </div>
               </div>
 
               <div className="pt-2 pb-2 border-t border-slate-700">
                 <p className="text-green-400 text-sm">✓ Zapisaliśmy Twój wynik</p>
               </div>
 
-              <div className="space-y-3">
+              <div className="flex gap-3">
                 <Button 
-                  size="lg" 
-                  className="w-full"
+                  size="lg"
+                  variant="outline"
+                  className="flex-1"
                   onClick={() => {
                     if (onComplete) {
                       onComplete('scan', {
@@ -267,15 +299,16 @@ const ScanGame = ({ onComplete }: ScanGameProps) => {
                     }
                   }}
                 >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
                   Powrót
                 </Button>
                 <Button 
                   size="lg" 
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleStartGame}
+                  className="flex-1"
+                  onClick={handleSaveAndContinue}
+                  disabled={!manualHRV.trim()}
                 >
-                  Rozpocznij kolejny pomiar
+                  Następne Wyzwanie
                 </Button>
               </div>
             </CardContent>

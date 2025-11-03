@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 
 type GameState = "ready" | "playing" | "finished";
@@ -30,6 +31,7 @@ const FocusGame = ({ onComplete }: FocusGameProps) => {
   const [errorCount, setErrorCount] = useState<number>(0);
   const [lastTrialStartTime, setLastTrialStartTime] = useState<number | null>(null);
   const [totalTrials, setTotalTrials] = useState<number>(0);
+  const [manualHRV, setManualHRV] = useState<string>("");
 
   const colors: Color[] = ["red", "green", "blue"];
   const words: Word[] = ["CZERWONY", "ZIELONY", "NIEBIESKI"];
@@ -122,6 +124,22 @@ const FocusGame = ({ onComplete }: FocusGameProps) => {
 
   const calculateFocusScore = () => {
     return calculateAvgIncongruentTime() - calculateAvgCongruentTime();
+  };
+
+  const handleSaveAndContinue = () => {
+    const finalPayload = {
+      gameData: {
+        avgCongruent: calculateAvgCongruentTime(),
+        avgIncongruent: calculateAvgIncongruentTime(),
+        focusScore: calculateFocusScore(),
+        errorCount,
+        congruentTimes,
+        incongruentTimes
+      },
+      hrvData: manualHRV
+    };
+    console.log('Zapisuję dane:', finalPayload);
+    // TODO: Navigate to next challenge
   };
 
   return (
@@ -286,8 +304,27 @@ const FocusGame = ({ onComplete }: FocusGameProps) => {
               </CardContent>
             </Card>
 
+            {/* Formularz HRV */}
+            <Card className="border-slate-700 bg-slate-800">
+              <CardHeader>
+                <CardTitle className="text-lg text-slate-300">Powiązany pomiar HRV (ms)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Input
+                  type="number"
+                  value={manualHRV}
+                  onChange={(e) => setManualHRV(e.target.value)}
+                  placeholder="np. 35"
+                  className="bg-slate-700 border-slate-600 text-white"
+                />
+                <p className="text-xs text-slate-400">
+                  Wprowadź wartość HRV zmierzoną podczas tego wyzwania
+                </p>
+              </CardContent>
+            </Card>
+
             {/* Przyciski */}
-            <div className="flex gap-4 justify-between pt-4">
+            <div className="flex gap-4 justify-between pt-4 col-span-full">
               <Button 
                 size="lg"
                 variant="outline"
@@ -312,10 +349,11 @@ const FocusGame = ({ onComplete }: FocusGameProps) => {
               </Button>
               <Button 
                 size="lg"
-                onClick={() => navigate(`/scan/${athleteId}`)}
+                onClick={handleSaveAndContinue}
+                disabled={!manualHRV.trim()}
                 className="flex-1"
               >
-                Następne wyzwanie
+                Następne Wyzwanie
               </Button>
             </div>
           </div>

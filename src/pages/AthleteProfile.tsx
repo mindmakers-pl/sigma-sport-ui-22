@@ -7,11 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts";
 import ScanGame from "./ScanGame";
 import ControlGame from "./ControlGame";
 import FocusGame from "./FocusGame";
+import Kwestionariusz from "@/components/forms/Kwestionariusz";
+import HRVBaselineForm from "@/components/forms/HRVBaselineForm";
+import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
+import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
 
 const AthleteProfile = () => {
   const { id } = useParams();
@@ -23,6 +28,7 @@ const AthleteProfile = () => {
   const [sessionB, setSessionB] = useState("ewaluacja-m7");
   
   const [currentView, setCurrentView] = useState('kokpit');
+  const [measurementConditions, setMeasurementConditions] = useState('trening');
   
   const [taskStatus, setTaskStatus] = useState({
     kwestionariusz: 'pending',
@@ -30,21 +36,21 @@ const AthleteProfile = () => {
     scan: 'pending',
     control: 'pending',
     focus: 'pending',
-    hrv_challenge: 'pending',
+    sigma_move: 'pending',
     hrv_training: 'pending'
   });
   
   const [manualInputMode, setManualInputMode] = useState({
     kwestionariusz: false,
     hrv_baseline: false,
-    hrv_challenge: false,
+    sigma_move: false,
     hrv_training: false
   });
   
   const [inputValues, setInputValues] = useState({
     kwestionariusz: '',
     hrv_baseline: '',
-    hrv_challenge: '',
+    sigma_move: '',
     hrv_training: ''
   });
 
@@ -197,6 +203,35 @@ const AthleteProfile = () => {
         </TabsContent>
 
         <TabsContent value="dodaj-pomiar" className="mt-6">
+          {/* Nagłówek Sesji */}
+          <Card className="mb-6 border-slate-200 bg-white">
+            <CardContent className="pt-6">
+              <div className="space-y-3">
+                <Label className="text-base font-semibold text-slate-900">
+                  Warunki Pomiaru
+                </Label>
+                <RadioGroup 
+                  value={measurementConditions} 
+                  onValueChange={setMeasurementConditions}
+                  className="flex gap-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="gabinet" id="gabinet" />
+                    <Label htmlFor="gabinet" className="cursor-pointer text-slate-700">
+                      Gabinet (Cisza)
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="trening" id="trening" />
+                    <Label htmlFor="trening" className="cursor-pointer text-slate-700">
+                      Trening (Dystraktory)
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
@@ -284,7 +319,7 @@ const AthleteProfile = () => {
                   <Button 
                     variant="outline" 
                     className="w-full"
-                    onClick={() => setManualInputMode(prev => ({ ...prev, hrv_baseline: true }))}
+                    onClick={() => setCurrentView('measuring_baseline')}
                   >
                     Rozpocznij
                   </Button>
@@ -354,44 +389,17 @@ const AthleteProfile = () => {
 
             <Card className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center space-y-4">
-                <h3 className="text-xl font-semibold text-slate-900">HRV Challenge</h3>
-                {taskStatus.hrv_challenge === 'completed' ? (
+                <h3 className="text-xl font-semibold text-slate-900">Sigma Move</h3>
+                {taskStatus.sigma_move === 'completed' ? (
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <CheckCircle2 className="h-5 w-5" />
                     <span className="font-medium">Ukończono</span>
-                  </div>
-                ) : manualInputMode.hrv_challenge ? (
-                  <div className="space-y-3">
-                    <div className="text-left">
-                      <Label htmlFor="hrv-challenge-input" className="text-sm text-slate-700">
-                        Wprowadź wynik (ms)
-                      </Label>
-                      <Input
-                        id="hrv-challenge-input"
-                        type="text"
-                        value={inputValues.hrv_challenge}
-                        onChange={(e) => setInputValues(prev => ({ ...prev, hrv_challenge: e.target.value }))}
-                        className="mt-1"
-                        placeholder="Wpisz wynik w ms"
-                      />
-                    </div>
-                    <Button 
-                      variant="secondary" 
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        setTaskStatus(prev => ({ ...prev, hrv_challenge: 'completed' }));
-                        setManualInputMode(prev => ({ ...prev, hrv_challenge: false }));
-                      }}
-                    >
-                      Zapisz
-                    </Button>
                   </div>
                 ) : (
                   <Button 
                     variant="outline" 
                     className="w-full"
-                    onClick={() => setManualInputMode(prev => ({ ...prev, hrv_challenge: true }))}
+                    onClick={() => setCurrentView('measuring_move')}
                   >
                     Rozpocznij
                   </Button>
@@ -438,7 +446,7 @@ const AthleteProfile = () => {
                   <Button 
                     variant="outline" 
                     className="w-full"
-                    onClick={() => setManualInputMode(prev => ({ ...prev, hrv_training: true }))}
+                    onClick={() => setCurrentView('measuring_training')}
                   >
                     Rozpocznij
                   </Button>
@@ -588,15 +596,11 @@ const AthleteProfile = () => {
       }}>
         <DialogContent className="w-screen h-screen max-w-none p-0 border-0 bg-slate-900">
           {currentView === 'showing_questionnaire' && (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center py-12 bg-slate-800 p-8 rounded-lg">
-                <h2 className="text-2xl font-bold text-white mb-4">Kwestionariusz</h2>
-                <p className="text-slate-300 mb-8">Komponent kwestionariusza będzie tutaj...</p>
-                <Button onClick={() => handleTaskComplete('kwestionariusz', { score: 85 })}>
-                  Zakończ kwestionariusz
-                </Button>
-              </div>
-            </div>
+            <Kwestionariusz onComplete={handleTaskComplete} />
+          )}
+
+          {currentView === 'measuring_baseline' && (
+            <HRVBaselineForm onComplete={handleTaskComplete} />
           )}
 
           {currentView === 'playing_scan' && (
@@ -609,6 +613,14 @@ const AthleteProfile = () => {
 
           {currentView === 'playing_focus' && (
             <FocusGame onComplete={handleTaskComplete} />
+          )}
+
+          {currentView === 'measuring_move' && (
+            <SigmaMoveForm onComplete={handleTaskComplete} />
+          )}
+
+          {currentView === 'measuring_training' && (
+            <HRVTrainingForm onComplete={handleTaskComplete} />
           )}
         </DialogContent>
       </Dialog>
