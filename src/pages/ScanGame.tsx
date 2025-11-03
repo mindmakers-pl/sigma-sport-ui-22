@@ -31,11 +31,22 @@ const ScanGame = () => {
     const colors: Color[] = ["black", "gray", "white", "emerald", "violet"];
     
     // Stwórz tablicę 100 elementów z dystraktorami
-    const newGrid: GridItem[] = Array(100).fill(null).map(() => ({
-      shape: shapes[Math.floor(Math.random() * shapes.length)],
-      color: colors[Math.floor(Math.random() * colors.length)],
-      isTarget: false,
-    }));
+    const newGrid: GridItem[] = Array(100).fill(null).map(() => {
+      let shape: Shape;
+      let color: Color;
+      
+      // Losuj kształt i kolor, ale wykluczaj kombinację circle + emerald
+      do {
+        shape = shapes[Math.floor(Math.random() * shapes.length)];
+        color = colors[Math.floor(Math.random() * colors.length)];
+      } while (shape === "circle" && color === "emerald");
+      
+      return {
+        shape,
+        color,
+        isTarget: false,
+      };
+    });
 
     // Losowa pozycja dla celu (Zielone Koło)
     const targetIndex = Math.floor(Math.random() * 100);
