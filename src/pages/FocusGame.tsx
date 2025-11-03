@@ -135,7 +135,7 @@ const FocusGame = () => {
         {gameState === "ready" && (
           <Card className="max-w-md w-full border-slate-700 bg-slate-800 animate-scale-in">
             <CardContent className="pt-6 text-center space-y-6">
-              <h1 className="text-3xl font-bold text-white mb-2">Test Focus</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">Wyzwanie Sigma Focus</h1>
               <p className="text-lg text-slate-300 leading-relaxed">
                 Kliknij przycisk odpowiadający <span className="font-semibold">KOLOROWI CZCIONKI</span>, ignorując znaczenie słowa.
               </p>
