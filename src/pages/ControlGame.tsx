@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Scatter, ScatterChart, ZAxis } from "recharts";
 
 type GameState = "ready" | "playing" | "finished";
 type StimulusType = "Go" | "NoGo";
@@ -12,6 +13,13 @@ interface Results {
   goHits: number;
   goMisses: number;
   noGoErrors: number;
+}
+
+interface Trial {
+  trialNumber: number;
+  type: StimulusType;
+  result: 'goHit' | 'goMiss' | 'noGoError' | 'correct';
+  reactionTime?: number;
 }
 
 const ControlGame = () => {
@@ -34,8 +42,17 @@ const ControlGame = () => {
   // Czasy reakcji (tylko dla poprawnych 'Go')
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
   
+  // Historia wszystkich prób (do wykresu)
+  const [trialHistory, setTrialHistory] = useState<Trial[]>([]);
+  
+  // Licznik prób
+  const trialCounterRef = useRef<number>(0);
+  
   // Czas rozpoczęcia ostatniej próby
   const [lastTrialStartTime, setLastTrialStartTime] = useState<number | null>(null);
+  
+  // Typ aktualnej próby (do zapisania w historii)
+  const currentTrialTypeRef = useRef<StimulusType | null>(null);
   
   // Referencje do timerów (do czyszczenia)
   const gameTimerRef = useRef<number | null>(null);
@@ -56,9 +73,11 @@ const ControlGame = () => {
       // 3. Pokazanie bodźca
       setCurrentStimulus({ type: stimulusType });
       
-      // 4. Zapisanie czasu rozpoczęcia próby
+      // 4. Zapisanie czasu rozpoczęcia próby i typu próby
       const trialStartTime = Date.now();
       setLastTrialStartTime(trialStartTime);
+      trialCounterRef.current += 1;
+      currentTrialTypeRef.current = stimulusType;
       
       // 5. Timer na omission (tylko dla bodźca 'Go')
       if (stimulusType === "Go") {
@@ -70,6 +89,34 @@ const ControlGame = () => {
                 ...prev,
                 goMisses: prev.goMisses + 1,
               }));
+              
+              // Zapisz w historii jako goMiss
+              setTrialHistory((prev) => [
+                ...prev,
+                {
+                  trialNumber: trialCounterRef.current,
+                  type: 'Go',
+                  result: 'goMiss',
+                },
+              ]);
+            }
+            return null;
+          });
+        }, 1000);
+      } else {
+        // Dla NoGo - jeśli nie kliknął, to dobrze (correct)
+        omissionTimerRef.current = window.setTimeout(() => {
+          setCurrentStimulus((currentStim) => {
+            if (currentStim?.type === "NoGo") {
+              // Zapisz w historii jako correct
+              setTrialHistory((prev) => [
+                ...prev,
+                {
+                  trialNumber: trialCounterRef.current,
+                  type: 'NoGo',
+                  result: 'correct',
+                },
+              ]);
             }
             return null;
           });
@@ -134,6 +181,17 @@ const ControlGame = () => {
           goHits: prev.goHits + 1,
         }));
         
+        // Zapisz w historii jako goHit
+        setTrialHistory((prev) => [
+          ...prev,
+          {
+            trialNumber: trialCounterRef.current,
+            type: 'Go',
+            result: 'goHit',
+            reactionTime: rt,
+          },
+        ]);
+        
         // Anuluj timer omission
         if (omissionTimerRef.current) {
           clearTimeout(omissionTimerRef.current);
@@ -151,12 +209,28 @@ const ControlGame = () => {
           noGoErrors: prev.noGoErrors + 1,
         }));
         
+        // Zapisz w historii jako noGoError
+        setTrialHistory((prev) => [
+          ...prev,
+          {
+            trialNumber: trialCounterRef.current,
+            type: 'NoGo',
+            result: 'noGoError',
+          },
+        ]);
+        
+        // Anuluj timer omission dla NoGo
+        if (omissionTimerRef.current) {
+          clearTimeout(omissionTimerRef.current);
+          omissionTimerRef.current = null;
+        }
+        
         return null; // Ukryj bodziec natychmiast
       }
       
       // Przypadek 3: Kliknięcie na pusty ekran (null)
       if (currentStim === null) {
-        // Błąd Commission (impulsywność)
+        // Błąd Commission (impulsywność) - nie zapisujemy w historii, bo to nie jest oficjalna próba
         setResults((prev) => ({
           ...prev,
           noGoErrors: prev.noGoErrors + 1,
@@ -173,7 +247,10 @@ const ControlGame = () => {
     setCurrentStimulus(null);
     setResults({ goHits: 0, goMisses: 0, noGoErrors: 0 });
     setReactionTimes([]);
+    setTrialHistory([]);
     setLastTrialStartTime(null);
+    trialCounterRef.current = 0;
+    currentTrialTypeRef.current = null;
   };
 
   // Reset gry
@@ -182,7 +259,10 @@ const ControlGame = () => {
     setCurrentStimulus(null);
     setResults({ goHits: 0, goMisses: 0, noGoErrors: 0 });
     setReactionTimes([]);
+    setTrialHistory([]);
     setLastTrialStartTime(null);
+    trialCounterRef.current = 0;
+    currentTrialTypeRef.current = null;
   };
 
   // Obliczanie średniego czasu reakcji
@@ -272,10 +352,61 @@ const ControlGame = () => {
                 </div>
               </div>
               
-              <div className="space-y-3">
+              {/* Wykres trendu */}
+              <div className="bg-slate-900 rounded-lg p-4">
+                <p className="text-slate-400 text-sm mb-4">Trend Czasów Reakcji</p>
+                <ResponsiveContainer width="100%" height={200}>
+                  <ScatterChart margin={{ top: 10, right: 10, bottom: 20, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <XAxis 
+                      dataKey="trialNumber" 
+                      type="number"
+                      stroke="#94a3b8"
+                      label={{ value: 'Próby', position: 'insideBottom', offset: -10, fill: '#94a3b8' }}
+                    />
+                    <YAxis 
+                      dataKey="reactionTime"
+                      stroke="#94a3b8"
+                      label={{ value: 'ms', angle: -90, position: 'insideLeft', fill: '#94a3b8' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                      labelStyle={{ color: '#94a3b8' }}
+                      formatter={(value: any, name: string, props: any) => {
+                        const result = props.payload.result;
+                        const labels: Record<string, string> = {
+                          goHit: 'Trafienie',
+                          goMiss: 'Przeoczenie',
+                          noGoError: 'Impulsywność',
+                          correct: 'Poprawne powstrzymanie'
+                        };
+                        return [value ? `${value} ms` : 'Brak reakcji', labels[result] || result];
+                      }}
+                    />
+                    <ZAxis range={[64, 64]} />
+                    {/* Poprawne trafienia Go - zielone */}
+                    <Scatter 
+                      data={trialHistory.filter(t => t.result === 'goHit')} 
+                      fill="#6ee7b7" 
+                    />
+                    {/* Błędy przeoczenia - amber */}
+                    <Scatter 
+                      data={trialHistory.filter(t => t.result === 'goMiss').map(t => ({ ...t, reactionTime: 0 }))} 
+                      fill="#fbbf24" 
+                    />
+                    {/* Błędy impulsywności - czerwone */}
+                    <Scatter 
+                      data={trialHistory.filter(t => t.result === 'noGoError').map(t => ({ ...t, reactionTime: 0 }))} 
+                      fill="#f87171" 
+                    />
+                  </ScatterChart>
+                </ResponsiveContainer>
+              </div>
+              
+              <div className="flex gap-3">
                 <Button 
                   size="lg" 
-                  className="w-full"
+                  className="flex-1"
                   onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
                 >
                   Powrót
@@ -283,7 +414,7 @@ const ControlGame = () => {
                 <Button 
                   size="lg" 
                   variant="outline"
-                  className="w-full"
+                  className="flex-1"
                   onClick={() => navigate(`/focus/${athleteId}`)}
                 >
                   Następne wyzwanie
