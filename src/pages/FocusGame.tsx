@@ -137,7 +137,7 @@ const FocusGame = () => {
             <CardContent className="pt-6 text-center space-y-6">
               <h1 className="text-3xl font-bold text-white mb-2">Wyzwanie Sigma Focus</h1>
               <p className="text-lg text-slate-300 leading-relaxed">
-                Kliknij przycisk odpowiadający <span className="font-semibold">KOLOROWI CZCIONKI</span>, ignorując znaczenie słowa.
+                Wybierz przycisk odpowiadający <span className="font-semibold">KOLOROWI NAPISU</span>, ignorując znaczenie słowa. Wykonaj zadanie najszybciej jak potrafisz.
               </p>
               <p className="text-sm text-slate-400">
                 Test składa się z {MAX_TRIALS} prób
