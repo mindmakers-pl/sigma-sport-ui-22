@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Lightbulb } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts";
+import { Progress } from "@/components/ui/progress";
 import ScanGame from "./ScanGame";
 import ControlGame from "./ControlGame";
 import FocusGame from "./FocusGame";
@@ -45,6 +46,11 @@ const AthleteProfile = () => {
   const [sessionResults, setSessionResults] = useState<Record<string, any>>({});
   const [savedSessions, setSavedSessions] = useState<any[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [reportTab, setReportTab] = useState('historia');
+  const [conditionsFilter, setConditionsFilter] = useState('wszystkie');
+  const [benchmarkGroup, setBenchmarkGroup] = useState('wszyscy');
+  const [benchmarkDiscipline, setBenchmarkDiscipline] = useState('judo');
+  const [benchmarkAge, setBenchmarkAge] = useState('14-16');
   
   const [manualInputMode, setManualInputMode] = useState({
     kwestionariusz: false,
@@ -144,6 +150,43 @@ const AthleteProfile = () => {
     { time: 6, A: 52, B: 59 },
     { time: 8, A: 48, B: 56 },
     { time: 10, A: 45, B: 54 },
+  ];
+
+  // Mock data for progress trends
+  const scanTrendData = [
+    { session: 'S1', value: 520 },
+    { session: 'S2', value: 510 },
+    { session: 'S3', value: 495 },
+    { session: 'S4', value: 480 },
+    { session: 'S5', value: 465 },
+    { session: 'S6', value: 450 },
+  ];
+
+  const controlTrendData = [
+    { session: 'S1', value: 12 },
+    { session: 'S2', value: 10 },
+    { session: 'S3', value: 9 },
+    { session: 'S4', value: 7 },
+    { session: 'S5', value: 6 },
+    { session: 'S6', value: 5 },
+  ];
+
+  const focusTrendData = [
+    { session: 'S1', value: 85 },
+    { session: 'S2', value: 78 },
+    { session: 'S3', value: 75 },
+    { session: 'S4', value: 70 },
+    { session: 'S5', value: 68 },
+    { session: 'S6', value: 65 },
+  ];
+
+  const hrvBaselineTrendData = [
+    { session: 'S1', value: 58 },
+    { session: 'S2', value: 60 },
+    { session: 'S3', value: 63 },
+    { session: 'S4', value: 65 },
+    { session: 'S5', value: 68 },
+    { session: 'S6', value: 70 },
   ];
 
   return (
@@ -453,254 +496,511 @@ const AthleteProfile = () => {
         </TabsContent>
 
         <TabsContent value="raporty" className="space-y-6">
-          {!selectedSessionId ? (
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 mt-9 mb-6">Historia Pomiarów: {athlete.name}</h2>
-              
-              {savedSessions.length === 0 ? (
-                <Card className="bg-white border-slate-200 p-8 text-center">
-                  <p className="text-slate-600">Brak zapisanych sesji. Rozpocznij nowy pomiar w zakładce "Dodaj pomiar".</p>
-                </Card>
+          <Tabs value={reportTab} onValueChange={setReportTab} className="w-full">
+            <TabsList className="bg-white border border-slate-200">
+              <TabsTrigger value="historia">Historia pomiarów</TabsTrigger>
+              <TabsTrigger value="progres">Raport progresu</TabsTrigger>
+              <TabsTrigger value="benchmark">Raport benchmarkowy</TabsTrigger>
+            </TabsList>
+
+            {/* Historia pomiarów */}
+            <TabsContent value="historia" className="mt-6">
+              {!selectedSessionId ? (
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-6">Historia pomiarów: {athlete.name}</h2>
+                  
+                  {savedSessions.length === 0 ? (
+                    <Card className="bg-white border-slate-200 p-8 text-center">
+                      <p className="text-slate-600">Brak zapisanych sesji. Rozpocznij nowy pomiar w zakładce "Dodaj pomiar".</p>
+                    </Card>
+                  ) : (
+                    <div className="grid gap-4">
+                      {savedSessions.map((session) => (
+                        <Card key={session.id} className="bg-white border-slate-200 p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-xl font-bold text-slate-900 mb-2">
+                                Sigma Score {new Date(session.date).toLocaleDateString('pl-PL')}
+                              </h3>
+                              <p className="text-slate-600">
+                                Warunki: {session.conditions === 'pracownia' ? 'Pracownia (Cisza)' : 'Trening (Hałas)'}
+                              </p>
+                              <p className="text-slate-500 text-sm mt-1">
+                                {new Date(session.date).toLocaleTimeString('pl-PL')}
+                              </p>
+                            </div>
+                            <Button 
+                              onClick={() => setSelectedSessionId(session.id)}
+                              className="bg-primary hover:bg-primary/90"
+                            >
+                              Zobacz raport
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ) : (
-                <div className="grid gap-4">
-                  {savedSessions.map((session) => (
-                    <Card key={session.id} className="bg-white border-slate-200 p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-xl font-bold text-slate-900 mb-2">
-                            Sigma Score {new Date(session.date).toLocaleDateString('pl-PL')}
-                          </h3>
-                          <p className="text-slate-600">
+                <div>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setSelectedSessionId(null)}
+                    className="mb-6"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Powrót do listy sesji
+                  </Button>
+                  
+                  {(() => {
+                    const session = savedSessions.find(s => s.id === selectedSessionId);
+                    if (!session) return null;
+                    
+                    return (
+                      <div className="space-y-6">
+                        <div className="bg-white border border-slate-200 rounded-lg p-6">
+                          <h2 className="text-2xl font-bold text-slate-900">
+                            Raport sesji: {new Date(session.date).toLocaleDateString('pl-PL')}
+                          </h2>
+                          <p className="text-slate-600 mt-2">
+                            Data: {new Date(session.date).toLocaleString('pl-PL')} | 
                             Warunki: {session.conditions === 'pracownia' ? 'Pracownia (Cisza)' : 'Trening (Hałas)'}
                           </p>
-                          <p className="text-slate-500 text-sm mt-1">
-                            {new Date(session.date).toLocaleTimeString('pl-PL')}
-                          </p>
                         </div>
-                        <Button 
-                          onClick={() => setSelectedSessionId(session.id)}
-                          className="bg-primary hover:bg-primary/90"
-                        >
-                          Zobacz Raport
-                        </Button>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                          {/* Row 1: Profil Kognitywny (2/3) + Samoocena (1/3) */}
+                          <Card className="bg-white border-slate-200 lg:col-span-2">
+                            <CardHeader>
+                              <CardTitle className="text-slate-900">Profil kognitywny</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="h-80">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <RadarChart data={[
+                                    { subject: 'Skanowanie', value: session.results.scan?.avgReactionTime ? Math.max(0, 100 - session.results.scan.avgReactionTime / 10) : 0 },
+                                    { subject: 'Kontrola', value: session.results.control?.errors ? Math.max(0, 100 - session.results.control.errors * 5) : 0 },
+                                    { subject: 'Focus', value: session.results.focus?.focusScore || 0 },
+                                  ]}>
+                                    <PolarGrid stroke="#cbd5e1" />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b' }} />
+                                    <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#64748b' }} />
+                                    <Radar name="Wynik" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
+                                  </RadarChart>
+                                </ResponsiveContainer>
+                              </div>
+                              <div className="mt-4 space-y-1 text-sm text-slate-700 border-t pt-3">
+                                <p className="font-semibold mb-2 text-slate-900">Surowe dane:</p>
+                                {session.results.scan && (
+                                  <p><span className="text-slate-600">Scan:</span> {session.results.scan.avgReactionTime}ms, {session.results.scan.accuracy}% celności</p>
+                                )}
+                                {session.results.control && (
+                                  <p><span className="text-slate-600">Control:</span> {session.results.control.omissionErrors || 0} przeoczenia, {session.results.control.commissionErrors || 0} impulsywności</p>
+                                )}
+                                {session.results.focus && (
+                                  <p><span className="text-slate-600">Focus:</span> {session.results.focus.interferenceEffect}ms efekt interferencji</p>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+
+                          <Card className="bg-white border-slate-200">
+                            <CardHeader>
+                              <CardTitle className="text-slate-900">Profil psychometryczny</CardTitle>
+                              <p className="text-xs text-slate-500">Samoocena</p>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                              {session.results.kwestionariusz ? (
+                                <>
+                                  <div>
+                                    <div className="flex justify-between text-sm mb-2">
+                                      <span className="text-slate-600 font-medium">Pewność siebie</span>
+                                      <span className="text-slate-900 font-bold text-lg">{session.results.kwestionariusz.confidence}/10</span>
+                                    </div>
+                                    <div className="w-full bg-slate-200 rounded-full h-3">
+                                      <div className="bg-blue-500 h-3 rounded-full transition-all" style={{width: `${(session.results.kwestionariusz.confidence / 10) * 100}%`}}></div>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="flex justify-between text-sm mb-2">
+                                      <span className="text-slate-600 font-medium">Kontrola emocji</span>
+                                      <span className="text-slate-900 font-bold text-lg">{session.results.kwestionariusz.emotionalControl}/10</span>
+                                    </div>
+                                    <div className="w-full bg-slate-200 rounded-full h-3">
+                                      <div className="bg-green-500 h-3 rounded-full transition-all" style={{width: `${(session.results.kwestionariusz.emotionalControl / 10) * 100}%`}}></div>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="flex justify-between text-sm mb-2">
+                                      <span className="text-slate-600 font-medium">Motywacja</span>
+                                      <span className="text-slate-900 font-bold text-lg">{session.results.kwestionariusz.motivation}/10</span>
+                                    </div>
+                                    <div className="w-full bg-slate-200 rounded-full h-3">
+                                      <div className="bg-purple-500 h-3 rounded-full transition-all" style={{width: `${(session.results.kwestionariusz.motivation / 10) * 100}%`}}></div>
+                                    </div>
+                                  </div>
+                                </>
+                              ) : (
+                                <p className="text-slate-500 text-center py-8">Brak danych z kwestionariusza</p>
+                              )}
+                            </CardContent>
+                          </Card>
+
+                          {/* Row 2: HRV (2/3) + Biofeedback (1/3) */}
+                          <Card className="bg-white border-slate-200 lg:col-span-2">
+                            <CardHeader>
+                              <CardTitle className="text-slate-900">Reaktywność fizjologiczna (HRV)</CardTitle>
+                              <p className="text-xs text-slate-500">Spadek HRV pod presją zadań</p>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="h-80">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <BarChart data={[
+                                    { name: 'Baseline', hrv: parseInt(session.results.hrv_baseline?.hrv) || 0 },
+                                    { name: 'Scan', hrv: parseInt(session.results.scan?.hrv) || 0 },
+                                    { name: 'Control', hrv: parseInt(session.results.control?.hrv) || 0 },
+                                    { name: 'Focus', hrv: parseInt(session.results.focus?.hrv) || 0 },
+                                    { name: 'Move', hrv: parseInt(session.results.sigma_move?.hrv) || 0 },
+                                  ]}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                    <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} />
+                                    <YAxis 
+                                      tick={{ fill: '#64748b' }} 
+                                      label={{ value: 'HRV (ms)', angle: -90, position: 'insideLeft', style: { fill: '#64748b' } }}
+                                    />
+                                    <Tooltip 
+                                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                                      labelStyle={{ fontWeight: 'bold', color: '#1e293b' }}
+                                      formatter={(value: any) => [`${value} ms`, 'HRV']}
+                                    />
+                                    <Bar dataKey="hrv" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </div>
+                            </CardContent>
+                          </Card>
+
+                          <Card className="bg-white border-slate-200">
+                            <CardHeader>
+                              <CardTitle className="text-slate-900">Efekt treningu regulacji</CardTitle>
+                              <p className="text-xs text-slate-500">Trening biofeedback</p>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              {session.results.hrv_training ? (
+                                <>
+                                  <div className="space-y-1">
+                                    <p className="text-xs text-slate-500">Technika</p>
+                                    <p className="text-slate-900 font-semibold">{session.results.hrv_training.technique}</p>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className="text-xs text-slate-500">Czas trwania</p>
+                                    <p className="text-slate-900 font-semibold">{session.results.hrv_training.duration}s</p>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className="text-xs text-slate-500">Zmiana HRV</p>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-lg font-bold text-slate-700">{session.results.hrv_training.hrvStart}ms</span>
+                                      <span className="text-slate-400">→</span>
+                                      <span className="text-lg font-bold text-green-600">{session.results.hrv_training.hrvEnd}ms</span>
+                                    </div>
+                                    <p className="text-sm text-green-600 font-medium">
+                                      +{parseInt(session.results.hrv_training.hrvEnd) - parseInt(session.results.hrv_training.hrvStart)}ms
+                                    </p>
+                                  </div>
+                                  {session.results.hrv_training.comment && (
+                                    <div className="space-y-1 pt-2 border-t">
+                                      <p className="text-xs text-slate-500">Komentarz</p>
+                                      <p className="text-sm text-slate-700 italic">{session.results.hrv_training.comment}</p>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <p className="text-slate-500 text-center py-8">Brak danych z treningu HRV</p>
+                              )}
+                            </CardContent>
+                          </Card>
+
+                          {/* Row 3: Sigma Move (1/3 width) */}
+                          <Card className="bg-white border-slate-200">
+                            <CardHeader>
+                              <CardTitle className="text-slate-900">Sigma Move</CardTitle>
+                              <p className="text-xs text-slate-500">Wydajność motoryczna</p>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              {session.results.sigma_move ? (
+                                <>
+                                  <div className="space-y-1">
+                                    <p className="text-xs text-slate-500">Wyzwanie</p>
+                                    <p className="text-slate-900 font-semibold">{session.results.sigma_move.type}</p>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className="text-xs text-slate-500">Wynik</p>
+                                    <p className="text-2xl font-bold text-slate-900">{session.results.sigma_move.result}</p>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className="text-xs text-slate-500">Średnie HRV</p>
+                                    <p className="text-slate-900 font-semibold">{session.results.sigma_move.hrv}ms</p>
+                                  </div>
+                                </>
+                              ) : (
+                                <p className="text-slate-500 text-center py-8">Brak danych z Sigma Move</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </div>
                       </div>
-                    </Card>
-                  ))}
+                    );
+                  })()}
                 </div>
               )}
-            </div>
-          ) : (
-            <div>
-              <Button 
-                variant="ghost" 
-                onClick={() => setSelectedSessionId(null)}
-                className="mb-6"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Powrót do Listy Sesji
-              </Button>
-              
-              {(() => {
-                const session = savedSessions.find(s => s.id === selectedSessionId);
-                if (!session) return null;
-                
-                return (
-                  <div className="space-y-6">
-                    <div className="bg-white border border-slate-200 rounded-lg p-6">
-                      <h2 className="text-2xl font-bold text-slate-900">
-                        Raport Sesji: {new Date(session.date).toLocaleDateString('pl-PL')}
-                      </h2>
-                      <p className="text-slate-600 mt-2">
-                        Data: {new Date(session.date).toLocaleString('pl-PL')} | 
-                        Warunki: {session.conditions === 'pracownia' ? 'Pracownia (Cisza)' : 'Trening (Hałas)'}
-                      </p>
-                    </div>
+            </TabsContent>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      {/* Row 1: Profil Kognitywny (2/3) + Samoocena (1/3) */}
-                      <Card className="bg-white border-slate-200 lg:col-span-2">
-                        <CardHeader>
-                          <CardTitle className="text-slate-900">Profil Kognitywny</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="h-80">
+            {/* Raport Progresu */}
+            <TabsContent value="progres" className="mt-6">
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <Label className="text-slate-900 font-semibold">Pokaż dane dla warunków:</Label>
+                  <Select value={conditionsFilter} onValueChange={setConditionsFilter}>
+                    <SelectTrigger className="w-64 bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white z-50">
+                      <SelectItem value="wszystkie">Wszystkie</SelectItem>
+                      <SelectItem value="pracownia">Pracownia (Cisza)</SelectItem>
+                      <SelectItem value="trening">Trening (Dystraktory)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6">
+                  {/* Trend Kognitywny */}
+                  <Card className="bg-white border-slate-200">
+                    <CardHeader>
+                      <CardTitle className="text-slate-900">Trend kognitywny</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Scan Trend */}
+                        <div>
+                          <h4 className="text-sm font-semibold text-slate-900 mb-3">Trend: Scan (ms)</h4>
+                          <div className="h-48">
                             <ResponsiveContainer width="100%" height="100%">
-                              <RadarChart data={[
-                                { subject: 'Skanowanie', value: session.results.scan?.avgReactionTime ? Math.max(0, 100 - session.results.scan.avgReactionTime / 10) : 0 },
-                                { subject: 'Kontrola', value: session.results.control?.errors ? Math.max(0, 100 - session.results.control.errors * 5) : 0 },
-                                { subject: 'Focus', value: session.results.focus?.focusScore || 0 },
-                              ]}>
-                                <PolarGrid stroke="#cbd5e1" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b' }} />
-                                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#64748b' }} />
-                                <Radar name="Wynik" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
-                              </RadarChart>
-                            </ResponsiveContainer>
-                          </div>
-                          <div className="mt-4 space-y-1 text-sm text-slate-700 border-t pt-3">
-                            <p className="font-semibold mb-2 text-slate-900">Surowe Dane:</p>
-                            {session.results.scan && (
-                              <p><span className="text-slate-600">Scan:</span> {session.results.scan.avgReactionTime}ms, {session.results.scan.accuracy}% celności</p>
-                            )}
-                            {session.results.control && (
-                              <p><span className="text-slate-600">Control:</span> {session.results.control.omissionErrors || 0} przeoczenia, {session.results.control.commissionErrors || 0} impulsywności</p>
-                            )}
-                            {session.results.focus && (
-                              <p><span className="text-slate-600">Focus:</span> {session.results.focus.interferenceEffect}ms Efekt Interferencji</p>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="bg-white border-slate-200">
-                        <CardHeader>
-                          <CardTitle className="text-slate-900">Profil Psychometryczny</CardTitle>
-                          <p className="text-xs text-slate-500">Samoocena</p>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                          {session.results.kwestionariusz ? (
-                            <>
-                              <div>
-                                <div className="flex justify-between text-sm mb-2">
-                                  <span className="text-slate-600 font-medium">Pewność Siebie</span>
-                                  <span className="text-slate-900 font-bold text-lg">{session.results.kwestionariusz.confidence}/10</span>
-                                </div>
-                                <div className="w-full bg-slate-200 rounded-full h-3">
-                                  <div className="bg-blue-500 h-3 rounded-full transition-all" style={{width: `${(session.results.kwestionariusz.confidence / 10) * 100}%`}}></div>
-                                </div>
-                              </div>
-                              <div>
-                                <div className="flex justify-between text-sm mb-2">
-                                  <span className="text-slate-600 font-medium">Kontrola Emocji</span>
-                                  <span className="text-slate-900 font-bold text-lg">{session.results.kwestionariusz.emotionalControl}/10</span>
-                                </div>
-                                <div className="w-full bg-slate-200 rounded-full h-3">
-                                  <div className="bg-green-500 h-3 rounded-full transition-all" style={{width: `${(session.results.kwestionariusz.emotionalControl / 10) * 100}%`}}></div>
-                                </div>
-                              </div>
-                              <div>
-                                <div className="flex justify-between text-sm mb-2">
-                                  <span className="text-slate-600 font-medium">Motywacja</span>
-                                  <span className="text-slate-900 font-bold text-lg">{session.results.kwestionariusz.motivation}/10</span>
-                                </div>
-                                <div className="w-full bg-slate-200 rounded-full h-3">
-                                  <div className="bg-purple-500 h-3 rounded-full transition-all" style={{width: `${(session.results.kwestionariusz.motivation / 10) * 100}%`}}></div>
-                                </div>
-                              </div>
-                            </>
-                          ) : (
-                            <p className="text-slate-500 text-center py-8">Brak danych z kwestionariusza</p>
-                          )}
-                        </CardContent>
-                      </Card>
-
-                      {/* Row 2: HRV (2/3) + Biofeedback (1/3) */}
-                      <Card className="bg-white border-slate-200 lg:col-span-2">
-                        <CardHeader>
-                          <CardTitle className="text-slate-900">Reaktywność Fizjologiczna (HRV)</CardTitle>
-                          <p className="text-xs text-slate-500">Spadek HRV pod presją zadań</p>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <BarChart data={[
-                                { name: 'Baseline', hrv: parseInt(session.results.hrv_baseline?.hrv) || 0 },
-                                { name: 'Scan', hrv: parseInt(session.results.scan?.hrv) || 0 },
-                                { name: 'Control', hrv: parseInt(session.results.control?.hrv) || 0 },
-                                { name: 'Focus', hrv: parseInt(session.results.focus?.hrv) || 0 },
-                                { name: 'Move', hrv: parseInt(session.results.sigma_move?.hrv) || 0 },
-                              ]}>
+                              <LineChart data={scanTrendData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} />
-                                <YAxis 
-                                  tick={{ fill: '#64748b' }} 
-                                  label={{ value: 'HRV (ms)', angle: -90, position: 'insideLeft', style: { fill: '#64748b' } }}
-                                />
+                                <XAxis dataKey="session" tick={{ fill: '#64748b', fontSize: 11 }} />
+                                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} domain={[400, 550]} />
                                 <Tooltip 
                                   contentStyle={{ backgroundColor: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px' }}
-                                  labelStyle={{ fontWeight: 'bold', color: '#1e293b' }}
-                                  formatter={(value: any) => [`${value} ms`, 'HRV']}
+                                  formatter={(value: any) => [`${value}ms`, 'Czas reakcji']}
                                 />
-                                <Bar dataKey="hrv" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                              </BarChart>
+                                <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 4 }} />
+                              </LineChart>
                             </ResponsiveContainer>
                           </div>
-                        </CardContent>
-                      </Card>
+                        </div>
 
-                      <Card className="bg-white border-slate-200">
-                        <CardHeader>
-                          <CardTitle className="text-slate-900">Efekt Treningu Regulacji</CardTitle>
-                          <p className="text-xs text-slate-500">Trening Biofeedback</p>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          {session.results.hrv_training ? (
-                            <>
-                              <div className="space-y-1">
-                                <p className="text-xs text-slate-500">Technika</p>
-                                <p className="text-slate-900 font-semibold">{session.results.hrv_training.technique}</p>
-                              </div>
-                              <div className="space-y-1">
-                                <p className="text-xs text-slate-500">Czas Trwania</p>
-                                <p className="text-slate-900 font-semibold">{session.results.hrv_training.duration}s</p>
-                              </div>
-                              <div className="space-y-1">
-                                <p className="text-xs text-slate-500">Zmiana HRV</p>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-lg font-bold text-slate-700">{session.results.hrv_training.hrvStart}ms</span>
-                                  <span className="text-slate-400">→</span>
-                                  <span className="text-lg font-bold text-green-600">{session.results.hrv_training.hrvEnd}ms</span>
-                                </div>
-                                <p className="text-sm text-green-600 font-medium">
-                                  +{parseInt(session.results.hrv_training.hrvEnd) - parseInt(session.results.hrv_training.hrvStart)}ms
-                                </p>
-                              </div>
-                              {session.results.hrv_training.comment && (
-                                <div className="space-y-1 pt-2 border-t">
-                                  <p className="text-xs text-slate-500">Komentarz</p>
-                                  <p className="text-sm text-slate-700 italic">{session.results.hrv_training.comment}</p>
-                                </div>
-                              )}
-                            </>
-                          ) : (
-                            <p className="text-slate-500 text-center py-8">Brak danych z treningu HRV</p>
-                          )}
-                        </CardContent>
-                      </Card>
+                        {/* Control Trend */}
+                        <div>
+                          <h4 className="text-sm font-semibold text-slate-900 mb-3">Trend: Control (błędy)</h4>
+                          <div className="h-48">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={controlTrendData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                <XAxis dataKey="session" tick={{ fill: '#64748b', fontSize: 11 }} />
+                                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} domain={[0, 15]} />
+                                <Tooltip 
+                                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                                  formatter={(value: any) => [`${value}`, 'Błędy']}
+                                />
+                                <Line type="monotone" dataKey="value" stroke="#ef4444" strokeWidth={2} dot={{ fill: '#ef4444', r: 4 }} />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
 
-                      {/* Row 3: Sigma Move (1/3 width) */}
-                      <Card className="bg-white border-slate-200">
-                        <CardHeader>
-                          <CardTitle className="text-slate-900">Sigma Move</CardTitle>
-                          <p className="text-xs text-slate-500">Wydajność Motoryczna</p>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          {session.results.sigma_move ? (
-                            <>
-                              <div className="space-y-1">
-                                <p className="text-xs text-slate-500">Wyzwanie</p>
-                                <p className="text-slate-900 font-semibold">{session.results.sigma_move.type}</p>
-                              </div>
-                              <div className="space-y-1">
-                                <p className="text-xs text-slate-500">Wynik</p>
-                                <p className="text-2xl font-bold text-slate-900">{session.results.sigma_move.result}</p>
-                              </div>
-                              <div className="space-y-1">
-                                <p className="text-xs text-slate-500">Średnie HRV</p>
-                                <p className="text-slate-900 font-semibold">{session.results.sigma_move.hrv}ms</p>
-                              </div>
-                            </>
-                          ) : (
-                            <p className="text-slate-500 text-center py-8">Brak danych z Sigma Move</p>
-                          )}
-                        </CardContent>
-                      </Card>
+                        {/* Focus Trend */}
+                        <div>
+                          <h4 className="text-sm font-semibold text-slate-900 mb-3">Trend: Focus (efekt interferencji ms)</h4>
+                          <div className="h-48">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={focusTrendData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                <XAxis dataKey="session" tick={{ fill: '#64748b', fontSize: 11 }} />
+                                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} domain={[60, 90]} />
+                                <Tooltip 
+                                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                                  formatter={(value: any) => [`${value}ms`, 'Interferencja']}
+                                />
+                                <Line type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={2} dot={{ fill: '#8b5cf6', r: 4 }} />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Trend Fizjologiczny */}
+                  <Card className="bg-white border-slate-200">
+                    <CardHeader>
+                      <CardTitle className="text-slate-900">Trend fizjologiczny (HRV)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <h4 className="text-sm font-semibold text-slate-900 mb-3">Trend: HRV Baseline (ms)</h4>
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={hrvBaselineTrendData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                            <XAxis dataKey="session" tick={{ fill: '#64748b' }} />
+                            <YAxis tick={{ fill: '#64748b' }} domain={[50, 75]} />
+                            <Tooltip 
+                              contentStyle={{ backgroundColor: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                              formatter={(value: any) => [`${value}ms`, 'HRV Baseline']}
+                            />
+                            <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', r: 5 }} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Analiza AI */}
+                  <Card className="bg-white border-slate-200">
+                    <CardHeader className="flex flex-row items-center gap-3">
+                      <Lightbulb className="h-6 w-6 text-yellow-500" />
+                      <CardTitle className="text-slate-900">Analiza AI (Beta)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-slate-700 leading-relaxed">
+                        Zauważyliśmy silną korelację (r=0.75) między twoją "Pewnością siebie" a "HRV Baseline". 
+                        Twój wynik "Focus" wykazuje stały trend progresu (-15%). Spadek efektu interferencji 
+                        sugeruje poprawę kontroli uwagi selektywnej. Kontynuuj obecny schemat treningowy, 
+                        ze szczególnym uwzględnieniem ćwiczeń oddechowych w warunkach z dystraktorami.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Raport Benchmarkowy */}
+            <TabsContent value="benchmark" className="mt-6">
+              <div className="space-y-6">
+                {/* Filtry */}
+                <Card className="bg-white border-slate-200">
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <Label className="text-slate-900 font-semibold mb-2 block">Porównaj z:</Label>
+                        <Select value={benchmarkGroup} onValueChange={setBenchmarkGroup}>
+                          <SelectTrigger className="bg-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white z-50">
+                            <SelectItem value="wszyscy">Wszyscy zawodnicy</SelectItem>
+                            <SelectItem value="klub">Mój klub</SelectItem>
+                            <SelectItem value="dyscyplina">Cała dyscyplina</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-slate-900 font-semibold mb-2 block">Dyscyplina:</Label>
+                        <Select value={benchmarkDiscipline} onValueChange={setBenchmarkDiscipline}>
+                          <SelectTrigger className="bg-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white z-50">
+                            <SelectItem value="judo">Judo</SelectItem>
+                            <SelectItem value="pilka_nozna">Piłka nożna</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-slate-900 font-semibold mb-2 block">Wiek:</Label>
+                        <Select value={benchmarkAge} onValueChange={setBenchmarkAge}>
+                          <SelectTrigger className="bg-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white z-50">
+                            <SelectItem value="wszyscy">Wszyscy</SelectItem>
+                            <SelectItem value="14-16">14-16 lat</SelectItem>
+                            <SelectItem value="17-19">17-19 lat</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
+
+                    <p className="text-sm text-slate-600">
+                      Porównanie z: {benchmarkDiscipline === 'judo' ? 'Judo' : 'Piłka nożna'}, {benchmarkAge === '14-16' ? '14-16 lat' : benchmarkAge === '17-19' ? '17-19 lat' : 'wszyscy'} (n=45 zawodników)
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Benchmark Kognitywny */}
+                <Card className="bg-white border-slate-200">
+                  <CardHeader>
+                    <CardTitle className="text-slate-900">Benchmark kognitywny</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <Label className="text-slate-700">Skanowanie (Scan)</Label>
+                        <span className="text-sm font-semibold text-slate-900">78. percentyl</span>
+                      </div>
+                      <Progress value={78} className="h-3" />
+                      <p className="text-xs text-slate-600 mt-1">Lepszy niż 78% grupy</p>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <Label className="text-slate-700">Kontrola (Control)</Label>
+                        <span className="text-sm font-semibold text-slate-900">45. percentyl</span>
+                      </div>
+                      <Progress value={45} className="h-3" />
+                      <p className="text-xs text-slate-600 mt-1">45. percentyl</p>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <Label className="text-slate-700">Focus</Label>
+                        <span className="text-sm font-semibold text-slate-900">85. percentyl</span>
+                      </div>
+                      <Progress value={85} className="h-3" />
+                      <p className="text-xs text-slate-600 mt-1">85. percentyl (Top 15%)</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Benchmark Fizjologiczny */}
+                <Card className="bg-white border-slate-200">
+                  <CardHeader>
+                    <CardTitle className="text-slate-900">Benchmark fizjologiczny</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <Label className="text-slate-700">HRV Baseline (Regeneracja)</Label>
+                        <span className="text-sm font-semibold text-slate-900">65. percentyl</span>
+                      </div>
+                      <Progress value={65} className="h-3" />
+                      <p className="text-xs text-slate-600 mt-1">65. percentyl</p>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <Label className="text-slate-700">HRV pod presją (Focus)</Label>
+                        <span className="text-sm font-semibold text-slate-900">75. percentyl</span>
+                      </div>
+                      <Progress value={75} className="h-3" />
+                      <p className="text-xs text-slate-600 mt-1">75. percentyl</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
 
