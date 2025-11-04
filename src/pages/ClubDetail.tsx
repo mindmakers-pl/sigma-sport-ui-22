@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Plus, ArrowLeft, Search, Trophy, TrendingUp, TrendingDown, Calendar as CalendarIcon, Target, ClipboardList, Dumbbell, CheckCircle2, Clock } from "lucide-react";
+import { Settings, Plus, ArrowLeft, Search, Trophy, TrendingUp, TrendingDown, Calendar as CalendarIcon, Target, ClipboardList, Dumbbell, CheckCircle2, Clock, BookOpen } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
@@ -47,6 +47,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { allSprints, exerciseLibrary, getExerciseById, sigmaGoDemoTraining, type Meeting, type Sprint } from "@/data/libraryData";
 
 const ClubDetail = () => {
@@ -750,7 +751,7 @@ const ClubDetail = () => {
                           <ul className="space-y-2">
                             {exercise.equipment.map((item, idx) => (
                               <li key={idx} className="flex items-start gap-2">
-                                <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                                 <span className="text-muted-foreground">{item}</span>
                               </li>
                             ))}
