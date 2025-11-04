@@ -239,7 +239,7 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
 
     if (gameState === 'finished') {
       if (userGuesses.includes(ball.id)) {
-        return ball.isTarget ? 'bg-green-500' : 'bg-red-500';
+        return ball.isTarget ? 'bg-white' : 'bg-red-500';
       }
       return 'bg-green-400';
     }
@@ -547,14 +547,26 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
           const blur = getBallBlur(ball);
           const opacity = getBallOpacity(ball);
           const baseSize = 30; // Bazowy rozmiar kulki
+          const ballColor = getBallColor(ball);
+
+          // Gradient dla efektu 3D
+          const get3DGradient = () => {
+            if (ballColor === 'bg-white') {
+              return 'radial-gradient(circle at 35% 35%, #ffffff, #e5e5e5 50%, #cccccc)';
+            }
+            if (ballColor === 'bg-red-500') {
+              return 'radial-gradient(circle at 35% 35%, #ff6b6b, #ef4444 50%, #dc2626)';
+            }
+            // bg-green-400
+            return 'radial-gradient(circle at 35% 35%, #86efac, #4ade80 50%, #22c55e)';
+          };
 
           return (
             <div
               key={ball.id}
               onClick={() => handleBallClick(ball.id)}
               className={`
-                absolute rounded-full transition-colors duration-200
-                ${getBallColor(ball)}
+                absolute rounded-full transition-colors duration-200 overflow-hidden
                 ${gameState === 'finished' && !userGuesses.includes(ball.id) ? 'cursor-pointer' : ''}
                 ${userGuesses.includes(ball.id) ? 'ring-4 ring-white' : ''}
               `}
@@ -567,9 +579,64 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
                 zIndex: zIndex,
                 filter: `blur(${blur}px)`,
                 opacity: opacity,
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                background: get3DGradient(),
+                boxShadow: `
+                  0 ${4 * scale}px ${12 * scale}px rgba(0, 0, 0, 0.4),
+                  inset -${2 * scale}px -${2 * scale}px ${4 * scale}px rgba(0, 0, 0, 0.3),
+                  inset ${2 * scale}px ${2 * scale}px ${4 * scale}px rgba(255, 255, 255, 0.3)
+                `,
               }}
-            />
+            >
+              {/* Linie eliptyczne (długości geograficzne) */}
+              <svg
+                className="absolute inset-0 w-full h-full"
+                viewBox="0 0 30 30"
+                style={{ opacity: 0.15 }}
+              >
+                {/* Pionowa elipsa (środkowa) */}
+                <ellipse
+                  cx="15"
+                  cy="15"
+                  rx="3"
+                  ry="14"
+                  fill="none"
+                  stroke="black"
+                  strokeWidth="0.5"
+                />
+                {/* Pozioma elipsa (równik) */}
+                <ellipse
+                  cx="15"
+                  cy="15"
+                  rx="14"
+                  ry="3"
+                  fill="none"
+                  stroke="black"
+                  strokeWidth="0.5"
+                />
+                {/* Lewa elipsa */}
+                <ellipse
+                  cx="15"
+                  cy="15"
+                  rx="2"
+                  ry="14"
+                  fill="none"
+                  stroke="black"
+                  strokeWidth="0.5"
+                  transform="rotate(45 15 15)"
+                />
+                {/* Prawa elipsa */}
+                <ellipse
+                  cx="15"
+                  cy="15"
+                  rx="2"
+                  ry="14"
+                  fill="none"
+                  stroke="black"
+                  strokeWidth="0.5"
+                  transform="rotate(-45 15 15)"
+                />
+              </svg>
+            </div>
           );
         })}
       </div>
