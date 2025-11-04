@@ -196,7 +196,7 @@ const ClubDetail = () => {
       </div>
 
       {/* Zakładki */}
-      <Tabs defaultValue="zawodnicy" className="w-full">
+      <Tabs defaultValue="zawodnicy" className="w-full" id="club-tabs">
         <TabsList>
           <TabsTrigger value="zawodnicy">Lista zawodników</TabsTrigger>
           <TabsTrigger value="sigma-teams">Sigma Teams</TabsTrigger>
@@ -500,13 +500,15 @@ const ClubDetail = () => {
                               className="gap-2"
                               onClick={() => {
                                 setSelectedMeetingForOutline(null);
-                                // Przełącz na zakładkę zawodników
-                                const tabsElement = document.querySelector('[value="zawodnicy"]') as HTMLElement;
-                                tabsElement?.click();
+                                // Użyj elementu TabsTrigger by przełączyć na zakładkę zawodników
+                                const tabTrigger = document.querySelector('[data-state][value="zawodnicy"]') as HTMLButtonElement;
+                                if (tabTrigger) {
+                                  tabTrigger.click();
+                                }
                               }}
                             >
                               <Plus className="h-4 w-4" />
-                              Rozpocznij pomiary
+                              + Rozpocznij pomiary
                             </Button>
                           </div>
                         </CardContent>
