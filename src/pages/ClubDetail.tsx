@@ -17,13 +17,27 @@ const ClubDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // Mock data - w przyszłości z bazy danych
-  const club = {
-    id: parseInt(id || "1"),
-    name: "KS Górnik",
-    city: "Zabrze",
-    membersCount: 12,
+  // Pobierz dane klubu z localStorage
+  const getClubData = () => {
+    const storedClubs = localStorage.getItem('clubs');
+    if (storedClubs) {
+      const clubs = JSON.parse(storedClubs);
+      return clubs.find((c: any) => c.id === parseInt(id || "1")) || {
+        id: parseInt(id || "1"),
+        name: "KS Górnik",
+        city: "Zabrze",
+        membersCount: 12,
+      };
+    }
+    return {
+      id: parseInt(id || "1"),
+      name: "KS Górnik",
+      city: "Zabrze",
+      membersCount: 12,
+    };
   };
+
+  const club = getClubData();
 
   const athletes = [
     { id: 1, name: "Kowalski Jan", lastSession: "2024-01-15" },
@@ -60,7 +74,11 @@ const ClubDetail = () => {
             <h1 className="text-4xl font-bold mb-2">{club.name}</h1>
             <p className="text-muted-foreground">{club.city}</p>
           </div>
-          <Button variant="outline" className="gap-2">
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => navigate(`/kluby/${id}/zarzadzaj`)}
+          >
             <Settings className="h-4 w-4" />
             Zarządzaj klubem
           </Button>

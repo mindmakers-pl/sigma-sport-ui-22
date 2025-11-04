@@ -23,12 +23,19 @@ const Clubs = () => {
     disciplines: [] as string[],
   });
   const [disciplineInput, setDisciplineInput] = useState("");
-
-  const clubs = [
-    { id: 1, name: "KS Górnik", members: 12, city: "Zabrze", disciplines: ["Piłka nożna"] },
-    { id: 2, name: "MKS Cracovia", members: 8, city: "Kraków", disciplines: ["Koszykówka", "Siatkówka"] },
-    { id: 3, name: "Wisła Kraków", members: 15, city: "Kraków", disciplines: ["Piłka nożna"] },
-  ];
+  const [clubs, setClubs] = useState(() => {
+    const stored = localStorage.getItem('clubs');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    const defaultClubs = [
+      { id: 1, name: "KS Górnik", members: 12, city: "Zabrze", disciplines: ["Piłka nożna"] },
+      { id: 2, name: "MKS Cracovia", members: 8, city: "Kraków", disciplines: ["Koszykówka", "Siatkówka"] },
+      { id: 3, name: "Wisła Kraków", members: 15, city: "Kraków", disciplines: ["Piłka nożna"] },
+    ];
+    localStorage.setItem('clubs', JSON.stringify(defaultClubs));
+    return defaultClubs;
+  });
 
   const handleAddDiscipline = () => {
     if (disciplineInput && !newClub.disciplines.includes(disciplineInput)) {
@@ -48,7 +55,18 @@ const Clubs = () => {
   };
 
   const handleAddClub = () => {
-    console.log("Dodawanie klubu:", newClub);
+    if (!newClub.name || !newClub.city) return;
+    
+    const newClubData = {
+      ...newClub,
+      id: Math.max(...clubs.map(c => c.id), 0) + 1,
+      members: 0
+    };
+    
+    const updatedClubs = [...clubs, newClubData];
+    setClubs(updatedClubs);
+    localStorage.setItem('clubs', JSON.stringify(updatedClubs));
+    
     setIsAddDialogOpen(false);
     setNewClub({ name: "", city: "", disciplines: [] });
   };

@@ -9,6 +9,7 @@ import Athletes from "./pages/Athletes";
 import AthleteProfile from "./pages/AthleteProfile";
 import Clubs from "./pages/Clubs";
 import ClubDetail from "./pages/ClubDetail";
+import ClubManagement from "./pages/ClubManagement";
 import Settings from "./pages/Settings";
 import Library from "./pages/Library";
 import ExerciseDetail from "./pages/ExerciseDetail";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/zawodnicy/:id" element={<AppLayout><AthleteProfile /></AppLayout>} />
           <Route path="/kluby" element={<AppLayout><Clubs /></AppLayout>} />
           <Route path="/kluby/:id" element={<AppLayout><ClubDetail /></AppLayout>} />
+          <Route path="/kluby/:id/zarzadzaj" element={<ClubManagement />} />
           <Route path="/biblioteka" element={<AppLayout><Library /></AppLayout>} />
           <Route path="/biblioteka/cwiczenie/:id" element={<ExerciseDetail />} />
           <Route path="/biblioteka/kwestionariusz/:id" element={<QuestionnaireDetail />} />
