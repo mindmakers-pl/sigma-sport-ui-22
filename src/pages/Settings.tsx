@@ -6,71 +6,80 @@ import { Switch } from "@/components/ui/switch";
 
 const Settings = () => {
   return (
-    <div className="max-w-4xl">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-900 mb-2">Ustawienia</h2>
-        <p className="text-slate-600">Zarządzaj swoim kontem i preferencjami</p>
-      </div>
+    <div className="max-w-3xl">
+      <h1 className="text-4xl font-bold mb-2">Ustawienia</h1>
+      <p className="text-muted-foreground mb-8">Zarządzaj swoim kontem i preferencjami</p>
 
-      <div className="space-y-6">
-        <Card className="border-slate-200 bg-white">
-          <CardHeader>
-            <CardTitle className="text-slate-900">Profil</CardTitle>
-            <CardDescription>Zaktualizuj swoje dane osobowe</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">Imię</Label>
-                <Input id="firstName" placeholder="Jan" className="bg-slate-50 border-slate-200" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Nazwisko</Label>
-                <Input id="lastName" placeholder="Kowalski" className="bg-slate-50 border-slate-200" />
-              </div>
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Profil</CardTitle>
+          <CardDescription>Zaktualizuj swoje dane osobowe</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">Imię</Label>
+              <Input id="firstName" placeholder="Jan" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="jan@example.com" className="bg-slate-50 border-slate-200" />
+              <Label htmlFor="lastName">Nazwisko</Label>
+              <Input id="lastName" placeholder="Kowalski" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Telefon</Label>
-              <Input id="phone" type="tel" placeholder="+48 123 456 789" className="bg-slate-50 border-slate-200" />
-            </div>
-            <Button>Zapisz zmiany</Button>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" placeholder="jan@example.com" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Telefon</Label>
+            <Input id="phone" type="tel" placeholder="+48 123 456 789" />
+          </div>
+          <div>
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Zapisz zmiany</Button>
+          </div>
+          <div className="pt-4 border-t">
+            <Button variant="outline" className="w-full">Zmień hasło</Button>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card className="border-slate-200 bg-white">
-          <CardHeader>
-            <CardTitle className="text-slate-900">Powiadomienia</CardTitle>
-            <CardDescription>Zarządzaj preferencjami powiadomień</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-slate-900">Powiadomienia email</p>
-                <p className="text-sm text-slate-600">Otrzymuj aktualizacje na email</p>
-              </div>
-              <Switch />
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Powiadomienia</CardTitle>
+          <CardDescription>Zarządzaj preferencjami powiadomień</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Powiadomienia email</p>
+              <p className="text-sm text-muted-foreground">Otrzymuj aktualizacje na email</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-slate-900">Przypomnienia o treningach</p>
-                <p className="text-sm text-slate-600">Powiadomienia o nadchodzących sesjach</p>
-              </div>
-              <Switch />
+            <Switch />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Przypomnienia o treningach</p>
+              <p className="text-sm text-muted-foreground">Powiadomienia o nadchodzących sesjach</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-slate-900">Podsumowania tygodniowe</p>
-                <p className="text-sm text-slate-600">Cotygodniowy raport aktywności</p>
-              </div>
-              <Switch defaultChecked />
+            <Switch />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Podsumowania tygodniowe</p>
+              <p className="text-sm text-muted-foreground">Cotygodniowy raport aktywności</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <Switch defaultChecked />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-2 border-destructive/20">
+        <CardContent className="pt-6">
+          <Button variant="destructive" className="w-full">
+            Wyloguj
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

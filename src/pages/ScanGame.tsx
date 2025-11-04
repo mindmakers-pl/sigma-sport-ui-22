@@ -178,7 +178,7 @@ const ScanGame = ({ onComplete, onGoToCockpit }: ScanGameProps) => {
         {gameState === "ready" && (
           <Card className="max-w-md w-full border-slate-700 bg-slate-800 animate-scale-in">
             <CardContent className="pt-6 text-center space-y-6">
-              <h1 className="text-3xl font-bold text-white mb-2">Scan</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">Wyzwanie Sigma Scan</h1>
               <p className="text-lg text-slate-300 leading-relaxed">
                 Znajdź <span className="text-green-500 font-semibold">Zielone Koło</span> tak szybko, jak potrafisz
               </p>
