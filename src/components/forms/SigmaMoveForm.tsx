@@ -6,10 +6,11 @@ import { Card, CardContent } from "@/components/ui/card";
 
 interface SigmaMoveFormProps {
   challengeType: string;
-  onComplete: (taskName: string, result: any) => void;
+  onComplete: (data: any) => void;
+  onGoToCockpit?: () => void;
 }
 
-const SigmaMoveForm = ({ challengeType, onComplete }: SigmaMoveFormProps) => {
+const SigmaMoveForm = ({ challengeType, onComplete, onGoToCockpit }: SigmaMoveFormProps) => {
   // Pola dla różnych typów wyzwań
   const [timeResult, setTimeResult] = useState("");
   const [repsResult, setRepsResult] = useState("");
@@ -34,7 +35,7 @@ const SigmaMoveForm = ({ challengeType, onComplete }: SigmaMoveFormProps) => {
     }
 
     console.log('Zapisuję dane Sigma Move:', resultPayload);
-    onComplete('sigma_move', resultPayload);
+    onComplete(resultPayload);
   };
 
   // Walidacja w zależności od typu wyzwania

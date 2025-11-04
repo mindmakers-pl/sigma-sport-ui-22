@@ -18,10 +18,11 @@ interface GridItem {
 const MAX_TRIALS = 10;
 
 interface ScanGameProps {
-  onComplete?: (taskName: string, result: any) => void;
+  onComplete?: (data: any) => void;
+  onGoToCockpit?: () => void;
 }
 
-const ScanGame = ({ onComplete }: ScanGameProps) => {
+const ScanGame = ({ onComplete, onGoToCockpit }: ScanGameProps) => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
   const [gameState, setGameState] = useState<GameState>("ready");
@@ -166,19 +167,7 @@ const ScanGame = ({ onComplete }: ScanGameProps) => {
         <Button 
           variant="ghost" 
           className="text-white hover:bg-slate-800 mb-4"
-          onClick={() => {
-            if (onComplete) {
-              onComplete('scan', {
-                average: calculateStats().average,
-                median: calculateStats().median,
-                accuracy: calculateStats().accuracy,
-                errors: errorCount,
-                results: resultsList
-              });
-            } else {
-              navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-            }
-          }}
+          onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Powrót do Dodaj pomiar
@@ -286,17 +275,17 @@ const ScanGame = ({ onComplete }: ScanGameProps) => {
                   variant="outline"
                   className="flex-1"
                   onClick={() => {
-                    if (onComplete) {
-                      onComplete('scan', {
-                        average: calculateStats().average,
-                        median: calculateStats().median,
-                        accuracy: calculateStats().accuracy,
-                        errors: errorCount,
-                        results: resultsList
-                      });
-                    } else {
-                      navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-                    }
+                    const gameData = {
+                      average: calculateStats().average,
+                      median: calculateStats().median,
+                      accuracy: calculateStats().accuracy,
+                      errors: errorCount,
+                      results: resultsList,
+                      hrv: manualHRV
+                    };
+                    if (onGoToCockpit) onGoToCockpit();
+                    if (onComplete) onComplete(gameData);
+                    else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
                   }}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
@@ -304,8 +293,19 @@ const ScanGame = ({ onComplete }: ScanGameProps) => {
                 </Button>
                 <Button 
                   size="lg" 
-                  className="flex-1"
-                  onClick={handleSaveAndContinue}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  onClick={() => {
+                    const gameData = {
+                      average: calculateStats().average,
+                      median: calculateStats().median,
+                      accuracy: calculateStats().accuracy,
+                      errors: errorCount,
+                      results: resultsList,
+                      hrv: manualHRV
+                    };
+                    if (onComplete) onComplete(gameData);
+                    else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                  }}
                   disabled={!manualHRV.trim()}
                 >
                   Następne Wyzwanie

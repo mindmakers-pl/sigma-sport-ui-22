@@ -81,10 +81,11 @@ const AthleteProfile = () => {
     }
   }, [id]);
 
-  const handleTaskComplete = (taskName: string, result: any) => {
+  const handleTaskComplete = (data: any) => {
+    const taskName = currentView.replace('showing_', '').replace('playing_', '').replace('measuring_', '');
     setTaskStatus(prev => ({ ...prev, [taskName]: 'completed' }));
-    setSessionResults(prev => ({ ...prev, [taskName]: result }));
-    console.log(`Wynik z ${taskName}:`, result);
+    setSessionResults(prev => ({ ...prev, [taskName]: data }));
+    console.log(`Wynik z ${taskName}:`, data);
     setCurrentView('kokpit');
   };
 

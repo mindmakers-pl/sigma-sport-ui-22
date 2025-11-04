@@ -5,16 +5,17 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface HRVBaselineFormProps {
-  onComplete: (taskName: string, result: any) => void;
+  onComplete: (data: any) => void;
+  onGoToCockpit?: () => void;
 }
 
-const HRVBaselineForm = ({ onComplete }: HRVBaselineFormProps) => {
+const HRVBaselineForm = ({ onComplete, onGoToCockpit }: HRVBaselineFormProps) => {
   const [hrvValue, setHrvValue] = useState("");
 
   const handleSave = () => {
     if (hrvValue.trim()) {
       console.log('Zapisuję dane HRV Baseline:', { hrvValue });
-      onComplete('hrv_baseline', { hrv: hrvValue });
+      onComplete({ hrv: hrvValue });
     }
   };
 

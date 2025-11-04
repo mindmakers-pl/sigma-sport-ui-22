@@ -24,10 +24,11 @@ interface Trial {
 }
 
 interface ControlGameProps {
-  onComplete?: (taskName: string, result: any) => void;
+  onComplete?: (data: any) => void;
+  onGoToCockpit?: () => void;
 }
 
-const ControlGame = ({ onComplete }: ControlGameProps) => {
+const ControlGame = ({ onComplete, onGoToCockpit }: ControlGameProps) => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
   
@@ -338,21 +339,7 @@ const ControlGame = ({ onComplete }: ControlGameProps) => {
         <Button 
           variant="ghost" 
           className="text-white hover:bg-slate-800 mb-4"
-          onClick={() => {
-            if (onComplete) {
-              onComplete('control', {
-                averageRT: calculateAverageRT(),
-                minRT: calculateMinRT(),
-                maxRT: calculateMaxRT(),
-                goHits: results.goHits,
-                goMisses: results.goMisses,
-                noGoErrors: results.noGoErrors,
-                reactionTimes
-              });
-            } else {
-              navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-            }
-          }}
+          onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Powrót do Dodaj pomiar
@@ -528,19 +515,19 @@ const ControlGame = ({ onComplete }: ControlGameProps) => {
                   variant="outline"
                   className="flex-1"
                   onClick={() => {
-                    if (onComplete) {
-                      onComplete('control', {
-                        averageRT: calculateAverageRT(),
-                        minRT: calculateMinRT(),
-                        maxRT: calculateMaxRT(),
-                        goHits: results.goHits,
-                        goMisses: results.goMisses,
-                        noGoErrors: results.noGoErrors,
-                        reactionTimes
-                      });
-                    } else {
-                      navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-                    }
+                    const gameData = {
+                      averageRT: calculateAverageRT(),
+                      minRT: calculateMinRT(),
+                      maxRT: calculateMaxRT(),
+                      goHits: results.goHits,
+                      goMisses: results.goMisses,
+                      noGoErrors: results.noGoErrors,
+                      reactionTimes,
+                      hrv: manualHRV
+                    };
+                    if (onGoToCockpit) onGoToCockpit();
+                    if (onComplete) onComplete(gameData);
+                    else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
                   }}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
@@ -548,8 +535,21 @@ const ControlGame = ({ onComplete }: ControlGameProps) => {
                 </Button>
                 <Button 
                   size="lg" 
-                  className="flex-1"
-                  onClick={handleSaveAndContinue}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  onClick={() => {
+                    const gameData = {
+                      averageRT: calculateAverageRT(),
+                      minRT: calculateMinRT(),
+                      maxRT: calculateMaxRT(),
+                      goHits: results.goHits,
+                      goMisses: results.goMisses,
+                      noGoErrors: results.noGoErrors,
+                      reactionTimes,
+                      hrv: manualHRV
+                    };
+                    if (onComplete) onComplete(gameData);
+                    else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                  }}
                   disabled={!manualHRV.trim()}
                 >
                   Następne Wyzwanie

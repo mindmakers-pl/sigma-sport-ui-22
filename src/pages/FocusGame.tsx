@@ -16,10 +16,11 @@ interface Trial {
 }
 
 interface FocusGameProps {
-  onComplete?: (taskName: string, result: any) => void;
+  onComplete?: (data: any) => void;
+  onGoToCockpit?: () => void;
 }
 
-const FocusGame = ({ onComplete }: FocusGameProps) => {
+const FocusGame = ({ onComplete, onGoToCockpit }: FocusGameProps) => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
   const MAX_TRIALS = 20;
@@ -148,20 +149,7 @@ const FocusGame = ({ onComplete }: FocusGameProps) => {
         <Button 
           variant="ghost" 
           className="text-white hover:bg-slate-800 mb-4"
-          onClick={() => {
-            if (onComplete) {
-              onComplete('focus', {
-                avgCongruent: calculateAvgCongruentTime(),
-                avgIncongruent: calculateAvgIncongruentTime(),
-                focusScore: calculateFocusScore(),
-                errorCount,
-                congruentTimes,
-                incongruentTimes
-              });
-            } else {
-              navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-            }
-          }}
+          onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Powrót
@@ -329,18 +317,18 @@ const FocusGame = ({ onComplete }: FocusGameProps) => {
                 size="lg"
                 variant="outline"
                 onClick={() => {
-                  if (onComplete) {
-                    onComplete('focus', {
-                      avgCongruent: calculateAvgCongruentTime(),
-                      avgIncongruent: calculateAvgIncongruentTime(),
-                      focusScore: calculateFocusScore(),
-                      errorCount,
-                      congruentTimes,
-                      incongruentTimes
-                    });
-                  } else {
-                    navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-                  }
+                  const gameData = {
+                    avgCongruent: calculateAvgCongruentTime(),
+                    avgIncongruent: calculateAvgIncongruentTime(),
+                    focusScore: calculateFocusScore(),
+                    errorCount,
+                    congruentTimes,
+                    incongruentTimes,
+                    hrv: manualHRV
+                  };
+                  if (onGoToCockpit) onGoToCockpit();
+                  if (onComplete) onComplete(gameData);
+                  else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
                 }}
                 className="flex-1"
               >
@@ -349,9 +337,21 @@ const FocusGame = ({ onComplete }: FocusGameProps) => {
               </Button>
               <Button 
                 size="lg"
-                onClick={handleSaveAndContinue}
+                onClick={() => {
+                  const gameData = {
+                    avgCongruent: calculateAvgCongruentTime(),
+                    avgIncongruent: calculateAvgIncongruentTime(),
+                    focusScore: calculateFocusScore(),
+                    errorCount,
+                    congruentTimes,
+                    incongruentTimes,
+                    hrv: manualHRV
+                  };
+                  if (onComplete) onComplete(gameData);
+                  else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                }}
                 disabled={!manualHRV.trim()}
-                className="flex-1"
+                className="flex-1 bg-green-600 hover:bg-green-700"
               >
                 Następne Wyzwanie
               </Button>

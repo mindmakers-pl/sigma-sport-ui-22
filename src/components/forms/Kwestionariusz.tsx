@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle2 } from "lucide-react";
 
 interface KwestionariuszProps {
-  onComplete: (taskName: string, result: any) => void;
+  onComplete: (data: any) => void;
+  onGoToCockpit?: () => void;
 }
 
 const questions = [
@@ -27,7 +28,7 @@ const questions = [
   }
 ];
 
-const Kwestionariusz = ({ onComplete }: KwestionariuszProps) => {
+const Kwestionariusz = ({ onComplete, onGoToCockpit }: KwestionariuszProps) => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -38,34 +39,13 @@ const Kwestionariusz = ({ onComplete }: KwestionariuszProps) => {
   const isAllAnswered = questions.every(q => answers[q.id]);
 
   const handleSubmit = () => {
-    console.log('Zapisuję odpowiedzi kwestionariusza:', answers);
     setIsSubmitted(true);
-  };
-
-  const handleStartFirstChallenge = () => {
-    onComplete('kwestionariusz', { answers });
+    console.log('Odpowiedzi:', answers);
+    onComplete(answers);
   };
 
   if (isSubmitted) {
-    return (
-      <div className="flex items-center justify-center h-full p-4">
-        <Card className="w-full max-w-md bg-slate-800 border-slate-700">
-          <CardContent className="pt-6 space-y-6 text-center">
-            <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto" />
-            <h2 className="text-2xl font-bold text-white">
-              ✅ Dziękujemy, zapisaliśmy Twoje odpowiedzi
-            </h2>
-            <Button 
-              onClick={handleStartFirstChallenge}
-              size="lg"
-              className="w-full"
-            >
-              Rozpocznij Pierwsze Wyzwanie
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return null;
   }
 
   return (

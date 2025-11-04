@@ -7,10 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 
 interface HRVTrainingFormProps {
-  onComplete: (taskName: string, result: any) => void;
+  onComplete: (data: any) => void;
+  onGoToCockpit?: () => void;
 }
 
-const HRVTrainingForm = ({ onComplete }: HRVTrainingFormProps) => {
+const HRVTrainingForm = ({ onComplete, onGoToCockpit }: HRVTrainingFormProps) => {
   const [hrvStart, setHrvStart] = useState("");
   const [hrvEnd, setHrvEnd] = useState("");
   const [duration, setDuration] = useState("");
@@ -27,7 +28,7 @@ const HRVTrainingForm = ({ onComplete }: HRVTrainingFormProps) => {
         comment
       };
       console.log('Zapisuję dane HRV Training:', result);
-      onComplete('hrv_training', result);
+      onComplete(result);
     }
   };
 
