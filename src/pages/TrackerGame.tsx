@@ -230,7 +230,7 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
   // Pobierz kolor kulki
   const getBallColor = (ball: Ball) => {
     if (gameState === 'highlight') {
-      return ball.isTarget ? 'bg-green-400' : 'bg-slate-400';
+      return ball.isTarget ? 'bg-white' : 'bg-green-400';
     }
     
     if (gameState === 'moving') {
@@ -263,10 +263,10 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
     return blurAmount;
   };
 
-  // Oblicz intensywność glow na podstawie z_pos
-  const getBallGlow = (ball: Ball) => {
-    const intensity = (ball.z_pos / Z_MAX); // 0 do 1
-    return intensity;
+  // Oblicz opacity na podstawie z_pos (dalsze kulki mniej widoczne)
+  const getBallOpacity = (ball: Ball) => {
+    const opacity = 0.7 + (ball.z_pos / Z_MAX) * 0.3; // 0.7 do 1.0
+    return opacity;
   };
 
   // Oblicz aktualne tempo
@@ -319,10 +319,10 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
                 Tryb Pomiarowy - Staircase (do błędu)
               </p>
               
-              <div className="bg-slate-700/50 rounded-lg p-6 mb-8 text-left">
+               <div className="bg-slate-700/50 rounded-lg p-6 mb-8 text-left">
                 <h3 className="font-semibold text-white mb-3">Instrukcje:</h3>
                 <ol className="space-y-2 text-slate-300">
-                  <li>1. Zapamiętaj 4 zielone kulki (2.5 sekundy)</li>
+                  <li>1. Zapamiętaj 4 białe kulki (2.5 sekundy)</li>
                   <li>2. Śledź je wzrokiem przez 8 sekund ruchu</li>
                   <li>3. Po zatrzymaniu, kliknij 4 kulki, które były celami</li>
                   <li>4. Gra przyśpiesza z każdym poziomem - graj do błędu!</li>
@@ -475,7 +475,7 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
           <div className="text-center">
             {gameState === 'highlight' && (
               <div>
-                <p className="text-white font-semibold text-lg">Zapamiętaj zielone kulki...</p>
+                <p className="text-white font-semibold text-lg">Zapamiętaj białe kulki...</p>
                 <p className="text-slate-400 text-sm mt-1">Poziom {level}</p>
               </div>
             )}
@@ -545,7 +545,7 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
           const scale = getBallScale(ball);
           const zIndex = getBallZIndex(ball);
           const blur = getBallBlur(ball);
-          const glow = getBallGlow(ball);
+          const opacity = getBallOpacity(ball);
           const baseSize = 30; // Bazowy rozmiar kulki
 
           return (
@@ -566,13 +566,8 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
                 transform: `translate(-50%, -50%) scale(${scale})`,
                 zIndex: zIndex,
                 filter: `blur(${blur}px)`,
-                boxShadow: `
-                  0 0 ${20 * glow}px ${10 * glow}px rgba(34, 197, 94, ${0.4 * glow}),
-                  0 0 ${40 * glow}px ${20 * glow}px rgba(34, 197, 94, ${0.3 * glow}),
-                  0 0 ${60 * glow}px ${30 * glow}px rgba(34, 197, 94, ${0.2 * glow}),
-                  inset 0 0 ${10 * glow}px rgba(255, 255, 255, ${0.3 * glow})
-                `,
-                background: `radial-gradient(circle at 30% 30%, rgba(134, 239, 172, ${0.9 * glow}), rgb(34, 197, 94))`,
+                opacity: opacity,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
               }}
             />
           );
