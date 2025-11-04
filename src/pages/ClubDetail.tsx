@@ -459,7 +459,7 @@ const ClubDetail = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 px-8 py-6 overflow-y-auto">
                   {/* KOLUMNA PRAWA (Główna) - Konspekt - 70% */}
                   <div className="lg:col-span-8 space-y-6">
-                    {/* Pomiar Button (jeśli to spotkanie pomiarowe) */}
+                    {/* Pomiar Button (tylko dla spotkań pomiarowych) */}
                     {selectedMeetingForOutline.meeting.isMeasurement && (
                       <Card className="border-primary/50 bg-primary/5">
                         <CardContent className="p-4">
@@ -467,40 +467,14 @@ const ClubDetail = () => {
                             <div>
                               <h4 className="font-semibold mb-1">Spotkanie pomiarowe</h4>
                               <p className="text-sm text-muted-foreground">
-                                Uruchom tryb pomiaru dla zawodników
+                                Przejdź do listy zawodników aby rozpocząć pomiary
                               </p>
                             </div>
                             <Button 
                               className="gap-2"
                               onClick={() => {
                                 setSelectedMeetingForOutline(null);
-                                setActiveWizardAthleteId("club-measurement");
-                              }}
-                            >
-                              <Plus className="h-4 w-4" />
-                              Przejdź do Trybu Pomiaru
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* Pomiar Button - nowy tekst */}
-                    {!selectedMeetingForOutline.meeting.isMeasurement && (
-                      <Card className="border-primary/50 bg-primary/5">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="font-semibold mb-1">Rozpocznij pomiary dla zawodników</h4>
-                              <p className="text-sm text-muted-foreground">
-                                Przejdź do listy zawodników klubu
-                              </p>
-                            </div>
-                            <Button 
-                              className="gap-2"
-                              onClick={() => {
-                                setSelectedMeetingForOutline(null);
-                                // Użyj elementu TabsTrigger by przełączyć na zakładkę zawodników
+                                // Przełącz na zakładkę zawodników
                                 const tabTrigger = document.querySelector('[data-state][value="zawodnicy"]') as HTMLButtonElement;
                                 if (tabTrigger) {
                                   tabTrigger.click();
@@ -515,12 +489,12 @@ const ClubDetail = () => {
                       </Card>
                     )}
 
-                    {/* Cel Spotkania */}
+                    {/* Cel Treningu */}
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
                           <Target className="h-5 w-5" />
-                          Cel Spotkania
+                          Cel Treningu
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
@@ -529,6 +503,64 @@ const ClubDetail = () => {
                         </p>
                       </CardContent>
                     </Card>
+
+                    {/* Wskazówki prowadzenia treningu */}
+                    {selectedMeetingForOutline.meeting.outline.trainingGuidance && (
+                      <Card className="border-violet-200 bg-violet-50/50">
+                        <CardHeader>
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <Target className="h-5 w-5" />
+                            Wskazówki prowadzenia treningu
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="prose prose-sm max-w-none space-y-3">
+                            {selectedMeetingForOutline.meeting.outline.trainingGuidance.split('\n\n').map((paragraph, idx) => {
+                              const lines = paragraph.split('\n');
+                              return (
+                                <div key={idx}>
+                                  {lines.map((line, lineIdx) => {
+                                    const trimmed = line.trim();
+                                    
+                                    // Nagłówki
+                                    if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+                                      return (
+                                        <h4 key={lineIdx} className="font-bold text-base mt-4 mb-2 first:mt-0">
+                                          {trimmed.replace(/\*\*/g, '')}
+                                        </h4>
+                                      );
+                                    }
+                                    
+                                    // Punktory
+                                    if (trimmed.startsWith('•')) {
+                                      return (
+                                        <div key={lineIdx} className="flex gap-2 mb-2">
+                                          <span className="text-violet-600 font-bold">•</span>
+                                          <p className="flex-1 text-sm leading-relaxed">
+                                            {trimmed.substring(1).trim()}
+                                          </p>
+                                        </div>
+                                      );
+                                    }
+                                    
+                                    // Zwykły tekst
+                                    if (trimmed) {
+                                      return (
+                                        <p key={lineIdx} className="text-sm leading-relaxed mb-2">
+                                          {trimmed}
+                                        </p>
+                                      );
+                                    }
+                                    
+                                    return null;
+                                  })}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
 
                     {/* Konspekt (Krok po Kroku) */}
                     <Card>
@@ -539,10 +571,10 @@ const ClubDetail = () => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <ul className="space-y-3">
+                        <ul className="space-y-4">
                           {selectedMeetingForOutline.meeting.outline.steps.map((step, idx) => {
-                            // Funkcja do renderowania tekstu z linkami do ćwiczeń i gier
-                            const renderStepWithLinks = (text: string) => {
+                            // Funkcja do renderowania tekstu z buttonami do ćwiczeń i gier
+                            const renderStepWithButtons = (text: string) => {
                               const parts = text.split(/(@[\w-]+)/g);
                               return parts.map((part, i) => {
                                 if (part.startsWith('@')) {
@@ -550,8 +582,11 @@ const ClubDetail = () => {
                                   const exercise = getExerciseById(exerciseId);
                                   if (exercise) {
                                     return (
-                                      <button
+                                      <Button
                                         key={i}
+                                        variant="outline"
+                                        size="sm"
+                                        className="mx-1 h-7 px-2 text-xs shadow-sm hover:shadow-md transition-shadow"
                                         onClick={() => {
                                           if (exercise.category === 'game') {
                                             setSelectedGameInOutline(exerciseId);
@@ -559,10 +594,9 @@ const ClubDetail = () => {
                                             setSelectedExerciseInOutline(exerciseId);
                                           }
                                         }}
-                                        className="text-primary underline hover:text-primary/80 font-medium"
                                       >
                                         {exercise.title}
-                                      </button>
+                                      </Button>
                                     );
                                   }
                                 }
@@ -575,38 +609,13 @@ const ClubDetail = () => {
                                 key={idx} 
                                 className="text-sm leading-relaxed pl-4 border-l-2 border-primary/30 py-2"
                               >
-                                {renderStepWithLinks(step)}
+                                {renderStepWithButtons(step)}
                               </li>
                             );
                           })}
                         </ul>
                       </CardContent>
                     </Card>
-
-                    {/* Wskazówki prowadzenia treningu */}
-                    {selectedMeetingForOutline.meeting.outline.trainingGuidance && (
-                      <Card className="border-amber-200 bg-amber-50/50">
-                        <CardHeader>
-                          <CardTitle className="text-lg flex items-center gap-2 text-amber-900">
-                            <Target className="h-5 w-5" />
-                            Wskazówki prowadzenia treningu
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="prose prose-sm max-w-none text-amber-950">
-                            {selectedMeetingForOutline.meeting.outline.trainingGuidance.split('\n').map((line, idx) => {
-                              if (line.trim().startsWith('•')) {
-                                return <p key={idx} className="mb-2">{line}</p>;
-                              }
-                              if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
-                                return <p key={idx} className="font-bold mt-3 mb-1">{line.replace(/\*\*/g, '')}</p>;
-                              }
-                              return <p key={idx} className="mb-2">{line}</p>;
-                            })}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
                   </div>
 
                   {/* KOLUMNA LEWA (Sub-Menu) - Powiązane Ćwiczenia - 30% */}
@@ -627,7 +636,17 @@ const ClubDetail = () => {
                               if (!exercise) return null;
                               
                               return (
-                                <Card key={exercise.id} className="bg-muted/50">
+                                <Card 
+                                  key={exercise.id} 
+                                  className="bg-muted/50 cursor-pointer hover:bg-muted/80 transition-colors"
+                                  onClick={() => {
+                                    if (exercise.category === 'game') {
+                                      setSelectedGameInOutline(exerciseId);
+                                    } else {
+                                      setSelectedExerciseInOutline(exerciseId);
+                                    }
+                                  }}
+                                >
                                   <CardContent className="p-3 space-y-2">
                                     <div className="flex items-start justify-between gap-2">
                                       <h5 className="font-semibold text-sm">{exercise.title}</h5>
