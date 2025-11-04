@@ -360,7 +360,8 @@ export default function ExerciseDetail() {
             onClick={() => navigate("/biblioteka")}
             className="mb-4"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Powrót
           </Button>
 
           <div className="flex items-start justify-between mb-4">

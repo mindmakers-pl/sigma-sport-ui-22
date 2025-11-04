@@ -51,8 +51,9 @@ const ClubDetail = () => {
     <div>
       {/* Nagłówek */}
       <div className="mb-6">
-        <Button variant="ghost" onClick={() => navigate('/kluby')} className="mb-4">
+        <Button variant="ghost" onClick={() => navigate('/kluby')} className="mb-4 gap-2">
           <ArrowLeft className="h-4 w-4" />
+          Powrót
         </Button>
         <div className="flex justify-between items-start">
           <div>

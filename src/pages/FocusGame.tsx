@@ -151,7 +151,8 @@ const FocusGame = ({ onComplete, onGoToCockpit }: FocusGameProps) => {
           className="text-white hover:bg-slate-800 mb-4"
           onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Powrót
         </Button>
       )}
       
@@ -331,7 +332,8 @@ const FocusGame = ({ onComplete, onGoToCockpit }: FocusGameProps) => {
                 }}
                 className="flex-1"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Powrót
               </Button>
               <Button 
                 size="lg"
