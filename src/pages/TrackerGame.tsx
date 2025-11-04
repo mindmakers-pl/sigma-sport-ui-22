@@ -452,7 +452,7 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
           <Button
             variant="ghost"
             onClick={handleGoToCockpitClick}
-            className="text-slate-300 hover:text-white"
+            className="text-slate-300 hover:text-slate-900"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Powrót
