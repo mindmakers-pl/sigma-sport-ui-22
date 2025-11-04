@@ -268,7 +268,7 @@ const Library = () => {
         </TabsContent>
 
         <TabsContent value="cwiczenia" className="space-y-6">
-          <div className="flex gap-4 mb-6">
+          <div className="flex gap-4">
             <div className="flex-1">
               <label className="text-sm font-medium text-slate-700 mb-2 block">Moduł</label>
               <Select value={exerciseModule} onValueChange={setExerciseModule}>
