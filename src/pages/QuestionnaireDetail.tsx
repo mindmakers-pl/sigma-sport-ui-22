@@ -274,8 +274,7 @@ export default function QuestionnaireDetail() {
             onClick={() => navigate("/biblioteka")}
             className="mb-6"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Powrót do biblioteki
+            <ArrowLeft className="h-4 w-4" />
           </Button>
 
           <Card>

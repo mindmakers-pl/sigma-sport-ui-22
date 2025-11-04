@@ -196,8 +196,7 @@ const AthleteProfile = () => {
         className="mb-4"
         onClick={() => navigate("/zawodnicy")}
       >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Powrót do listy
+        <ArrowLeft className="h-4 w-4" />
       </Button>
 
       <div className="mb-8">
@@ -548,8 +547,7 @@ const AthleteProfile = () => {
                     onClick={() => setSelectedSessionId(null)}
                     className="mb-6"
                   >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Powrót do listy sesji
+                    <ArrowLeft className="h-4 w-4" />
                   </Button>
                   
                   {(() => {
@@ -1015,8 +1013,7 @@ const AthleteProfile = () => {
             className="absolute top-4 left-4 z-50 text-white hover:bg-slate-800"
             onClick={() => setCurrentView('kokpit')}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Powrót
+            <ArrowLeft className="h-4 w-4" />
           </Button>
 
           {currentView === 'showing_questionnaire' && (

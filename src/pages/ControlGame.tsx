@@ -341,8 +341,7 @@ const ControlGame = ({ onComplete, onGoToCockpit }: ControlGameProps) => {
           className="text-white hover:bg-slate-800 mb-4"
           onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Powrót do Dodaj pomiar
+          <ArrowLeft className="h-4 w-4" />
         </Button>
       )}
       
@@ -530,8 +529,7 @@ const ControlGame = ({ onComplete, onGoToCockpit }: ControlGameProps) => {
                     else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
                   }}
                 >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Powrót
+                  <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <Button 
                   size="lg" 

@@ -169,8 +169,7 @@ const ScanGame = ({ onComplete, onGoToCockpit }: ScanGameProps) => {
           className="text-white hover:bg-slate-800 mb-4"
           onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Powrót do Dodaj pomiar
+          <ArrowLeft className="h-4 w-4" />
         </Button>
       )}
       
@@ -288,8 +287,7 @@ const ScanGame = ({ onComplete, onGoToCockpit }: ScanGameProps) => {
                     else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
                   }}
                 >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Powrót
+                  <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <Button 
                   size="lg" 
