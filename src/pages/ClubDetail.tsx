@@ -675,158 +675,182 @@ const ClubDetail = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Dialog - Widok ćwiczenia z pełnymi instrukcjami */}
+          {/* Dialog - Widok ćwiczenia z pełnymi instrukcjami - identyczny jak w Bibliotece */}
           <Dialog 
             open={selectedExerciseInOutline !== null} 
             onOpenChange={(open) => !open && setSelectedExerciseInOutline(null)}
           >
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               {selectedExerciseInOutline && (() => {
                 const exercise = getExerciseById(selectedExerciseInOutline);
                 if (!exercise) return null;
                 return (
-                  <>
-                    <DialogHeader>
-                      <div className="flex items-center justify-between">
-                        <DialogTitle className="text-2xl">{exercise.title}</DialogTitle>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedExerciseInOutline(null)}
-                        >
-                          <ArrowLeft className="h-4 w-4 mr-2" />
-                          Powrót do konspektu
-                        </Button>
+                  <div className="space-y-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h2 className="text-3xl font-bold mb-2">{exercise.title}</h2>
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <Badge variant="outline" className="gap-1.5">
+                            <Clock className="h-3.5 w-3.5" />
+                            {exercise.duration}
+                          </Badge>
+                          <Badge variant="secondary" className="capitalize">
+                            {exercise.category === 'breathing' && 'Oddech'}
+                            {exercise.category === 'focus' && 'Uwaga'}
+                            {exercise.category === 'control' && 'Kontrola'}
+                            {exercise.category === 'visualization' && 'Wizualizacja'}
+                            {exercise.category === 'game' && 'Wyzwanie'}
+                          </Badge>
+                        </div>
                       </div>
-                    </DialogHeader>
-                    <div className="space-y-6 py-4">
-                      {/* Podstawowe info */}
-                      <div className="flex items-center gap-4">
-                        <Badge variant="outline">{exercise.duration}</Badge>
-                        <Badge variant="secondary">{
-                          exercise.category === 'breathing' ? 'Oddech' :
-                          exercise.category === 'focus' ? 'Uwaga' :
-                          exercise.category === 'control' ? 'Kontrola' :
-                          exercise.category === 'visualization' ? 'Wizualizacja' : 'Gra'
-                        }</Badge>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedExerciseInOutline(null)}
+                      >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Powrót
+                      </Button>
+                    </div>
 
-                      {/* Cel ćwiczenia */}
-                      {exercise.objective && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-base">Cel ćwiczenia</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-sm leading-relaxed">{exercise.objective}</p>
-                          </CardContent>
-                        </Card>
-                      )}
+                    <Separator />
 
-                      {/* Opis */}
-                      <Card>
+                    {exercise.objective && (
+                      <Card className="border-primary/20 bg-primary/5">
                         <CardHeader>
-                          <CardTitle className="text-base">Opis</CardTitle>
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <Target className="h-5 w-5 text-primary" />
+                            Cel ćwiczenia
+                          </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-sm leading-relaxed">{exercise.description}</p>
+                          <p className="leading-relaxed">{exercise.objective}</p>
                         </CardContent>
                       </Card>
+                    )}
 
-                      {/* Wyposażenie */}
-                      {exercise.equipment && exercise.equipment.length > 0 && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-base">Potrzebne wyposażenie</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <ul className="list-disc list-inside space-y-1">
-                              {exercise.equipment.map((item, idx) => (
-                                <li key={idx} className="text-sm">{item}</li>
-                              ))}
-                            </ul>
-                          </CardContent>
-                        </Card>
-                      )}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <BookOpen className="h-5 w-5" />
+                          Opis
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="leading-relaxed text-muted-foreground">{exercise.description}</p>
+                      </CardContent>
+                    </Card>
 
-                      {/* Instrukcja krok po kroku */}
-                      {exercise.steps && exercise.steps.length > 0 && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-base">Instrukcja (krok po kroku)</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              {exercise.steps.map((step, idx) => (
-                                <div key={idx} className="border-l-2 border-primary/30 pl-4 py-2">
-                                  <h4 className="font-semibold text-sm mb-1">{step.title}</h4>
+                    {exercise.equipment && exercise.equipment.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Potrzebny sprzęt</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-2">
+                            {exercise.equipment.map((item, idx) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                <span className="text-muted-foreground">{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {exercise.steps && exercise.steps.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Instrukcja krok po kroku</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-6">
+                            {exercise.steps.map((step, idx) => (
+                              <div key={idx} className="relative pl-8 pb-6 last:pb-0">
+                                <div className="absolute left-0 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                                  {idx + 1}
+                                </div>
+                                {idx < exercise.steps!.length - 1 && (
+                                  <div className="absolute left-3 top-7 h-full w-0.5 bg-border" />
+                                )}
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold text-base">{step.title}</h4>
                                   <p className="text-sm text-muted-foreground leading-relaxed">{step.content}</p>
                                 </div>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-
-                      {/* Wskazówki trenerskie */}
-                      {exercise.coachingTips && exercise.coachingTips.length > 0 && (
-                        <Card className="border-violet-200 bg-violet-50/50">
-                          <CardHeader>
-                            <CardTitle className="text-base">Wskazówki trenerskie</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <ul className="space-y-2">
-                              {exercise.coachingTips.map((tip, idx) => (
-                                <li key={idx} className="flex gap-2">
-                                  <span className="text-violet-600 font-bold">•</span>
-                                  <span className="text-sm leading-relaxed">{tip}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </CardContent>
-                        </Card>
-                      )}
-
-                      {/* Adaptacje */}
-                      {exercise.adaptations && (exercise.adaptations.easier || exercise.adaptations.harder) && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-base">Adaptacje trudności</CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            {exercise.adaptations.easier && (
-                              <div>
-                                <p className="font-semibold text-sm text-green-700 mb-1">Łatwiejsza wersja:</p>
-                                <p className="text-sm text-muted-foreground">{exercise.adaptations.easier}</p>
                               </div>
-                            )}
-                            {exercise.adaptations.harder && (
-                              <div>
-                                <p className="font-semibold text-sm text-orange-700 mb-1">Trudniejsza wersja:</p>
-                                <p className="text-sm text-muted-foreground">{exercise.adaptations.harder}</p>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      )}
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
 
-                      {/* Metryki */}
-                      {exercise.metrics && exercise.metrics.length > 0 && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-base">Mierzone wskaźniki</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <ul className="list-disc list-inside space-y-1">
-                              {exercise.metrics.map((metric, idx) => (
-                                <li key={idx} className="text-sm">{metric}</li>
-                              ))}
-                            </ul>
-                          </CardContent>
-                        </Card>
-                      )}
-                    </div>
-                  </>
+                    {exercise.coachingTips && exercise.coachingTips.length > 0 && (
+                      <Card className="border-blue-200 bg-blue-50/50">
+                        <CardHeader>
+                          <CardTitle className="text-lg">💡 Wskazówki dla trenera</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-3">
+                            {exercise.coachingTips.map((tip, idx) => (
+                              <li key={idx} className="flex gap-3 text-sm">
+                                <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0" />
+                                <span className="text-foreground/90 leading-relaxed">{tip}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {exercise.adaptations && (exercise.adaptations.easier || exercise.adaptations.harder) && (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {exercise.adaptations.easier && (
+                          <Card className="border-green-200 bg-green-50/50">
+                            <CardHeader>
+                              <CardTitle className="text-base flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-green-600" />
+                                Wersja łatwiejsza
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-foreground/80 leading-relaxed">{exercise.adaptations.easier}</p>
+                            </CardContent>
+                          </Card>
+                        )}
+                        {exercise.adaptations.harder && (
+                          <Card className="border-orange-200 bg-orange-50/50">
+                            <CardHeader>
+                              <CardTitle className="text-base flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-orange-600" />
+                                Wersja trudniejsza
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-foreground/80 leading-relaxed">{exercise.adaptations.harder}</p>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </div>
+                    )}
+
+                    {exercise.metrics && exercise.metrics.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">📊 Metryki do śledzenia</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-2">
+                            {exercise.metrics.map((metric, idx) => (
+                              <Badge key={idx} variant="outline" className="text-sm py-1.5 px-3">
+                                {metric}
+                              </Badge>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
                 );
               })()}
             </DialogContent>

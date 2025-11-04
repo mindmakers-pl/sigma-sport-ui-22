@@ -74,35 +74,136 @@ export const exerciseLibrary: Exercise[] = [
     title: 'Body Scan',
     description: 'Systematyczne skanowanie ciała z uwagą na oddech i napięcie mięśniowe.',
     duration: '10-15 min',
-    category: 'focus'
+    category: 'focus',
+    objective: 'Rozwijanie świadomości cielesnej i umiejętności identyfikacji napięć mięśniowych poprzez metodyczne skanowanie poszczególnych części ciała.',
+    equipment: ['Mata do ćwiczeń', 'Ciche pomieszczenie', 'Opcjonalnie: nagranie z instrukcją guided body scan'],
+    steps: [
+      { title: 'Pozycja wyjściowa (1 min)', content: 'Zawodnik leży na plecach w wygodnej pozycji, ręce wzdłuż ciała, stopy lekko rozstawione. Oczy zamknięte. Kilka głębokich oddechów.' },
+      { title: 'Skanowanie stóp i nóg (3 min)', content: 'Przenieś uwagę na stopy. Zauważ wszystkie odczucia - ciepło, chłód, ucisk, pulsowanie. Nie oceniaj, tylko obserwuj. Przesuń uwagę na kostki, łydki, kolana, uda. Po kolei.' },
+      { title: 'Skanowanie tułowia (3 min)', content: 'Skup się na biodrach, pośladkach, dolnej części pleców. Zauważ punkty kontaktu z matą. Przesuń na brzuch - czy napina się przy wdechu? Klatka piersiowa, górna część pleców.' },
+      { title: 'Skanowanie rąk i ramion (2 min)', content: 'Palce dłoni, dłonie, nadgarstki, przedramiona, łokcie, ramiona, barki. Czy gdzieś jest napięcie? Jeśli tak, wyślij tam oddech.' },
+      { title: 'Skanowanie głowy (2 min)', content: 'Szyja, kark, szczęka (często napięta!), policzki, oczy, czoło, czubek głowy. Pozwól całej twarzy się rozluźnić.' },
+      { title: 'Całościowe skanowanie (2 min)', content: 'Przesuń uwagę przez całe ciało jak fala - od stóp do głowy. Jeśli znajdziesz obszar napięcia, zatrzymaj się tam na 2-3 oddechy.' },
+      { title: 'Powrót (1 min)', content: 'Delikatnie porusz palcami rąk i nóg. Rozciągnij się. Otwórz oczy. Wstań powoli.' }
+    ],
+    coachingTips: [
+      'Body Scan to nie relaksacja - to trening UWAGI na ciele. Niektórzy mogą czuć się bardziej świadomi napięć',
+      'Normalnie, że myśli odchodzą. Za każdym razem łagodnie wracaj do ciała',
+      'Można robić skróconą wersję (5 min) siedząc - świetne przed zawodami',
+      'Zawodnicy kontuzjowani mogą czuć dyskomfort w pewnych obszarach - zachęć do obserwacji bez osądu'
+    ],
+    adaptations: {
+      easier: 'Skróć do 3 obszarów (nogi, tułów, głowa), użyj nagrania z instrukcją, skróć czas do 8 minut',
+      harder: 'Wydłuż do 20 minut, skanuj w pozycji siedzącej (trudniejsze utrzymanie uwagi), dodaj świadomość oddechu w każdym obszarze'
+    },
+    metrics: ['Liczba momentów rozproszenia uwagi', 'Zidentyfikowane obszary napięcia', 'Subiektywny poziom relaksu przed/po (1-10)']
   },
   {
     id: 'ex-3',
     title: 'Semafor',
     description: 'Ćwiczenie kontroli impulsów - reaguj tylko na zielone światło, ignoruj czerwone.',
     duration: '5 min',
-    category: 'control'
+    category: 'control',
+    objective: 'Trening hamowania impulsywnych reakcji poprzez szybkie przetwarzanie sygnałów wizualnych i selekcję odpowiedniej odpowiedzi.',
+    equipment: ['3 kartony kolorowe (zielony, żółty, czerwony)', 'Lub aplikacja z kolorowymi sygnałami', 'Stoper'],
+    steps: [
+      { title: 'Instrukcja (30 sek)', content: 'Trener pokazuje karty w losowej kolejności. ZIELONA = klaśnij w dłonie. ŻÓŁTA = tupnij stopą. CZERWONA = nic nie rób (zahamuj impuls).' },
+      { title: 'Faza treningowa - wolne tempo (2 min)', content: '20 prób, interwał 5 sekund. Kolejność: zielona, żółta, czerwona, zielona, czerwona, żółta... Losowo. Zawodnik może popełniać błędy - to normalne.' },
+      { title: 'Faza szybka - presja czasu (2 min)', content: '30 prób, interwał 2 sekundy. Szybkie tempo! 50% czerwonych (wymagają hamowania). Monitoruj liczbę błędów (reakcja na czerwone = błąd).' },
+      { title: 'Analiza (30 sek)', content: 'Policz błędy. Ideał: <3 błędy w fazie szybkiej. Omów: Czy zawodnik spowalniał na czerwone (strategia unikania)? Czy utrzymał szybkość?' }
+    ],
+    coachingTips: [
+      'Semafor to prostsza wersja testu Go/NoGo - świetny start dla młodszych zawodników',
+      'Kluczowe: zawodnik musi utrzymać SZYBKOŚĆ reakcji na zielone/żółte, nie tylko skupić się na hamowaniu',
+      'Można dodać dystraktory: trener mówi kolory werbalnie, ale pokazuje inne - konflikt!',
+      'Transfer na sport: "czerwone światło" to np. sytuacja faulowa, prowokacja przeciwnika'
+    ],
+    adaptations: {
+      easier: 'Tylko 2 sygnały (zielony = działaj, czerwony = stop), wydłuż interwał do 4 sekund, zmniejsz liczbę czerwonych do 30%',
+      harder: 'Dodaj czwarty kolor (niebieski = skok), skróć interwał do 1 sekundy, dodaj dystraktory dźwiękowe, wykonuj podczas wysiłku fizycznego'
+    },
+    metrics: ['Liczba błędów (reakcja na czerwone)', 'Czas reakcji na zielone/żółte (ms)', 'Procent poprawnych odpowiedzi (%)']
   },
   {
     id: 'ex-4',
     title: 'Rozpoznawanie rozproszeń',
     description: 'Identyfikacja zewnętrznych i wewnętrznych źródeł rozproszenia uwagi.',
     duration: '10 min',
-    category: 'focus'
+    category: 'focus',
+    objective: 'Zwiększenie świadomości metacognitywnej poprzez identyfikację i kategoryzację typowych dystraktów występujących w kontekście sportowym.',
+    equipment: ['Arkusz do zapisu', 'Długopis', 'Opcjonalnie: nagranie dźwięków z zawodów (tło)'],
+    steps: [
+      { title: 'Wprowadzenie (2 min)', content: 'Wyjaśnij 2 typy rozproszeń: ZEWNĘTRZNE (dźwięki, ruch, pogoda) i WEWNĘTRZNE (myśli, emocje, odczucia fizyczne). Poproś o przykłady z treningów/meczów.' },
+      { title: 'Mapa rozproszeń - zewnętrzne (3 min)', content: 'Zawodnik zamyka oczy i wyobraża sobie sytuację meczową. Zapisuje 5 zewnętrznych rozproszeń (np. okrzyki kibiców, błąd sędziego, ruch przeciwnika, pogoda, ból kontuzji).' },
+      { title: 'Mapa rozproszeń - wewnętrzne (3 min)', content: 'Teraz 5 wewnętrznych (np. "co pomyślą inni", wspomnienie błędu, lęk przed porażką, myśli o wyniku, irytacja). Bądź szczery - to dla Ciebie.' },
+      { title: 'Kategoryzacja i ranking (2 min)', content: 'Zaznacz 3 najbardziej rozpraszające. Oceń (1-10) jak bardzo wpływają na grę. To Twoja "lista obserwacji" - teraz wiesz, czego szukać.' }
+    ],
+    coachingTips: [
+      'To ćwiczenie diagnostyczne - nie ma poprawnych/złych odpowiedzi',
+      'Zawodnicy często odkrywają, że WEWNĘTRZNE rozproszenia są silniejsze niż zewnętrzne',
+      'Zachowaj te listy - będą bazą do ćwiczeń "Zauważam i wracam"',
+      'Normalizuj - wszyscy zawodnicy mają rozproszenia, różnica jest w reakcji na nie'
+    ],
+    adaptations: {
+      easier: 'Ogranicz do 3 rozproszeń każdego typu, podaj gotową listę do wyboru, skróć do 7 minut',
+      harder: 'Rozszerz do 10 rozproszeń, dodaj kategorię "fizjologiczne" (głód, zmęczenie), stwórz mapę dla różnych faz meczu (początek, środek, koniec)'
+    },
+    metrics: ['Liczba zidentyfikowanych rozproszeń', 'Najsilniejsze rozproszenie (1-10)', 'Świadomość metacognitywna (samoocena)']
   },
   {
     id: 'ex-5',
     title: 'Technika "Zauważam i wracam"',
     description: 'Praktyka powrotu do obecności po zauważeniu rozproszenia.',
     duration: '15 min',
-    category: 'focus'
+    category: 'focus',
+    objective: 'Nauka szybkiego powrotu do koncentracji po zauważeniu rozproszenia poprzez protokół 3-krokowy: Zauważam → Nazywam → Wracam.',
+    equipment: ['Timer', 'Arkusz z listą rozproszeń (z ćwiczenia ex-4)', 'Opcjonalnie: metronom/dzwonek co 2 minuty'],
+    steps: [
+      { title: 'Wprowadzenie protokołu (3 min)', content: 'Wyjaśnij 3 kroki: 1) ZAUWAŻAM - dostrzegam, że myśli odeszły. 2) NAZYWAM - "To rozproszenie" (bez oceny). 3) WRACAM - kieruję uwagę na oddech/ciało/zadanie. Demo przez trenera.' },
+      { title: 'Praktyka z oddechem (5 min)', content: 'Zawodnik skupia się na oddechu. Gdy zauważy, że myśli odeszły, stosuje protokół. Nie walcz z myślami - po prostu wracaj. Licznik: ile razy musiałeś wrócić? (To SUKCES, nie porażka!)' },
+      { title: 'Praktyka z zadaniem sportowym (5 min)', content: 'Zawodnik wykonuje proste zadanie ruchowe (np. żonglerka, dribling). Świadomie wprowadź rozproszenia (głośne dźwięki, pytania). Zawodnik stosuje protokół i wraca do zadania.' },
+      { title: 'Refleksja (2 min)', content: 'Co było najtrudniejsze? Krok 1 (zauważanie)? 2 (nie osądzanie)? 3 (powrót)? Jaki był Twój "sygnał" że myśli odeszły? (np. napięcie, błąd w zadaniu)' }
+    ],
+    coachingTips: [
+      'To najpotężniejsza technika w całym programie - fundament mindfulness sportowego',
+      'Zawodnicy często myślą że "dużo powrotów = porażka". ODWROTNIE! Każdy powrót to trening mózgu',
+      'Nazwanie rozproszenia (krok 2) zapobiega reakcji emocjonalnej na nie',
+      'Stosuj "Zauważam i wracam" jako mantrę przed zawodami'
+    ],
+    adaptations: {
+      easier: 'Skróć do 10 minut, użyj tylko praktyki z oddechem, dzwonek co 1 minutę przypomina o powrocie',
+      harder: 'Wydłuż do 20 minut, dodaj symulację meczową pod presją, wprowadź dystraktory emocjonalne (wspomnienia porażek), brak dzwonka - pełna autonomia'
+    },
+    metrics: ['Liczba powrotów (im więcej, tym lepiej!)', 'Czas zauważenia rozproszenia (sekundy)', 'Jakość powrotu (1-10)']
   },
   {
     id: 'ex-6',
     title: 'Koncentracja progresywna',
     description: 'Stopniowe zwiększanie czasu koncentracji od 30 sekund do 5 minut.',
     duration: '20 min',
-    category: 'focus'
+    category: 'focus',
+    objective: 'Systematyczne wydłużanie czasu utrzymania koncentracji na jednym obiekcie poprzez progresywny trening - od krótkich do długich interwałów.',
+    equipment: ['Stoper/timer', 'Obiekt do koncentracji (piłka, punkt na ścianie, lub oddech)', 'Dziennik treningowy'],
+    steps: [
+      { title: 'Test bazowy (2 min)', content: 'Zawodnik koncentruje się na wybranym obiekcie/oddechu tak długo jak potrafi BEZ rozproszenia. Zmierz czas do pierwszego odejścia myśli. To Twój baseline.' },
+      { title: 'Seria 30 sekund x 3 (2 min)', content: '3 rundy po 30 sekund koncentracji, 20 sekund przerwy. Jeśli myśli odchodzą - "Zauważam i wracam". Cel: utrzymać przez cały czas.' },
+      { title: 'Seria 1 minuta x 3 (4 min)', content: '3 rundy po 1 minucie, 30 sekund przerwy. Trudniejsze! Jeśli udało się wszystkie 3 - przenieś się dalej.' },
+      { title: 'Seria 2 minuty x 2 (5 min)', content: '2 rundy po 2 minuty, 1 minuta przerwy. To już maraton koncentracji. Używaj oddechu jako "kotwicy powrotu".' },
+      { title: 'Seria 3 minuty x 1 (3 min)', content: 'Pojedyncza runda 3 minuty. Jeśli udało się - jesteś na poziomie zaawansowanym!' },
+      { title: 'Test końcowy (2 min)', content: 'Powtórz test bazowy. Zmierz czas do pierwszego rozproszenia. Czy poprawiłeś wynik?' },
+      { title: 'Analiza (2 min)', content: 'Zapisz: baseline, najdłuższy udany interwał, liczba rozproszeń. To Twój punkt odniesienia na następną sesję.' }
+    ],
+    coachingTips: [
+      'Koncentracja to jak mięsień - rozwija się przez systematyczny trening, nie jednorazowy wysiłek',
+      'Jeśli zawodnik nie przechodzi poziomu - zostaje na nim przez kolejną sesję. Bez wstydu!',
+      'Młodsi zawodnicy (<14 lat): zacznij od 15 sekund, wydłużaj wolniej',
+      'Można robić na treningu: koncentracja na piłce przed strzałem, na rękawicy przed ciosem, etc.'
+    ],
+    adaptations: {
+      easier: 'Zacznij od 15 sekund, wydłużaj po 15 sekund, skróć całość do 15 minut, używaj obiektów zewnętrznych (łatwiejsze niż oddech)',
+      harder: 'Zacznij od 1 minuty, cel: 10 minut ciągłej koncentracji, dodaj dystraktory (dźwięki, ruch), koncentracja podczas wysiłku fizycznego'
+    },
+    metrics: ['Czas bazowy (sekundy)', 'Najdłuższy udany interwał (sekundy)', 'Liczba rozproszeń na rundę', 'Procentowa poprawa baseline']
   },
   {
     id: 'game-scan',
@@ -145,21 +246,81 @@ export const exerciseLibrary: Exercise[] = [
     title: 'Skrypt AUN',
     description: 'Technika Aktywacji Uwagi Natychmiastowej - szybkie skupienie przed akcją.',
     duration: '2-3 min',
-    category: 'control'
+    category: 'control',
+    objective: 'Stworzenie mentalnego "przełącznika" pozwalającego na błyskawiczne wejście w stan pełnej koncentracji przed kluczową akcją sportową.',
+    equipment: ['Brak - tylko zawodnik i trener'],
+    steps: [
+      { title: 'Wprowadzenie do AUN (30 sek)', content: 'AUN to 3-słowny skrypt uruchamiany przed każdą ważną akcją: STOP. ODDECH. CEL. To Twój mental reset w 5 sekund.' },
+      { title: 'Krok 1: STOP (30 sek)', content: 'Zawodnik zatrzymuje automatyczne myśli gestem fizycznym (np. zaciska pięść, dotyka klatki piersiowej). Gest musi być szybki, dyskretny, zawsze ten sam. Przećwicz 5 razy.' },
+      { title: 'Krok 2: ODDECH (30 sek)', content: 'Jeden głęboki wdech nosem (3 sek) + wydech ustami (3 sek). To reset układu nerwowego. Przećwicz razem z gestem STOP.' },
+      { title: 'Krok 3: CEL (30 sek)', content: 'Werbalizuj (w myślach lub szeptem) JEDNO SŁOWO opisujące cel akcji (np. "Precyzja", "Eksplozja", "Spokój"). Przećwicz pełny cykl STOP-ODDECH-CEL 5 razy.' },
+      { title: 'Symulacja (30 sek)', content: 'Trener wywołuje symulację (np. "Za 10 sekund rzut karny"). Zawodnik stosuje AUN. Ocena (1-10): Czy poczułeś zmianę stanu?' }
+    ],
+    coachingTips: [
+      'AUN to NOT medytacja - to pre-performance routine jak w NBA przed rzutem wolnym',
+      'Zawodnicy muszą wymyślić SWÓJ gest i SWOJE słowo-cel. Personalizacja = skuteczność',
+      'Stosuj przed KAŻDYM treningiem przez 2 tygodnie - dopiero wtedy staje się automatem',
+      'Badania pokazują: rutyny skracają czas reakcji i zwiększają konsystencję wykonania'
+    ],
+    adaptations: {
+      easier: 'Wydłuż oddech do 5-5 sekund, pozwól na dłuższy gest (np. seria uderzeń w uda), używaj zewnętrznego przypomnienia (kartka z "AUN")',
+      harder: 'Skróć całość do 3 sekund, stosuj pod presją czasu, dodaj wizualizację idealnego wykonania, stosuj w warunkach rozpraszających'
+    },
+    metrics: ['Czas wykonania AUN (sekundy)', 'Zmiana stanu emocjonalnego przed/po (1-10)', 'Konsystencja stosowania (% sytuacji)']
   },
   {
     id: 'ex-8',
     title: 'Reset Emocjonalny',
     description: 'Szybka technika odzyskiwania spokoju po błędzie lub emocji.',
     duration: '1-2 min',
-    category: 'control'
+    category: 'control',
+    objective: 'Opanowanie protokołu natychmiastowej regulacji emocji negatywnych (frustracja, złość, lęk) w trakcie rywalizacji sportowej.',
+    equipment: ['Brak'],
+    steps: [
+      { title: 'Krok 1: Fizyczne odłączenie (10 sek)', content: 'Po błędzie/emocji: odwróć się, zrób 3 kroki w bok, lub odejdź do linii bocznej. FIZYCZNIE przerwij sytuację. To sygnał dla mózgu: "Ta akcja się skończyła".' },
+      { title: 'Krok 2: Oddech resetujący (20 sek)', content: 'Seria 3 głębokich oddechów: Wdech nosem (4 sek) + wstrzymanie (2 sek) + wydech ustami (6 sek). Przy wydechu wizualizuj "wypuszczanie" emocji.' },
+      { title: 'Krok 3: Self-talk resetujący (10 sek)', content: 'Wypowiedz w myślach krótką frazę resetującą (wybierz SWOJĄ): "Następna piłka", "Reset", "Teraz", "Jestem tutaj". Tylko forward, zero rozpamiętywania.' },
+      { title: 'Krok 4: Powrót do gry (20 sek)', content: 'Aktywuj ciało (podskocz, klaśnij, potrząśnij rękami). Skup się na NASTĘPNEJ akcji, nie poprzedniej. Wróć do pozycji z nastawieniem "fresh start".' }
+    ],
+    coachingTips: [
+      'Reset Emocjonalny = najważniejsza umiejętność w sporcie. Różnica między dobrymi a wielkimi',
+      'Pierwsze 2 tygodnie: zawodnicy będą resetować PO 2-3 minutach. To OK! Stopniowo skracaj',
+      'Kluczowe: NIE ANALIZUJ błędu podczas resetu. Analiza = PÓŹNIEJ. Teraz = tylko RESET',
+      'Trenerzy: sami stosujcie reset przed komunikacją z zawodnikiem po jego błędzie!'
+    ],
+    adaptations: {
+      easier: 'Wydłuż czas do 2-3 minut, dodaj fizyczne "otrząsanie się" (dosłownie!), użyj zewnętrznego sygnału (trener krzyczy "RESET")',
+      harder: 'Skróć do 30 sekund, stosuj podczas ciągłej gry (brak fizycznego odłączenia), dodaj pozytywną wizualizację następnej akcji'
+    },
+    metrics: ['Czas powrotu do stanu bazowego (sekundy)', 'Liczba błędów PO resecie vs PRZED (porównanie)', 'Samoocena jakości resetu (1-10)']
   },
   {
     id: 'ex-9',
     title: 'Wizualizacja sukcesu',
     description: 'Mentalne przećwiczenie idealnego wykonania akcji sportowej.',
     duration: '10-15 min',
-    category: 'visualization'
+    category: 'visualization',
+    objective: 'Programowanie mózgu na sukces poprzez wielozmysłowe odtwarzanie idealnej sekwencji ruchowej z pełnym zaangażowiem emocjonalnym.',
+    equipment: ['Ciche pomieszczenie', 'Mata lub krzesło', 'Opcjonalnie: nagranie z instrukcją guided imagery'],
+    steps: [
+      { title: 'Relaksacja (2 min)', content: 'Pozycja leżąca lub siedząca, oczy zamknięte. 10 głębokich oddechów. Świadomie rozluźnij mięśnie od stóp po głowę (progressive relaxation).' },
+      { title: 'Wybór sekwencji (1 min)', content: 'Zdefiniuj konkretną akcję sportową do wizualizacji (np. rzut judoka, strzał na bramkę, start sprintera). Im bardziej precyzyjna, tym lepiej.' },
+      { title: 'Wizualizacja zewnętrzna (2 min)', content: 'Zobacz siebie z zewnątrz (jak na filmie) wykonującego akcję IDEALNIE. Zwolnione tempo. Zauważ każdy szczegół: pozycję ciała, ruch, moment kulminacyjny, skuteczność.' },
+      { title: 'Wizualizacja wewnętrzna (5 min)', content: 'Przenieś się do środka - zobacz oczami zawodnika. Poczuj napięcie mięśni, ciężar ciała, ruch w przestrzeni. Usłysz dźwięki (okrzyki, oddech). Poczuj emocje (pewność, flow, radość po sukcesie). Powtórz 3-5 razy.' },
+      { title: 'Zakotwiczenie (1 min)', content: 'Połącz wyobrażenie z gestem fizycznym (np. zaciskasz pięść). To "kotwica" do aktywowania tego stanu na zawodach.' },
+      { title: 'Powrót (1 min)', content: 'Stopniowo wróć do świadomości ciała. Porusz palcami, rozciągnij się. Otwórz oczy. Zatrzymaj "smak" sukcesu.' }
+    ],
+    coachingTips: [
+      'Jakość > ilość. Lepiej 3 minuty pełnego zanurzenia niż 15 minut rozkojarzenia',
+      'Zawodnik MUSI wizualizować SUKCES, nie porażkę. To programowanie mózgu na wzorzec',
+      'Najlepsze momenty: przed snem (przechodzi do pamięci długotrwałej) i rano po przebudzeniu',
+      'Połącz z praktyką: wizualizuj przed treningiem technicznym - mózg już będzie "rozgrzany"'
+    ],
+    adaptations: {
+      easier: 'Skup się tylko na wizualizacji zewnętrznej, skróć do 5 minut, używaj gotowego nagrania guided imagery, wizualizuj pojedyncze proste ruchy',
+      harder: 'Dodaj element stresu (wyobraź sobie pełne trybuny, decydujący moment), wizualizuj całą sekwencję zawodów (od rozgrzewki do podium), dodaj wizualizację radzenia sobie z błędami i powrotu'
+    },
+    metrics: ['Żywość obrazu (1-10)', 'Kontrola nad obrazem (1-10)', 'Zaangażowanie emocjonalne (1-10)', 'Czas utrzymania koncentracji (minuty)']
   }
 ];
 
