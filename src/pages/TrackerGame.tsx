@@ -234,17 +234,17 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
     }
     
     if (gameState === 'moving') {
-      return 'bg-white';
+      return 'bg-green-400';
     }
 
     if (gameState === 'finished') {
       if (userGuesses.includes(ball.id)) {
         return ball.isTarget ? 'bg-green-500' : 'bg-red-500';
       }
-      return 'bg-white';
+      return 'bg-green-400';
     }
 
-    return 'bg-white';
+    return 'bg-green-400';
   };
 
   // Oblicz skalę kulki na podstawie z_pos (symulacja 3D)
@@ -255,6 +255,23 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
   // Oblicz z-index kulki na podstawie z_pos
   const getBallZIndex = (ball: Ball) => {
     return Math.round(ball.z_pos);
+  };
+
+  // Oblicz blur na podstawie z_pos (dalsze kulki bardziej rozmyte)
+  const getBallBlur = (ball: Ball) => {
+    const blurAmount = ((Z_MAX - ball.z_pos) / Z_MAX) * 3; // 0 do 3px
+    return blurAmount;
+  };
+
+  // Oblicz intensywność glow na podstawie z_pos
+  const getBallGlow = (ball: Ball) => {
+    const intensity = (ball.z_pos / Z_MAX); // 0 do 1
+    return intensity;
+  };
+
+  // Oblicz aktualne tempo
+  const getCurrentSpeed = () => {
+    return BASE_SPEED + (level * 0.3);
   };
 
   // Walidacja i zapisanie
@@ -435,18 +452,25 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
 
   // Ekran gry (highlight, moving, finished)
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center relative overflow-hidden">
       {/* Header z instrukcją */}
       <div className="absolute top-0 left-0 right-0 z-50 bg-slate-800/90 p-4">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <Button
-            variant="ghost"
-            onClick={handleGoToCockpitClick}
-            className="text-white hover:text-white hover:bg-slate-700"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Powrót
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              onClick={handleGoToCockpitClick}
+              className="text-white hover:text-white hover:bg-slate-700"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Powrót
+            </Button>
+            
+            {/* Wskaźnik tempa */}
+            <div className="text-left">
+              <p className="text-xs text-green-400 font-mono">CURRENT SPEED: {getCurrentSpeed().toFixed(1)}</p>
+            </div>
+          </div>
           
           <div className="text-center">
             {gameState === 'highlight' && (
@@ -468,7 +492,7 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
             )}
           </div>
 
-          <div className="w-24"></div>
+          <div className="w-32"></div>
         </div>
       </div>
 
@@ -520,6 +544,8 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
         {balls.map(ball => {
           const scale = getBallScale(ball);
           const zIndex = getBallZIndex(ball);
+          const blur = getBallBlur(ball);
+          const glow = getBallGlow(ball);
           const baseSize = 30; // Bazowy rozmiar kulki
 
           return (
@@ -529,7 +555,7 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
               className={`
                 absolute rounded-full transition-colors duration-200
                 ${getBallColor(ball)}
-                ${gameState === 'finished' && !userGuesses.includes(ball.id) ? 'cursor-pointer hover:brightness-110' : ''}
+                ${gameState === 'finished' && !userGuesses.includes(ball.id) ? 'cursor-pointer' : ''}
                 ${userGuesses.includes(ball.id) ? 'ring-4 ring-white' : ''}
               `}
               style={{
@@ -539,10 +565,34 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
                 top: `${ball.y_pos}px`,
                 transform: `translate(-50%, -50%) scale(${scale})`,
                 zIndex: zIndex,
+                filter: `blur(${blur}px)`,
+                boxShadow: `
+                  0 0 ${20 * glow}px ${10 * glow}px rgba(34, 197, 94, ${0.4 * glow}),
+                  0 0 ${40 * glow}px ${20 * glow}px rgba(34, 197, 94, ${0.3 * glow}),
+                  0 0 ${60 * glow}px ${30 * glow}px rgba(34, 197, 94, ${0.2 * glow}),
+                  inset 0 0 ${10 * glow}px rgba(255, 255, 255, ${0.3 * glow})
+                `,
+                background: `radial-gradient(circle at 30% 30%, rgba(134, 239, 172, ${0.9 * glow}), rgb(34, 197, 94))`,
               }}
             />
           );
         })}
+      </div>
+
+      {/* Kropki poziomu pod kontenerem */}
+      <div className="mt-6 flex items-center justify-center gap-2">
+        {Array.from({ length: Math.max(level, 10) }).map((_, idx) => (
+          <div
+            key={idx}
+            className={`
+              w-3 h-3 rounded-full transition-all duration-300
+              ${idx < level ? 'bg-green-400 scale-110' : 'bg-slate-700'}
+            `}
+            style={{
+              boxShadow: idx < level ? '0 0 8px 2px rgba(34, 197, 94, 0.5)' : 'none'
+            }}
+          />
+        ))}
       </div>
     </div>
   );
