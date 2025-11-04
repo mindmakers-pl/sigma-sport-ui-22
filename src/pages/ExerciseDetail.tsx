@@ -472,12 +472,12 @@ export default function ExerciseDetail() {
             </CardContent>
           </Card>
 
-          <Card className="border-orange-200 bg-orange-50/50">
+          <Card className="bg-slate-900 border-slate-700">
             <CardHeader>
-              <CardTitle className="text-lg text-orange-800">Wariant trudniejszy</CardTitle>
+              <CardTitle className="text-lg text-slate-100">Wariant trudniejszy</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-orange-700">{exercise.adaptations.harder}</p>
+              <p className="text-sm text-slate-200">{exercise.adaptations.harder}</p>
             </CardContent>
           </Card>
         </div>
