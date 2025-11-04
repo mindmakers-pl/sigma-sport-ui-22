@@ -260,7 +260,7 @@ const Athletes = () => {
                   </Button>
                   <Button 
                     onClick={handleAddAthlete} 
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    className="flex-1"
                     disabled={!isFormValid}
                   >
                     Zapisz zawodnika
