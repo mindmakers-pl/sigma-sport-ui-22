@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Brain, Zap, Target, FileText, ClipboardList } from "lucide-react";
+import { Brain, Zap, Target, FileText, ClipboardList, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Library = () => {
@@ -80,6 +80,14 @@ const Library = () => {
       icon: Brain,
       color: "bg-purple-500",
       route: "/focus/training",
+    },
+    {
+      id: "tracker",
+      title: "Wyzwanie Sigma Tracker",
+      description: "Trening śledzenia wielu obiektów i pamięci roboczej",
+      icon: Eye,
+      color: "bg-emerald-500",
+      route: "/tracker/training",
     },
   ];
 
@@ -243,7 +251,7 @@ const Library = () => {
         </TabsContent>
 
         <TabsContent value="wyzwania" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {challenges.map((challenge) => (
               <Card 
                 key={challenge.id} 
