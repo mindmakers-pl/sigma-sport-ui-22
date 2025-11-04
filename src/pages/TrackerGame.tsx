@@ -11,8 +11,7 @@ const TOTAL_BALLS = 8;
 const TARGET_BALLS = 4;
 const GAME_DURATION_MS = 8000; // 8 sekund
 const HIGHLIGHT_DURATION_MS = 2500; // 2.5 sekundy
-const BALL_SIZE = 60;
-const SPEED_RANGE = 3; // Prędkość od -3 do 3
+const BASE_SPEED = 1.5; // Bazowa prędkość
 
 interface Ball {
   id: number;
@@ -21,9 +20,11 @@ interface Ball {
   x_speed: number;
   y_speed: number;
   isTarget: boolean;
+  size: number;
+  zIndex: number;
 }
 
-type GameState = 'ready' | 'highlight' | 'moving' | 'finished' | 'results';
+type GameState = 'ready' | 'highlight' | 'moving' | 'finished' | 'level_complete' | 'retry' | 'final_results';
 
 interface TrackerGameProps {
   onComplete?: (data: any) => void;
@@ -38,10 +39,12 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
   const [userGuesses, setUserGuesses] = useState<number[]>([]);
   const [finalScore, setFinalScore] = useState({ correct: 0, total: TARGET_BALLS });
   const [hrvInput, setHrvInput] = useState("");
+  const [level, setLevel] = useState(1);
+  const [mistakes, setMistakes] = useState(0);
   const animationRef = useRef<number>();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Funkcja inicjalizacji kulek
+  // Funkcja inicjalizacji kulek z głębią 3D
   const initializeBalls = () => {
     if (!containerRef.current) return;
     
@@ -51,14 +54,28 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
 
     const newBalls: Ball[] = [];
     
+    // Prędkość zależna od poziomu
+    const currentSpeed = BASE_SPEED + (level * 0.3);
+    
     for (let i = 0; i < TOTAL_BALLS; i++) {
+      // Losowy rozmiar od 15px do 30px (symulacja głębi)
+      const size = Math.random() * 15 + 15; // 15-30px
+      
+      // Prędkość zależna od rozmiaru (większe = szybsze, mniejsze = wolniejsze)
+      const speedMultiplier = (size / 30) * currentSpeed;
+      
+      // Z-index zależny od rozmiaru (większe kulki na pierwszym planie)
+      const zIndex = Math.round(size);
+      
       newBalls.push({
         id: i,
-        x_pos: Math.random() * (containerWidth - BALL_SIZE * 2) + BALL_SIZE,
-        y_pos: Math.random() * (containerHeight - BALL_SIZE * 2) + BALL_SIZE,
-        x_speed: (Math.random() - 0.5) * SPEED_RANGE * 2,
-        y_speed: (Math.random() - 0.5) * SPEED_RANGE * 2,
-        isTarget: false
+        x_pos: Math.random() * (containerWidth - size * 2) + size,
+        y_pos: Math.random() * (containerHeight - size * 2) + size,
+        x_speed: (Math.random() - 0.5) * speedMultiplier * 2,
+        y_speed: (Math.random() - 0.5) * speedMultiplier * 2,
+        isTarget: false,
+        size,
+        zIndex
       });
     }
 
@@ -81,6 +98,17 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
     setUserGuesses([]);
     setFinalScore({ correct: 0, total: TARGET_BALLS });
     setHrvInput("");
+    setLevel(1);
+    setMistakes(0);
+    setBalls([]);
+  };
+
+  // Uruchom następną próbę (po poziomie lub błędzie)
+  const runNextTrial = () => {
+    setGameState('highlight');
+    setUserGuesses([]);
+    setFinalScore({ correct: 0, total: TARGET_BALLS });
+    setBalls([]);
   };
 
   // Inicjalizuj kulki gdy przejdziemy do stanu highlight
@@ -91,7 +119,7 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
         setBalls(initializedBalls);
       }
     }
-  }, [gameState, balls.length]);
+  }, [gameState, balls.length, level]);
 
   // Faza highlight -> moving
   useEffect(() => {
@@ -130,20 +158,20 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
           let newSpeedY = ball.y_speed;
 
           // Kolizja ze ścianami - lewa i prawa
-          if (newX <= BALL_SIZE / 2) {
-            newX = BALL_SIZE / 2;
+          if (newX <= ball.size / 2) {
+            newX = ball.size / 2;
             newSpeedX = -newSpeedX;
-          } else if (newX >= containerWidth - BALL_SIZE / 2) {
-            newX = containerWidth - BALL_SIZE / 2;
+          } else if (newX >= containerWidth - ball.size / 2) {
+            newX = containerWidth - ball.size / 2;
             newSpeedX = -newSpeedX;
           }
 
           // Kolizja ze ścianami - góra i dół
-          if (newY <= BALL_SIZE / 2) {
-            newY = BALL_SIZE / 2;
+          if (newY <= ball.size / 2) {
+            newY = ball.size / 2;
             newSpeedY = -newSpeedY;
-          } else if (newY >= containerHeight - BALL_SIZE / 2) {
-            newY = containerHeight - BALL_SIZE / 2;
+          } else if (newY >= containerHeight - ball.size / 2) {
+            newY = containerHeight - ball.size / 2;
             newSpeedY = -newSpeedY;
           }
 
@@ -176,7 +204,7 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
     const newGuesses = [...userGuesses, ballId];
     setUserGuesses(newGuesses);
 
-    // Jeśli użytkownik wybrał 4 kulki, przejdź do wyników
+    // Jeśli użytkownik wybrał 4 kulki, oceń wynik
     if (newGuesses.length === TARGET_BALLS) {
       // Oblicz wynik
       const correctGuesses = newGuesses.filter(guessId => {
@@ -185,7 +213,29 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
       }).length;
 
       setFinalScore({ correct: correctGuesses, total: TARGET_BALLS });
-      setGameState('results');
+      
+      // Logika Staircase
+      if (correctGuesses === TARGET_BALLS) {
+        // Perfekcyjny wynik - następny poziom
+        setGameState('level_complete');
+        setTimeout(() => {
+          setLevel(prev => prev + 1);
+          runNextTrial();
+        }, 2000);
+      } else {
+        // Błąd
+        if (mistakes === 0) {
+          // Pierwszy błąd - powtórz poziom
+          setMistakes(1);
+          setGameState('retry');
+          setTimeout(() => {
+            runNextTrial();
+          }, 2000);
+        } else {
+          // Drugi błąd - koniec gry
+          setGameState('final_results');
+        }
+      }
     }
   };
 
@@ -209,15 +259,22 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
     return 'bg-white';
   };
 
+  // Pobierz opacity kulki (efekt głębi)
+  const getBallOpacity = (ball: Ball) => {
+    // Mniejsze kulki (dalej) = mniej przezroczyste
+    const opacity = (ball.size - 15) / 15; // 0-1 range
+    if (opacity < 0.5) return 'opacity-70';
+    return 'opacity-100';
+  };
+
   // Walidacja i zapisanie
   const handleSaveAndContinue = () => {
     if (!hrvInput || isNaN(Number(hrvInput))) return;
 
     const gameData = {
       type: 'sigma-tracker',
-      score: finalScore.correct,
-      total: finalScore.total,
-      accuracy: (finalScore.correct / finalScore.total) * 100,
+      level: mistakes === 0 ? level : level - 1, // Osiągnięty poziom
+      maxLevel: mistakes === 0 ? level : level - 1,
       hrv: Number(hrvInput),
       timestamp: new Date().toISOString()
     };
@@ -248,8 +305,11 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
               <h1 className="text-4xl font-bold text-white mb-4">
                 Wyzwanie Sigma Tracker
               </h1>
-              <p className="text-slate-300 text-lg mb-8">
-                Śledź 4 podświetlone kule. Test potrwa 8 sekund.
+              <p className="text-slate-300 text-lg mb-2">
+                Test śledzenia wielu obiektów (Multiple Object Tracking)
+              </p>
+              <p className="text-slate-400 text-sm mb-8">
+                Tryb Pomiarowy - Staircase (do błędu)
               </p>
               
               <div className="bg-slate-700/50 rounded-lg p-6 mb-8 text-left">
@@ -258,6 +318,7 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
                   <li>1. Zapamiętaj 4 zielone kulki (2.5 sekundy)</li>
                   <li>2. Śledź je wzrokiem przez 8 sekund ruchu</li>
                   <li>3. Po zatrzymaniu, kliknij 4 kulki, które były celami</li>
+                  <li>4. Gra przyśpiesza z każdym poziomem - graj do błędu!</li>
                 </ol>
               </div>
 
@@ -275,9 +336,55 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
     );
   }
 
-  // Ekran wyników
-  if (gameState === 'results') {
-    const accuracy = Math.round((finalScore.correct / finalScore.total) * 100);
+  // Ekran przejściowy - poziom ukończony
+  if (gameState === 'level_complete') {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl bg-slate-800 border-slate-700">
+          <CardContent className="pt-6 space-y-6">
+            <div className="text-center animate-fade-in">
+              <h2 className="text-4xl font-bold text-green-400 mb-4">
+                Poziom {level} ukończony!
+              </h2>
+              <p className="text-2xl text-white mb-2">
+                Wynik: {finalScore.correct}/{finalScore.total}
+              </p>
+              <p className="text-xl text-slate-300">
+                Przygotuj się na szybszy poziom...
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Ekran przejściowy - powtórz poziom
+  if (gameState === 'retry') {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl bg-slate-800 border-slate-700">
+          <CardContent className="pt-6 space-y-6">
+            <div className="text-center animate-fade-in">
+              <h2 className="text-4xl font-bold text-orange-400 mb-4">
+                Pierwszy błąd
+              </h2>
+              <p className="text-2xl text-white mb-2">
+                Wynik: {finalScore.correct}/{finalScore.total}
+              </p>
+              <p className="text-xl text-slate-300">
+                Spróbuj jeszcze raz na tym samym poziomie...
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Ekran wyników końcowych
+  if (gameState === 'final_results') {
+    const achievedLevel = level - 1;
     const isValid = hrvInput && !isNaN(Number(hrvInput)) && Number(hrvInput) > 0;
 
     return (
@@ -290,12 +397,12 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
               </h2>
 
               <div className="bg-slate-700/50 rounded-lg p-8 mb-6">
-                <p className="text-slate-300 mb-2">Twój Wynik</p>
+                <p className="text-slate-300 mb-2">Osiągnięty Poziom</p>
                 <p className="text-5xl font-bold text-white mb-2">
-                  {finalScore.correct} / {finalScore.total}
+                  Poziom {achievedLevel}
                 </p>
                 <p className="text-xl text-slate-400">
-                  Dokładność: {accuracy}%
+                  Ostatni wynik: {finalScore.correct}/{finalScore.total}
                 </p>
               </div>
 
@@ -353,10 +460,16 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
           
           <div className="text-center">
             {gameState === 'highlight' && (
-              <p className="text-white font-semibold">Zapamiętaj zielone kulki...</p>
+              <div>
+                <p className="text-white font-semibold text-lg">Zapamiętaj zielone kulki...</p>
+                <p className="text-slate-400 text-sm mt-1">Poziom {level}</p>
+              </div>
             )}
             {gameState === 'moving' && (
-              <p className="text-white font-semibold">Śledź wzrokiem!</p>
+              <div>
+                <p className="text-white font-semibold text-lg">Śledź wzrokiem!</p>
+                <p className="text-slate-400 text-sm mt-1">Poziom {level}</p>
+              </div>
             )}
             {gameState === 'finished' && (
               <p className="text-white font-semibold">
@@ -381,14 +494,16 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
             className={`
               absolute rounded-full transition-colors duration-200
               ${getBallColor(ball)}
+              ${getBallOpacity(ball)}
               ${gameState === 'finished' && !userGuesses.includes(ball.id) ? 'cursor-pointer hover:scale-110 transition-transform' : ''}
               ${userGuesses.includes(ball.id) ? 'ring-4 ring-white' : ''}
             `}
             style={{
-              width: `${BALL_SIZE}px`,
-              height: `${BALL_SIZE}px`,
-              left: `${ball.x_pos - BALL_SIZE / 2}px`,
-              top: `${ball.y_pos - BALL_SIZE / 2}px`,
+              width: `${ball.size}px`,
+              height: `${ball.size}px`,
+              left: `${ball.x_pos - ball.size / 2}px`,
+              top: `${ball.y_pos - ball.size / 2}px`,
+              zIndex: ball.zIndex,
               transform: 'translate(0, 0)',
             }}
           />
