@@ -66,26 +66,47 @@ const AthleteProfile = () => {
     hrv_training: ''
   });
 
-  // Mock data - w przyszłości z API/bazy danych
-  const athleteData: Record<string, { name: string; club: string }> = {
-    "1": { name: "Jan Kowalski", club: "KS Górnik" },
-    "2": { name: "Anna Nowak", club: "MKS Cracovia" },
-    "3": { name: "Piotr Wiśniewski", club: "KS Górnik" },
-    "4": { name: "Maria Kowalczyk", club: "Wisła Kraków" },
-    "5": { name: "Tomasz Zieliński", club: "Legia Warszawa" },
+  // Pobierz dane zawodnika z localStorage lub użyj mock data
+  const getAthleteData = () => {
+    const storedAthletes = localStorage.getItem('athletes');
+    if (storedAthletes) {
+      const athletes = JSON.parse(storedAthletes);
+      const athlete = athletes.find((a: any) => a.id === parseInt(id || "1"));
+      if (athlete) {
+        return {
+          name: athlete.name,
+          club: athlete.club,
+          discipline: athlete.discipline,
+          email: athlete.email,
+          phone: athlete.phone,
+          birthYear: athlete.birthYear,
+          notes: athlete.notes,
+        };
+      }
+    }
+    
+    // Fallback do mock data
+    const athleteData: Record<string, any> = {
+      "1": { name: "Kowalski Jan", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2005, email: "jan.kowalski@example.com", phone: "+48 123 456 789", notes: "" },
+      "2": { name: "Nowak Anna", club: "MKS Cracovia", discipline: "Koszykówka", birthYear: 2004, email: "anna.nowak@example.com", phone: "+48 234 567 890", notes: "" },
+      "3": { name: "Wiśniewski Piotr", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2006, email: "piotr.wisniewski@example.com", phone: "+48 345 678 901", notes: "" },
+      "4": { name: "Kowalczyk Maria", club: "Wisła Kraków", discipline: "Siatkówka", birthYear: 2005, email: "maria.kowalczyk@example.com", phone: "+48 456 789 012", notes: "" },
+      "5": { name: "Zieliński Tomasz", club: "Legia Warszawa", discipline: "Piłka nożna", birthYear: 2003, email: "tomasz.zielinski@example.com", phone: "+48 567 890 123", notes: "" },
+    };
+    return athleteData[id || "1"] || { name: "Nieznany zawodnik", club: "Brak danych", discipline: "", email: "", phone: "", birthYear: 0, notes: "" };
   };
 
-  const athlete = athleteData[id || "1"] || { name: "Nieznany zawodnik", club: "Brak danych" };
+  const athlete = getAthleteData();
 
   // Load sessions on mount
   useEffect(() => {
     if (id) {
-      const athleteName = athleteData[id]?.name || 'Unknown';
+      const athleteName = athlete.name || 'Unknown';
       const sessions = loadMockSessionsToStorage(id, athleteName);
       const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
       setSavedSessions(allSessions.filter((s: any) => s.athlete_id === id));
     }
-  }, [id]);
+  }, [id, athlete.name]);
 
   const handleTaskComplete = (data: any) => {
     const taskName = currentView.replace('showing_', '').replace('playing_', '').replace('measuring_', '');
@@ -216,21 +237,25 @@ const AthleteProfile = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="border-slate-200 bg-white">
               <CardHeader>
-                <CardTitle className="text-slate-900">Parametry fizyczne</CardTitle>
+                <CardTitle className="text-slate-900">Podstawowe informacje</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Wzrost</span>
-                    <span className="font-semibold text-slate-900">180 cm</span>
+                    <span className="text-slate-600">Imię i nazwisko</span>
+                    <span className="font-semibold text-slate-900">{athlete.name}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Waga</span>
-                    <span className="font-semibold text-slate-900">75 kg</span>
+                    <span className="text-slate-600">Klub</span>
+                    <span className="font-semibold text-slate-900">{athlete.club}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-600">BMI</span>
-                    <span className="font-semibold text-slate-900">23.1</span>
+                    <span className="text-slate-600">Dyscyplina</span>
+                    <span className="font-semibold text-slate-900">{athlete.discipline || "Nie podano"}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-600">Rok urodzenia</span>
+                    <span className="font-semibold text-slate-900">{athlete.birthYear || "Nie podano"}</span>
                   </div>
                 </div>
               </CardContent>
@@ -238,55 +263,42 @@ const AthleteProfile = () => {
 
             <Card className="border-slate-200 bg-white">
               <CardHeader>
-                <CardTitle className="text-slate-900">Wydolność</CardTitle>
+                <CardTitle className="text-slate-900">Kontakt</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-600">VO2 Max</span>
-                    <span className="font-semibold text-slate-900">52 ml/kg/min</span>
+                    <span className="text-slate-600">Email</span>
+                    <span className="font-semibold text-slate-900">{athlete.email || "Nie podano"}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Spoczynkowe tętno</span>
-                    <span className="font-semibold text-slate-900">58 bpm</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Maksymalne tętno</span>
-                    <span className="font-semibold text-slate-900">192 bpm</span>
+                    <span className="text-slate-600">Telefon</span>
+                    <span className="font-semibold text-slate-900">{athlete.phone || "Nie podano"}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 bg-white">
+            <Card className="border-slate-200 bg-white md:col-span-2">
               <CardHeader>
-                <CardTitle className="text-slate-900">Siła</CardTitle>
+                <CardTitle className="text-slate-900">Historia i notatki</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Przysiady</span>
-                    <span className="font-semibold text-slate-900">120 kg</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Wyciskanie</span>
-                    <span className="font-semibold text-slate-900">85 kg</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Martwy ciąg</span>
-                    <span className="font-semibold text-slate-900">140 kg</span>
-                  </div>
-                </div>
+                <p className="text-slate-700 whitespace-pre-wrap">{athlete.notes || "Brak notatek"}</p>
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 bg-white">
+            <Card className="border-slate-200 bg-white md:col-span-2">
               <CardHeader>
                 <CardTitle className="text-slate-900">Ostatni pomiar</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-slate-600 mb-4">15 stycznia 2024</p>
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setSearchParams({ tab: 'dodaj-pomiar' })}
+                >
                   Dodaj nowy pomiar
                 </Button>
               </CardContent>

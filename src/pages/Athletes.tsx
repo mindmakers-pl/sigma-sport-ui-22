@@ -53,15 +53,15 @@ const Athletes = () => {
     notes: "",
   });
 
-  const athletes = [
-    { id: 1, name: "Kowalski Jan", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2005, sessions: 12 },
-    { id: 2, name: "Nowak Anna", club: "MKS Cracovia", discipline: "Koszykówka", birthYear: 2004, sessions: 8 },
-    { id: 3, name: "Wiśniewski Piotr", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2006, sessions: 15 },
-    { id: 4, name: "Kowalczyk Maria", club: "Wisła Kraków", discipline: "Siatkówka", birthYear: 2005, sessions: 10 },
-    { id: 5, name: "Zieliński Tomasz", club: "Legia Warszawa", discipline: "Piłka nożna", birthYear: 2003, sessions: 20 },
-  ];
+  const [athletes, setAthletes] = useState([
+    { id: 1, name: "Kowalski Jan", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2005, sessions: 12, email: "jan.kowalski@example.com", phone: "+48 123 456 789", notes: "" },
+    { id: 2, name: "Nowak Anna", club: "MKS Cracovia", discipline: "Koszykówka", birthYear: 2004, sessions: 8, email: "anna.nowak@example.com", phone: "+48 234 567 890", notes: "" },
+    { id: 3, name: "Wiśniewski Piotr", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2006, sessions: 15, email: "piotr.wisniewski@example.com", phone: "+48 345 678 901", notes: "" },
+    { id: 4, name: "Kowalczyk Maria", club: "Wisła Kraków", discipline: "Siatkówka", birthYear: 2005, sessions: 10, email: "maria.kowalczyk@example.com", phone: "+48 456 789 012", notes: "" },
+    { id: 5, name: "Zieliński Tomasz", club: "Legia Warszawa", discipline: "Piłka nożna", birthYear: 2003, sessions: 20, email: "tomasz.zielinski@example.com", phone: "+48 567 890 123", notes: "" },
+  ]);
 
-  const clubs = ["KS Górnik", "MKS Cracovia", "Wisła Kraków", "Legia Warszawa"];
+  const [clubs, setClubs] = useState(["KS Górnik", "MKS Cracovia", "Wisła Kraków", "Legia Warszawa"]);
   const disciplines = ["Piłka nożna", "Koszykówka", "Siatkówka"];
 
   const filteredAthletes = athletes.filter(athlete => {
@@ -74,7 +74,32 @@ const Athletes = () => {
   const hasActiveFilters = filterClub !== "all" || filterDiscipline !== "all";
 
   const handleAddAthlete = () => {
-    console.log("Dodawanie zawodnika:", newAthlete);
+    const newId = Math.max(...athletes.map(a => a.id)) + 1;
+    const fullName = `${newAthlete.lastName} ${newAthlete.firstName}`;
+    const birthYear = newAthlete.birthDate ? newAthlete.birthDate.getFullYear() : new Date().getFullYear();
+    
+    const athleteToAdd = {
+      id: newId,
+      name: fullName,
+      club: newAthlete.club,
+      discipline: newAthlete.discipline,
+      birthYear: birthYear,
+      sessions: 0,
+      email: newAthlete.email,
+      phone: newAthlete.phone,
+      notes: newAthlete.notes,
+    };
+    
+    setAthletes([...athletes, athleteToAdd]);
+    
+    // Dodaj klub do listy jeśli nie istnieje
+    if (newAthlete.club && !clubs.includes(newAthlete.club)) {
+      setClubs([...clubs, newAthlete.club]);
+    }
+    
+    // Zapisz do localStorage
+    localStorage.setItem('athletes', JSON.stringify([...athletes, athleteToAdd]));
+    
     setIsAddDialogOpen(false);
     setNewAthlete({
       firstName: "",
@@ -180,16 +205,19 @@ const Athletes = () => {
                     <Label htmlFor="club" className="text-slate-900 font-semibold">
                       Klub <span className="text-red-500">*</span>
                     </Label>
-                    <Select value={newAthlete.club} onValueChange={(value) => setNewAthlete({ ...newAthlete, club: value })}>
-                      <SelectTrigger className="mt-2 bg-white">
-                        <SelectValue placeholder="Wybierz klub" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white z-50">
-                        {clubs.map(club => (
-                          <SelectItem key={club} value={club}>{club}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="club"
+                      value={newAthlete.club}
+                      onChange={(e) => setNewAthlete({ ...newAthlete, club: e.target.value })}
+                      placeholder="Wpisz nazwę klubu"
+                      className="mt-2"
+                      list="clubs-list"
+                    />
+                    <datalist id="clubs-list">
+                      {clubs.map(club => (
+                        <option key={club} value={club} />
+                      ))}
+                    </datalist>
                   </div>
                   
                   <div>
@@ -232,6 +260,9 @@ const Athletes = () => {
                           date > new Date() || date < new Date("1950-01-01")
                         }
                         initialFocus
+                        captionLayout="dropdown-buttons"
+                        fromYear={1950}
+                        toYear={new Date().getFullYear()}
                         className="pointer-events-auto"
                       />
                     </PopoverContent>
