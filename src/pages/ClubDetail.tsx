@@ -227,7 +227,7 @@ const ClubDetail = () => {
                             onClick={() => setActiveWizardAthleteId(athlete.id.toString())}
                           >
                             <Plus className="h-3 w-3" />
-                            Dodaj pomiar
+                            Pomiar
                           </Button>
                         </div>
                       </TableCell>
