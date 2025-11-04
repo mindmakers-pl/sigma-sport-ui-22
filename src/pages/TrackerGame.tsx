@@ -230,21 +230,21 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
   // Pobierz kolor kulki
   const getBallColor = (ball: Ball) => {
     if (gameState === 'highlight') {
-      return ball.isTarget ? 'bg-white' : 'bg-green-400';
+      return ball.isTarget ? 'bg-white' : 'bg-primary';
     }
     
     if (gameState === 'moving') {
-      return 'bg-green-400';
+      return 'bg-primary';
     }
 
     if (gameState === 'finished') {
       if (userGuesses.includes(ball.id)) {
-        return ball.isTarget ? 'bg-white' : 'bg-red-500';
+        return ball.isTarget ? 'bg-white' : 'bg-destructive';
       }
-      return 'bg-green-400';
+      return 'bg-primary';
     }
 
-    return 'bg-green-400';
+    return 'bg-primary';
   };
 
   // Oblicz skalę kulki na podstawie z_pos (symulacja 3D)
@@ -554,11 +554,11 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
             if (ballColor === 'bg-white') {
               return 'radial-gradient(circle at 35% 35%, #ffffff, #e5e5e5 50%, #cccccc)';
             }
-            if (ballColor === 'bg-red-500') {
+            if (ballColor === 'bg-destructive') {
               return 'radial-gradient(circle at 35% 35%, #ff6b6b, #ef4444 50%, #dc2626)';
             }
-            // bg-green-400
-            return 'radial-gradient(circle at 35% 35%, #86efac, #4ade80 50%, #22c55e)';
+            // bg-primary (#25FFAA)
+            return 'radial-gradient(circle at 35% 35%, #66ffcc, #25ffaa 50%, #00e699)';
           };
 
           return (
@@ -648,10 +648,10 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
             key={idx}
             className={`
               w-3 h-3 rounded-full transition-all duration-300
-              ${idx < level ? 'bg-green-400 scale-110' : 'bg-slate-700'}
+              ${idx < level ? 'bg-primary scale-110' : 'bg-muted-foreground/30'}
             `}
             style={{
-              boxShadow: idx < level ? '0 0 8px 2px rgba(34, 197, 94, 0.5)' : 'none'
+              boxShadow: idx < level ? '0 0 8px 2px hsl(var(--primary) / 0.5)' : 'none'
             }}
           />
         ))}
