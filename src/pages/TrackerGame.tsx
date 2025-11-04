@@ -12,16 +12,19 @@ const TARGET_BALLS = 4;
 const GAME_DURATION_MS = 8000; // 8 sekund
 const HIGHLIGHT_DURATION_MS = 2500; // 2.5 sekundy
 const BASE_SPEED = 1.5; // Bazowa prędkość
+const CONTAINER_SIZE = 600; // Rozmiar kontenera gry (600x600px)
+const Z_MIN = 0;
+const Z_MAX = 100;
 
 interface Ball {
   id: number;
   x_pos: number;
   y_pos: number;
+  z_pos: number;
   x_speed: number;
   y_speed: number;
+  z_speed: number;
   isTarget: boolean;
-  size: number;
-  zIndex: number;
 }
 
 type GameState = 'ready' | 'highlight' | 'moving' | 'finished' | 'level_complete' | 'retry' | 'final_results';
@@ -46,36 +49,21 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
 
   // Funkcja inicjalizacji kulek z głębią 3D
   const initializeBalls = () => {
-    if (!containerRef.current) return;
-    
-    const container = containerRef.current;
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
-
     const newBalls: Ball[] = [];
     
-    // Prędkość zależna od poziomu
+    // Prędkość zależna od poziomu (Staircase)
     const currentSpeed = BASE_SPEED + (level * 0.3);
     
     for (let i = 0; i < TOTAL_BALLS; i++) {
-      // Losowy rozmiar od 15px do 30px (symulacja głębi)
-      const size = Math.random() * 15 + 15; // 15-30px
-      
-      // Prędkość zależna od rozmiaru (większe = szybsze, mniejsze = wolniejsze)
-      const speedMultiplier = (size / 30) * currentSpeed;
-      
-      // Z-index zależny od rozmiaru (większe kulki na pierwszym planie)
-      const zIndex = Math.round(size);
-      
       newBalls.push({
         id: i,
-        x_pos: Math.random() * (containerWidth - size * 2) + size,
-        y_pos: Math.random() * (containerHeight - size * 2) + size,
-        x_speed: (Math.random() - 0.5) * speedMultiplier * 2,
-        y_speed: (Math.random() - 0.5) * speedMultiplier * 2,
+        x_pos: Math.random() * CONTAINER_SIZE,
+        y_pos: Math.random() * CONTAINER_SIZE,
+        z_pos: Math.random() * Z_MAX,
+        x_speed: (Math.random() - 0.5) * currentSpeed * 2,
+        y_speed: (Math.random() - 0.5) * currentSpeed * 2,
+        z_speed: (Math.random() - 0.5) * currentSpeed * 2,
         isTarget: false,
-        size,
-        zIndex
       });
     }
 
@@ -132,13 +120,9 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
     }
   }, [gameState]);
 
-  // Faza moving - animacja z kolizjami
+  // Faza moving - animacja z kolizjami 3D
   useEffect(() => {
-    if (gameState !== 'moving' || !containerRef.current) return;
-
-    const container = containerRef.current;
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
+    if (gameState !== 'moving') return;
     
     const startTime = Date.now();
 
@@ -154,33 +138,37 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
         return prevBalls.map(ball => {
           let newX = ball.x_pos + ball.x_speed;
           let newY = ball.y_pos + ball.y_speed;
+          let newZ = ball.z_pos + ball.z_speed;
           let newSpeedX = ball.x_speed;
           let newSpeedY = ball.y_speed;
+          let newSpeedZ = ball.z_speed;
 
-          // Kolizja ze ścianami - lewa i prawa
-          if (newX <= ball.size / 2) {
-            newX = ball.size / 2;
+          // Kolizja ze ścianami - lewa i prawa (X)
+          if (newX <= 0 || newX >= CONTAINER_SIZE) {
             newSpeedX = -newSpeedX;
-          } else if (newX >= containerWidth - ball.size / 2) {
-            newX = containerWidth - ball.size / 2;
-            newSpeedX = -newSpeedX;
+            newX = newX <= 0 ? 0 : CONTAINER_SIZE;
           }
 
-          // Kolizja ze ścianami - góra i dół
-          if (newY <= ball.size / 2) {
-            newY = ball.size / 2;
+          // Kolizja ze ścianami - góra i dół (Y)
+          if (newY <= 0 || newY >= CONTAINER_SIZE) {
             newSpeedY = -newSpeedY;
-          } else if (newY >= containerHeight - ball.size / 2) {
-            newY = containerHeight - ball.size / 2;
-            newSpeedY = -newSpeedY;
+            newY = newY <= 0 ? 0 : CONTAINER_SIZE;
+          }
+
+          // Kolizja ze ścianami - tył i przód (Z) - NOWA LOGIKA 3D
+          if (newZ <= Z_MIN || newZ >= Z_MAX) {
+            newSpeedZ = -newSpeedZ;
+            newZ = newZ <= Z_MIN ? Z_MIN : Z_MAX;
           }
 
           return {
             ...ball,
             x_pos: newX,
             y_pos: newY,
+            z_pos: newZ,
             x_speed: newSpeedX,
-            y_speed: newSpeedY
+            y_speed: newSpeedY,
+            z_speed: newSpeedZ
           };
         });
       });
@@ -259,12 +247,14 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
     return 'bg-white';
   };
 
-  // Pobierz opacity kulki (efekt głębi)
-  const getBallOpacity = (ball: Ball) => {
-    // Mniejsze kulki (dalej) = mniej przezroczyste
-    const opacity = (ball.size - 15) / 15; // 0-1 range
-    if (opacity < 0.5) return 'opacity-70';
-    return 'opacity-100';
+  // Oblicz skalę kulki na podstawie z_pos (symulacja 3D)
+  const getBallScale = (ball: Ball) => {
+    return 0.5 + (ball.z_pos / Z_MAX) * 0.5; // 0.5 do 1.0
+  };
+
+  // Oblicz z-index kulki na podstawie z_pos
+  const getBallZIndex = (ball: Ball) => {
+    return Math.round(ball.z_pos);
   };
 
   // Walidacja i zapisanie
@@ -445,9 +435,9 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
 
   // Ekran gry (highlight, moving, finished)
   return (
-    <div className="min-h-screen bg-slate-900 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center relative overflow-hidden">
       {/* Header z instrukcją */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-slate-800/90 p-4">
+      <div className="absolute top-0 left-0 right-0 z-50 bg-slate-800/90 p-4">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
           <Button
             variant="ghost"
@@ -482,32 +472,77 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
         </div>
       </div>
 
-      {/* Obszar gry */}
+      {/* Kontener gry 600x600px */}
       <div 
         ref={containerRef}
-        className="absolute inset-0 top-16"
+        className="relative"
+        style={{
+          width: `${CONTAINER_SIZE}px`,
+          height: `${CONTAINER_SIZE}px`,
+        }}
       >
-        {balls.map(ball => (
-          <div
-            key={ball.id}
-            onClick={() => handleBallClick(ball.id)}
-            className={`
-              absolute rounded-full transition-colors duration-200
-              ${getBallColor(ball)}
-              ${getBallOpacity(ball)}
-              ${gameState === 'finished' && !userGuesses.includes(ball.id) ? 'cursor-pointer hover:scale-110 transition-transform' : ''}
-              ${userGuesses.includes(ball.id) ? 'ring-4 ring-white' : ''}
-            `}
-            style={{
-              width: `${ball.size}px`,
-              height: `${ball.size}px`,
-              left: `${ball.x_pos - ball.size / 2}px`,
-              top: `${ball.y_pos - ball.size / 2}px`,
-              zIndex: ball.zIndex,
-              transform: 'translate(0, 0)',
-            }}
+        {/* Wireframe sześcianu 3D (tło, z-index: 0) */}
+        <svg
+          className="absolute inset-0"
+          style={{ zIndex: 0 }}
+          width={CONTAINER_SIZE}
+          height={CONTAINER_SIZE}
+          viewBox={`0 0 ${CONTAINER_SIZE} ${CONTAINER_SIZE}`}
+        >
+          {/* Tylna ściana (z = 0) */}
+          <rect
+            x="100"
+            y="100"
+            width="400"
+            height="400"
+            fill="none"
+            stroke="#374151"
+            strokeWidth="1"
           />
-        ))}
+          {/* Przednia ściana (z = 100) */}
+          <rect
+            x="0"
+            y="0"
+            width={CONTAINER_SIZE}
+            height={CONTAINER_SIZE}
+            fill="none"
+            stroke="#374151"
+            strokeWidth="2"
+          />
+          {/* Linie łączące (perspektywa) */}
+          <line x1="0" y1="0" x2="100" y2="100" stroke="#374151" strokeWidth="1" />
+          <line x1={CONTAINER_SIZE} y1="0" x2="500" y2="100" stroke="#374151" strokeWidth="1" />
+          <line x1="0" y1={CONTAINER_SIZE} x2="100" y2="500" stroke="#374151" strokeWidth="1" />
+          <line x1={CONTAINER_SIZE} y1={CONTAINER_SIZE} x2="500" y2="500" stroke="#374151" strokeWidth="1" />
+        </svg>
+
+        {/* Kulki */}
+        {balls.map(ball => {
+          const scale = getBallScale(ball);
+          const zIndex = getBallZIndex(ball);
+          const baseSize = 30; // Bazowy rozmiar kulki
+
+          return (
+            <div
+              key={ball.id}
+              onClick={() => handleBallClick(ball.id)}
+              className={`
+                absolute rounded-full transition-colors duration-200
+                ${getBallColor(ball)}
+                ${gameState === 'finished' && !userGuesses.includes(ball.id) ? 'cursor-pointer hover:brightness-110' : ''}
+                ${userGuesses.includes(ball.id) ? 'ring-4 ring-white' : ''}
+              `}
+              style={{
+                width: `${baseSize}px`,
+                height: `${baseSize}px`,
+                left: `${ball.x_pos}px`,
+                top: `${ball.y_pos}px`,
+                transform: `translate(-50%, -50%) scale(${scale})`,
+                zIndex: zIndex,
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );
