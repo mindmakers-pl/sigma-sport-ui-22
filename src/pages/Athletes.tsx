@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Search, FileText, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
@@ -53,16 +53,41 @@ const Athletes = () => {
     notes: "",
   });
 
-  const [athletes, setAthletes] = useState([
-    { id: 1, name: "Kowalski Jan", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2005, sessions: 12, email: "jan.kowalski@example.com", phone: "+48 123 456 789", notes: "" },
-    { id: 2, name: "Nowak Anna", club: "MKS Cracovia", discipline: "Koszykówka", birthYear: 2004, sessions: 8, email: "anna.nowak@example.com", phone: "+48 234 567 890", notes: "" },
-    { id: 3, name: "Wiśniewski Piotr", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2006, sessions: 15, email: "piotr.wisniewski@example.com", phone: "+48 345 678 901", notes: "" },
-    { id: 4, name: "Kowalczyk Maria", club: "Wisła Kraków", discipline: "Siatkówka", birthYear: 2005, sessions: 10, email: "maria.kowalczyk@example.com", phone: "+48 456 789 012", notes: "" },
-    { id: 5, name: "Zieliński Tomasz", club: "Legia Warszawa", discipline: "Piłka nożna", birthYear: 2003, sessions: 20, email: "tomasz.zielinski@example.com", phone: "+48 567 890 123", notes: "" },
-  ]);
+  const [athletes, setAthletes] = useState(() => {
+    const stored = localStorage.getItem('athletes');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    const defaultAthletes = [
+      { id: 1, name: "Kowalski Jan", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2005, sessions: 12, email: "jan.kowalski@example.com", phone: "+48 123 456 789", notes: "" },
+      { id: 2, name: "Nowak Anna", club: "MKS Cracovia", discipline: "Koszykówka", birthYear: 2004, sessions: 8, email: "anna.nowak@example.com", phone: "+48 234 567 890", notes: "" },
+      { id: 3, name: "Wiśniewski Piotr", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2006, sessions: 15, email: "piotr.wisniewski@example.com", phone: "+48 345 678 901", notes: "" },
+      { id: 4, name: "Kowalczyk Maria", club: "Wisła Kraków", discipline: "Siatkówka", birthYear: 2005, sessions: 10, email: "maria.kowalczyk@example.com", phone: "+48 456 789 012", notes: "" },
+      { id: 5, name: "Zieliński Tomasz", club: "Legia Warszawa", discipline: "Piłka nożna", birthYear: 2003, sessions: 20, email: "tomasz.zielinski@example.com", phone: "+48 567 890 123", notes: "" },
+    ];
+    localStorage.setItem('athletes', JSON.stringify(defaultAthletes));
+    return defaultAthletes;
+  });
 
-  const [clubs, setClubs] = useState(["KS Górnik", "MKS Cracovia", "Wisła Kraków", "Legia Warszawa"]);
+  const [clubs, setClubs] = useState(() => {
+    const storedClubs = localStorage.getItem('clubs');
+    if (storedClubs) {
+      const clubsData = JSON.parse(storedClubs);
+      return clubsData.map((club: any) => club.name);
+    }
+    return ["KS Górnik", "MKS Cracovia", "Wisła Kraków", "Legia Warszawa"];
+  });
+  
   const disciplines = ["Piłka nożna", "Koszykówka", "Siatkówka"];
+
+  // Synchronizuj listę klubów z localStorage
+  useEffect(() => {
+    const storedClubs = localStorage.getItem('clubs');
+    if (storedClubs) {
+      const clubsData = JSON.parse(storedClubs);
+      setClubs(clubsData.map((club: any) => club.name));
+    }
+  }, []);
 
   const filteredAthletes = athletes.filter(athlete => {
     const matchesSearch = athlete.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -74,7 +99,7 @@ const Athletes = () => {
   const hasActiveFilters = filterClub !== "all" || filterDiscipline !== "all";
 
   const handleAddAthlete = () => {
-    const newId = Math.max(...athletes.map(a => a.id)) + 1;
+    const newId = athletes.length > 0 ? Math.max(...athletes.map(a => a.id)) + 1 : 1;
     const fullName = `${newAthlete.lastName} ${newAthlete.firstName}`;
     const birthYear = newAthlete.birthDate ? newAthlete.birthDate.getFullYear() : new Date().getFullYear();
     
@@ -90,15 +115,34 @@ const Athletes = () => {
       notes: newAthlete.notes,
     };
     
-    setAthletes([...athletes, athleteToAdd]);
+    const updatedAthletes = [...athletes, athleteToAdd];
+    setAthletes(updatedAthletes);
+    
+    // Zapisz do localStorage
+    localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
     
     // Dodaj klub do listy jeśli nie istnieje
     if (newAthlete.club && !clubs.includes(newAthlete.club)) {
-      setClubs([...clubs, newAthlete.club]);
+      const updatedClubs = [...clubs, newAthlete.club];
+      setClubs(updatedClubs);
+      
+      // Zaktualizuj też clubs w localStorage jeśli istnieje struktura klubów
+      const storedClubs = localStorage.getItem('clubs');
+      if (storedClubs) {
+        const clubsData = JSON.parse(storedClubs);
+        const clubExists = clubsData.some((c: any) => c.name === newAthlete.club);
+        if (!clubExists) {
+          const newClubData = {
+            id: Math.max(...clubsData.map((c: any) => c.id), 0) + 1,
+            name: newAthlete.club,
+            city: "",
+            disciplines: newAthlete.discipline ? [newAthlete.discipline] : [],
+            members: 1
+          };
+          localStorage.setItem('clubs', JSON.stringify([...clubsData, newClubData]));
+        }
+      }
     }
-    
-    // Zapisz do localStorage
-    localStorage.setItem('athletes', JSON.stringify([...athletes, athleteToAdd]));
     
     setIsAddDialogOpen(false);
     setNewAthlete({
