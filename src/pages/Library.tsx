@@ -308,7 +308,11 @@ const Library = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredExercises.map((exercise) => (
-              <Card key={exercise.id} className="hover:shadow-md transition-shadow">
+              <Card 
+                key={exercise.id} 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => navigate(`/biblioteka/cwiczenie/${exercise.id}`)}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <FileText className="h-6 w-6 text-primary" />
@@ -322,7 +326,7 @@ const Library = () => {
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">{exercise.duration}</span>
-                    <span className="text-primary text-sm font-medium cursor-pointer">Zobacz instrukcję →</span>
+                    <span className="text-primary text-sm font-medium">Zobacz instrukcję →</span>
                   </div>
                 </CardContent>
               </Card>
@@ -333,7 +337,11 @@ const Library = () => {
         <TabsContent value="kwestionariusze" className="space-y-6">
           <div className="grid grid-cols-1 gap-6">
             {questionnaires.map((questionnaire) => (
-              <Card key={questionnaire.id} className="hover:shadow-lg transition-shadow">
+              <Card 
+                key={questionnaire.id} 
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => navigate(`/biblioteka/kwestionariusz/${questionnaire.id}`)}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
