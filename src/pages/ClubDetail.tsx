@@ -44,7 +44,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { allSprints, exerciseLibrary, getExerciseById, type Meeting, type Sprint } from "@/data/libraryData";
+import { allSprints, exerciseLibrary, getExerciseById, sigmaGoDemoTraining, type Meeting, type Sprint } from "@/data/libraryData";
 
 const ClubDetail = () => {
   const navigate = useNavigate();
@@ -54,11 +54,15 @@ const ClubDetail = () => {
   const [selectedM1, setSelectedM1] = useState("m1-oct");
   const [selectedM2, setSelectedM2] = useState("m2-nov");
   
-  // Nowe stany dla Sigma Teams Accordion
+  // Nowe stany dla Sigma Teams
   const [selectedMeetingForOutline, setSelectedMeetingForOutline] = useState<{
     sprint: Sprint;
     meeting: Meeting;
   } | null>(null);
+  
+  const [selectedExerciseInOutline, setSelectedExerciseInOutline] = useState<string | null>(null);
+  const [selectedGameInOutline, setSelectedGameInOutline] = useState<string | null>(null);
+  const [sigmaTeamsTab, setSigmaTeamsTab] = useState("sigma-go");
 
   // Pobierz dane klubu z localStorage
   const getClubData = () => {
@@ -265,120 +269,177 @@ const ClubDetail = () => {
           </Card>
         </TabsContent>
 
-        {/* ZAKŁADKA 2: Sigma Teams - Accordion */}
+        {/* ZAKŁADKA 2: Sigma Teams - Programy */}
         <TabsContent value="sigma-teams" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Program Sigma Teams</CardTitle>
+              <CardTitle>Programy Sigma Teams</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Rozwiń dowolny sprint, aby zobaczyć listę spotkań i konspekty
+                Wybierz produkt realizowany przez klub
               </p>
             </CardHeader>
             <CardContent>
-              <Accordion 
-                type="single" 
-                collapsible 
-                defaultValue={defaultOpenSprint}
-                className="w-full"
-              >
-                {allSprints.map((sprint) => (
-                  <AccordionItem key={sprint.id} value={sprint.id}>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center justify-between w-full pr-4">
-                        <div className="text-left">
-                          <h3 className="font-semibold text-base">{sprint.title}</h3>
-                        </div>
-                        <div>{getStatusBadge(sprint)}</div>
+              <Tabs value={sigmaTeamsTab} onValueChange={setSigmaTeamsTab}>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="sigma-go">Sigma Go!</TabsTrigger>
+                  <TabsTrigger value="sigma-sprint">Sigma Sprint</TabsTrigger>
+                  <TabsTrigger value="sigma-pro">Sigma Pro</TabsTrigger>
+                </TabsList>
+
+                {/* Sigma Go! - Trening demonstracyjny */}
+                <TabsContent value="sigma-go" className="mt-6">
+                  <Card className="border-primary/20">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Target className="h-5 w-5 text-primary" />
+                        {sigmaGoDemoTraining.title}
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        {sigmaGoDemoTraining.description}
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <Button
+                        className="w-full mb-6"
+                        onClick={() => setSelectedMeetingForOutline({ 
+                          sprint: { id: 'sigma-go', title: sigmaGoDemoTraining.title } as Sprint, 
+                          meeting: { 
+                            id: sigmaGoDemoTraining.id, 
+                            title: sigmaGoDemoTraining.title,
+                            date: null,
+                            completed: false,
+                            isMeasurement: false,
+                            outline: sigmaGoDemoTraining.outline 
+                          } as Meeting 
+                        })}
+                      >
+                        Zobacz Konspekt Treningu
+                      </Button>
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold">Przegląd scenariusza:</p>
+                        <ul className="text-sm space-y-1 text-muted-foreground">
+                          <li>• Czas trwania: {sigmaGoDemoTraining.duration}</li>
+                          <li>• Cel: {sigmaGoDemoTraining.outline.goal}</li>
+                          <li>• Ilość kroków: {sigmaGoDemoTraining.outline.steps.length}</li>
+                        </ul>
                       </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-3 pt-4">
-                        {sprint.meetings.map((meeting) => (
-                          <Card key={meeting.id} className="bg-muted/30">
-                            <CardContent className="p-4 space-y-3">
-                              <div>
-                                <h4 className="font-semibold text-sm mb-1">{meeting.title}</h4>
-                                {meeting.isMeasurement && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    Pomiar
-                                  </Badge>
-                                )}
-                              </div>
-                              
-                              {/* DatePicker */}
-                              <div className="space-y-2">
-                                <label className="text-xs font-medium text-muted-foreground">
-                                  Data odbycia
-                                </label>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className={cn(
-                                        "w-full justify-start text-left font-normal",
-                                        !meeting.date && "text-muted-foreground"
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Sigma Sprint - Accordion ze sprintami */}
+                <TabsContent value="sigma-sprint" className="mt-6">
+                  <Accordion 
+                    type="single" 
+                    collapsible 
+                    defaultValue={defaultOpenSprint}
+                    className="w-full"
+                  >
+                    {allSprints.map((sprint) => (
+                      <AccordionItem key={sprint.id} value={sprint.id}>
+                        <AccordionTrigger className="hover:no-underline">
+                          <div className="flex items-center justify-between w-full pr-4">
+                            <div className="text-left">
+                              <h3 className="font-semibold text-base">{sprint.title}</h3>
+                            </div>
+                            <div>{getStatusBadge(sprint)}</div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="grid gap-3 pt-4">
+                            {sprint.meetings.map((meeting) => (
+                              <Card key={meeting.id} className="bg-muted/30">
+                                <CardContent className="p-3">
+                                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto] gap-3 items-center">
+                                    {/* Tytuł i badge */}
+                                    <div className="flex items-center gap-2">
+                                      <h4 className="font-semibold text-sm">
+                                        {meeting.title.replace('Spotkanie', 'Trening')}
+                                      </h4>
+                                      {meeting.isMeasurement && (
+                                        <Badge variant="secondary" className="text-xs">Pomiar</Badge>
                                       )}
+                                    </div>
+                                    
+                                    {/* DatePicker - kompaktowy */}
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className={cn(
+                                            "justify-start text-left font-normal h-8 px-3",
+                                            !meeting.date && "text-muted-foreground"
+                                          )}
+                                        >
+                                          <CalendarIcon className="mr-2 h-3 w-3" />
+                                          {meeting.date 
+                                            ? format(meeting.date, "dd/MM/yy", { locale: pl }) 
+                                            : "Data"}
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                          mode="single"
+                                          selected={meeting.date || undefined}
+                                          onSelect={(date) => console.log("Selected date:", date)}
+                                          initialFocus
+                                          captionLayout="dropdown-buttons"
+                                          fromYear={2024}
+                                          toYear={2025}
+                                          className="pointer-events-auto"
+                                        />
+                                      </PopoverContent>
+                                    </Popover>
+
+                                    {/* Checkbox - kompaktowy */}
+                                    <div className="flex items-center space-x-2">
+                                      <Checkbox 
+                                        id={`completed-${meeting.id}`}
+                                        checked={meeting.completed}
+                                        onCheckedChange={(checked) => console.log("Completed:", checked)}
+                                      />
+                                      <label
+                                        htmlFor={`completed-${meeting.id}`}
+                                        className="text-xs font-medium cursor-pointer whitespace-nowrap"
+                                      >
+                                        Zrealizowano
+                                      </label>
+                                    </div>
+
+                                    {/* Przycisk Zobacz Konspekt */}
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      className="h-8"
+                                      onClick={() => setSelectedMeetingForOutline({ sprint, meeting })}
                                     >
-                                      <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {meeting.date 
-                                        ? format(meeting.date, "PPP", { locale: pl }) 
-                                        : "Wybierz datę"}
+                                      Konspekt
                                     </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                      mode="single"
-                                      selected={meeting.date || undefined}
-                                      onSelect={(date) => {
-                                        // W rzeczywistej aplikacji: zaktualizuj stan
-                                        console.log("Selected date:", date);
-                                      }}
-                                      initialFocus
-                                      captionLayout="dropdown-buttons"
-                                      fromYear={2024}
-                                      toYear={2025}
-                                      className="pointer-events-auto"
-                                    />
-                                  </PopoverContent>
-                                </Popover>
-                              </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </TabsContent>
 
-                              {/* Checkbox */}
-                              <div className="flex items-center space-x-2">
-                                <Checkbox 
-                                  id={`completed-${meeting.id}`}
-                                  checked={meeting.completed}
-                                  onCheckedChange={(checked) => {
-                                    // W rzeczywistej aplikacji: zaktualizuj stan
-                                    console.log("Completed:", checked);
-                                  }}
-                                />
-                                <label
-                                  htmlFor={`completed-${meeting.id}`}
-                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                                >
-                                  Zrealizowano
-                                </label>
-                              </div>
-
-                              {/* Przycisk Zobacz Konspekt */}
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                className="w-full"
-                                onClick={() => setSelectedMeetingForOutline({ sprint, meeting })}
-                              >
-                                Zobacz Konspekt
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+                {/* Sigma Pro - Placeholder */}
+                <TabsContent value="sigma-pro" className="mt-6">
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">Sigma Pro</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Program dla zaawansowanych zespołów. Wkrótce dostępny.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
 
@@ -424,6 +485,34 @@ const ClubDetail = () => {
                       </Card>
                     )}
 
+                    {/* Pomiar Button - nowy tekst */}
+                    {!selectedMeetingForOutline.meeting.isMeasurement && (
+                      <Card className="border-primary/50 bg-primary/5">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-semibold mb-1">Rozpocznij pomiary dla zawodników</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Przejdź do listy zawodników klubu
+                              </p>
+                            </div>
+                            <Button 
+                              className="gap-2"
+                              onClick={() => {
+                                setSelectedMeetingForOutline(null);
+                                // Przełącz na zakładkę zawodników
+                                const tabsElement = document.querySelector('[value="zawodnicy"]') as HTMLElement;
+                                tabsElement?.click();
+                              }}
+                            >
+                              <Plus className="h-4 w-4" />
+                              Rozpocznij pomiary
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
                     {/* Cel Spotkania */}
                     <Card>
                       <CardHeader>
@@ -449,17 +538,73 @@ const ClubDetail = () => {
                       </CardHeader>
                       <CardContent>
                         <ul className="space-y-3">
-                          {selectedMeetingForOutline.meeting.outline.steps.map((step, idx) => (
-                            <li 
-                              key={idx} 
-                              className="text-sm leading-relaxed pl-4 border-l-2 border-primary/30 py-2"
-                            >
-                              {step}
-                            </li>
-                          ))}
+                          {selectedMeetingForOutline.meeting.outline.steps.map((step, idx) => {
+                            // Funkcja do renderowania tekstu z linkami do ćwiczeń i gier
+                            const renderStepWithLinks = (text: string) => {
+                              const parts = text.split(/(@[\w-]+)/g);
+                              return parts.map((part, i) => {
+                                if (part.startsWith('@')) {
+                                  const exerciseId = part.substring(1);
+                                  const exercise = getExerciseById(exerciseId);
+                                  if (exercise) {
+                                    return (
+                                      <button
+                                        key={i}
+                                        onClick={() => {
+                                          if (exercise.category === 'game') {
+                                            setSelectedGameInOutline(exerciseId);
+                                          } else {
+                                            setSelectedExerciseInOutline(exerciseId);
+                                          }
+                                        }}
+                                        className="text-primary underline hover:text-primary/80 font-medium"
+                                      >
+                                        {exercise.title}
+                                      </button>
+                                    );
+                                  }
+                                }
+                                return <span key={i}>{part}</span>;
+                              });
+                            };
+
+                            return (
+                              <li 
+                                key={idx} 
+                                className="text-sm leading-relaxed pl-4 border-l-2 border-primary/30 py-2"
+                              >
+                                {renderStepWithLinks(step)}
+                              </li>
+                            );
+                          })}
                         </ul>
                       </CardContent>
                     </Card>
+
+                    {/* Wskazówki prowadzenia treningu */}
+                    {selectedMeetingForOutline.meeting.outline.trainingGuidance && (
+                      <Card className="border-amber-200 bg-amber-50/50">
+                        <CardHeader>
+                          <CardTitle className="text-lg flex items-center gap-2 text-amber-900">
+                            <Target className="h-5 w-5" />
+                            Wskazówki prowadzenia treningu
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="prose prose-sm max-w-none text-amber-950">
+                            {selectedMeetingForOutline.meeting.outline.trainingGuidance.split('\n').map((line, idx) => {
+                              if (line.trim().startsWith('•')) {
+                                return <p key={idx} className="mb-2">{line}</p>;
+                              }
+                              if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
+                                return <p key={idx} className="font-bold mt-3 mb-1">{line.replace(/\*\*/g, '')}</p>;
+                              }
+                              return <p key={idx} className="mb-2">{line}</p>;
+                            })}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
 
                   {/* KOLUMNA LEWA (Sub-Menu) - Powiązane Ćwiczenia - 30% */}
@@ -502,6 +647,103 @@ const ClubDetail = () => {
                   </div>
                 </div>
               )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog - Widok ćwiczenia */}
+          <Dialog 
+            open={selectedExerciseInOutline !== null} 
+            onOpenChange={(open) => !open && setSelectedExerciseInOutline(null)}
+          >
+            <DialogContent className="max-w-3xl bg-white">
+              {selectedExerciseInOutline && (() => {
+                const exercise = getExerciseById(selectedExerciseInOutline);
+                if (!exercise) return null;
+                return (
+                  <>
+                    <DialogHeader>
+                      <div className="flex items-center justify-between">
+                        <DialogTitle className="text-2xl">{exercise.title}</DialogTitle>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedExerciseInOutline(null)}
+                        >
+                          <ArrowLeft className="h-4 w-4 mr-2" />
+                          Powrót do konspektu
+                        </Button>
+                      </div>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="flex items-center gap-4">
+                        <Badge variant="outline">{exercise.duration}</Badge>
+                        <Badge variant="secondary">{
+                          exercise.category === 'breathing' ? 'Oddech' :
+                          exercise.category === 'focus' ? 'Uwaga' :
+                          exercise.category === 'control' ? 'Kontrola' :
+                          exercise.category === 'visualization' ? 'Wizualizacja' : 'Gra'
+                        }</Badge>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-2">Opis ćwiczenia:</h4>
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          {exercise.description}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog - Widok gry (tryb treningowy) */}
+          <Dialog 
+            open={selectedGameInOutline !== null} 
+            onOpenChange={(open) => !open && setSelectedGameInOutline(null)}
+          >
+            <DialogContent className="max-w-7xl h-[90vh] bg-white p-0">
+              {selectedGameInOutline && (() => {
+                const game = getExerciseById(selectedGameInOutline);
+                if (!game) return null;
+                
+                return (
+                  <>
+                    <DialogHeader className="px-8 py-6 border-b">
+                      <div className="flex items-center justify-between">
+                        <DialogTitle className="text-2xl">{game.title} - Tryb Treningowy</DialogTitle>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedGameInOutline(null)}
+                        >
+                          <ArrowLeft className="h-4 w-4 mr-2" />
+                          Powrót do konspektu
+                        </Button>
+                      </div>
+                    </DialogHeader>
+                    <div className="flex items-center justify-center h-full p-8">
+                      <Card className="max-w-md">
+                        <CardContent className="p-8 text-center space-y-4">
+                          <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                            <Trophy className="h-8 w-8 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold mb-2">{game.title}</h3>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              {game.description}
+                            </p>
+                            <Badge variant="outline" className="mb-4">{game.duration}</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Tryb treningowy gry zostanie uruchomiony w pełnej wersji aplikacji
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </>
+                );
+              })()}
             </DialogContent>
           </Dialog>
         </TabsContent>

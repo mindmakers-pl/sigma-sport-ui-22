@@ -19,6 +19,7 @@ export interface Meeting {
     goal: string;
     steps: string[];
     relatedExercises: string[]; // IDs ćwiczeń z biblioteki
+    trainingGuidance?: string; // Wskazówki prowadzenia treningu
   };
 }
 
@@ -245,12 +246,13 @@ export const sprint2: Sprint = {
         steps: [
           '1. Rozgrzewka Mentalna - Pogadaj z ekipą o tym, kiedy trudno jest "się przełączyć" (10 min)',
           '2. Wprowadzenie do "Reflektora Uwagi" - demo trenerskie (5 min)',
-          '3. Krok 1: Nauka Skryptu AUN - "Stop. Oddech. Cel." (15 min)',
+          '3. Krok 1: Nauka Skryptu @ex-7 AUN - "Stop. Oddech. Cel." (15 min)',
           '4. Praktyka: Symulacja sytuacji przedmeczowych (15 min)',
-          '5. Trening gier Sigma (10 min)',
+          '5. Trening gier Sigma z @game-control (10 min)',
           '6. Podsumowanie i zadanie domowe - stosować AUN przed każdym treningiem (5 min)'
         ],
-        relatedExercises: ['ex-7', 'ex-1', 'game-control']
+        relatedExercises: ['ex-7', 'ex-1', 'game-control'],
+        trainingGuidance: 'Kluczowe jest pokazanie, że AUN to nie "medytacja", ale konkretne narzędzie bojowe. Używaj analogii sportowych - "To jak spalony przed sprintem - przygotowujesz się mentalnie do eksplozji". Pozwól zawodnikom wymyślić własne warianty skryptu, dopóki zachowują strukturę: Zatrzymanie → Reset → Fokus.'
       }
     },
     {
@@ -435,6 +437,46 @@ export const sprint3: Sprint = {
       }
     }
   ]
+};
+
+// Sigma Go! - Trening demonstracyjny
+export const sigmaGoDemoTraining = {
+  id: 'sigma-go-demo',
+  title: 'Sigma Go! - Trening Demonstracyjny',
+  description: 'Kompleksowy 60-minutowy trening demonstracyjny pokazujący możliwości programu Sigma.',
+  duration: '60 min',
+  outline: {
+    goal: 'Przedstawienie podstawowych technik mentalnych i pomiarów kognitywnych w praktycznym, angażującym treningu.',
+    steps: [
+      '1. Powitanie i wprowadzenie do programu Sigma (5 min) - Opowiedz o trzech filarach: uwaga, kontrola, wyobraźnia',
+      '2. Rozgrzewka mentalna z @game-scan (5 min) - Wszyscy zawodnicy wykonują test Sigma Scan',
+      '3. Mini-wykład: Oddech i koncentracja (5 min) - Wyjaśnij związek między oddechem a układem nerwowym',
+      '4. Ćwiczenie praktyczne: @ex-1 Oddech Rezonansowy (10 min) - Prowadź zawodników przez technikę 5.5 oddechu/min',
+      '5. Demo kontroli impulsów z @game-control (5 min) - Pokaż jak szybkość reakcji łączy się z kontrolą',
+      '6. Ćwiczenie grupowe: @ex-3 Semafor (10 min) - Praktyka hamowania impulsów',
+      '7. Wprowadzenie do AUN - "Stop. Oddech. Cel." (10 min) - Naucz podstawowego @ex-7 skryptu aktywacji',
+      '8. Mini-turniej z @game-focus (5 min) - Rywalizacja w trybie treningowym',
+      '9. Podsumowanie i Q&A (5 min) - Odpowiedz na pytania, rozdaj materiały informacyjne'
+    ],
+    relatedExercises: ['game-scan', 'ex-1', 'game-control', 'ex-3', 'ex-7', 'game-focus'],
+    trainingGuidance: `
+**Jak prowadzić ten trening:**
+
+• **Energia i entuzjazm**: To pierwszy kontakt zawodników z programem - pokaż że trening mentalny może być ciekawy i angażujący!
+
+• **Praktyka > Teoria**: Minimalizuj wykłady, maksymalizuj działanie. Niech zawodnicy doświadczą, a potem wyjaśniaj.
+
+• **Język prosty**: Unikaj żargonu naukowego. Mów "skupienie" zamiast "koncentracja uwagi", "spokój" zamiast "regulacja autonomiczna".
+
+• **Przykłady ze sportu**: Kiedy wyjaśniasz techniki, odwoływuj się do konkretnych sytuacji meczowych (rzut karny, pressujący przeciwnik, etc.)
+
+• **Zachęcaj do pytań**: Stwórz bezpieczną atmosferę - nie ma głupich pytań, każde doświadczenie jest wartościowe.
+
+• **Obserwuj reakcje**: Jeśli widzisz znudzenie - przyspiesz tempo. Jeśli widzisz zagubienie - zwolnij i wyjaśnij jeszcze raz.
+
+• **Zakończ z motywacją**: Ostatnie zdanie powinno brzmieć: "To dopiero początek - w pełnym programie nauczycie się technik, które zmienią waszą grę!"
+    `
+  }
 };
 
 // Eksport wszystkich sprintów
