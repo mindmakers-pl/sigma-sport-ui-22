@@ -454,7 +454,7 @@ const AthleteProfile = () => {
         <TabsContent value="raporty" className="space-y-6">
           {!selectedSessionId ? (
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-6">Historia Pomiarów: {athlete.name}</h2>
+              <h2 className="text-2xl font-bold text-slate-900 mt-9 mb-6">Historia Pomiarów: {athlete.name}</h2>
               
               {savedSessions.length === 0 ? (
                 <Card className="bg-white border-slate-200 p-8 text-center">
