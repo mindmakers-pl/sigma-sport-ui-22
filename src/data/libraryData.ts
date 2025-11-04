@@ -7,6 +7,15 @@ export interface Exercise {
   description: string;
   duration: string;
   category: 'breathing' | 'focus' | 'control' | 'visualization' | 'game';
+  objective?: string;
+  equipment?: string[];
+  steps?: Array<{ title: string; content: string }>;
+  coachingTips?: string[];
+  adaptations?: {
+    easier?: string;
+    harder?: string;
+  };
+  metrics?: string[];
 }
 
 export interface Meeting {
@@ -39,7 +48,26 @@ export const exerciseLibrary: Exercise[] = [
     title: 'Oddech Rezonansowy',
     description: 'Technika oddechu z częstotliwością 5.5 oddechu na minutę, synchronizująca układy nerwowe.',
     duration: '5-10 min',
-    category: 'breathing'
+    category: 'breathing',
+    objective: 'Nauczenie zawodnika techniki regulacji poziomu pobudzenia poprzez kontrolowaną manipulację częstością oddechową.',
+    equipment: ['Matę lub krzesło', 'Timer/aplikację z metronomem oddechowym (opcjonalnie)', 'Ciche pomieszczenie'],
+    steps: [
+      { title: 'Pozycja wyjściowa (1 min)', content: 'Zawodnik siada wygodnie z prostymi plecami, stopy płasko na podłodze. Ręce spoczywają na udach lub brzuchu. Oczy zamknięte lub skierowane w dół.' },
+      { title: 'Ustalenie rytmu bazowego (2 min)', content: 'Wdech przez nos na 5 sekund (powolne napełnianie płuc od dołu). Wydech przez nos lub usta na 5 sekund (równie powolne opróżnianie). Zachowaj naturalność - nie forsuj.' },
+      { title: 'Faza rezonansowa (4 min)', content: 'Kontynuuj rytm 5-5. Skup uwagę na ruchu powietrza, rozszerzaniu się brzucha przy wdechu i jego opadaniu przy wydechu. Jeśli myśli odchodzą, łagodnie wróć do obserwacji oddechu.' },
+      { title: 'Powrót (1 min)', content: 'Stopniowo pozwól oddechowi wrócić do naturalnego rytmu. Przed otwarciem oczu zrób 3 głębokie oddechy. Zanotuj swój stan emocjonalny (skala 1-10).' }
+    ],
+    coachingTips: [
+      'Oddech rezonansowy to nie hyperventylacja - ma być POWOLNY i GŁĘBOKI',
+      'Pierwsza sesja może być trudna - zawodnik może czuć zawroty głowy. Skróć do 3-4 minut',
+      'Najlepiej ćwiczyć codziennie o tej samej porze (np. rano po przebudzeniu)',
+      'Można używać jako "reset" między rundami/setami na zawodach'
+    ],
+    adaptations: {
+      easier: 'Skróć cykl do 4-4 (wdech-wydech po 4 sekundy), skróć czas do 5 minut',
+      harder: 'Wydłuż cykl do 6-6, dodaj wizualizację (np. wyobraź sobie falę oceaniczną)'
+    },
+    metrics: ['Częstość oddechowa (oddechów/min)', 'Subiektywny poziom relaksu (1-10)', 'HRV baseline']
   },
   {
     id: 'ex-2',
@@ -79,23 +107,38 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'game-scan',
     title: 'Sigma Scan',
-    description: 'Gra treningowa - szybkość skanowania wzrokowego.',
+    description: 'Gra treningowa - szybkość skanowania wzrokowego. Znajdź zielone koło tak szybko jak potrafisz.',
     duration: '3-5 min',
-    category: 'game'
+    category: 'game',
+    objective: 'Pomiar i trening szybkości percepcji wzrokowej - kluczowej umiejętności w sporcie.',
+    steps: [
+      { title: 'Instrukcje', content: 'Klikaj na zielone koło tak szybko jak potrafisz. Unikaj klikania innych kształtów i kolorów.' },
+      { title: 'Test', content: 'Przeprowadzisz 10 prób. Każda próba to nowa siatka z ukrytym zielonym kołem.' }
+    ]
   },
   {
     id: 'game-focus',
     title: 'Sigma Focus',
-    description: 'Gra treningowa - uwaga selektywna.',
+    description: 'Gra treningowa - uwaga selektywna. Test Stroopa - wybieraj kolor napisu, ignorując jego znaczenie.',
     duration: '3-5 min',
-    category: 'game'
+    category: 'game',
+    objective: 'Pomiar efektu interferencji i zdolności do selekcji istotnych informacji pod presją.',
+    steps: [
+      { title: 'Instrukcje', content: 'Wybierz przycisk odpowiadający KOLOROWI NAPISU, ignorując znaczenie słowa.' },
+      { title: 'Test', content: 'Wykonasz 20 prób. Próby zgodne (słowo i kolor pasują) i niezgodne (konflikt).' }
+    ]
   },
   {
     id: 'game-control',
     title: 'Sigma Control',
-    description: 'Gra treningowa - kontrola inhibicyjna.',
+    description: 'Gra treningowa - kontrola inhibicyjna. Test Go/NoGo - klikaj na zielone O, NIE klikaj na czerwone X.',
     duration: '3-5 min',
-    category: 'game'
+    category: 'game',
+    objective: 'Pomiar zdolności hamowania impulsywnych reakcji - fundamentu samokontroli sportowej.',
+    steps: [
+      { title: 'Instrukcje', content: 'Klikaj ekran gdy zobaczysz ZIELONE O. NIE KLIKAJ gdy zobaczysz CZERWONE X.' },
+      { title: 'Test', content: 'Test trwa 2 minuty. Próby pojawiają się losowo z różnymi odstępami czasu.' }
+    ]
   },
   {
     id: 'ex-7',

@@ -24,6 +24,9 @@ import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, BarC
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import SessionWizard from "@/components/SessionWizard";
+import ScanGame from "@/pages/ScanGame";
+import FocusGame from "@/pages/FocusGame";
+import ControlGame from "@/pages/ControlGame";
 import {
   Accordion,
   AccordionContent,
@@ -63,6 +66,7 @@ const ClubDetail = () => {
   const [selectedExerciseInOutline, setSelectedExerciseInOutline] = useState<string | null>(null);
   const [selectedGameInOutline, setSelectedGameInOutline] = useState<string | null>(null);
   const [sigmaTeamsTab, setSigmaTeamsTab] = useState("sigma-go");
+  const [isPlayingGame, setIsPlayingGame] = useState(false);
 
   // Pobierz dane klubu z localStorage
   const getClubData = () => {
@@ -504,7 +508,7 @@ const ClubDetail = () => {
                       </CardContent>
                     </Card>
 
-                    {/* Wskazówki prowadzenia treningu */}
+                    {/* Wskazówki prowadzenia treningu - bezpośrednio pod celem */}
                     {selectedMeetingForOutline.meeting.outline.trainingGuidance && (
                       <Card className="border-violet-200 bg-violet-50/50">
                         <CardHeader>
@@ -671,12 +675,12 @@ const ClubDetail = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Dialog - Widok ćwiczenia */}
+          {/* Dialog - Widok ćwiczenia z pełnymi instrukcjami */}
           <Dialog 
             open={selectedExerciseInOutline !== null} 
             onOpenChange={(open) => !open && setSelectedExerciseInOutline(null)}
           >
-            <DialogContent className="max-w-3xl bg-white">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
               {selectedExerciseInOutline && (() => {
                 const exercise = getExerciseById(selectedExerciseInOutline);
                 if (!exercise) return null;
@@ -695,7 +699,8 @@ const ClubDetail = () => {
                         </Button>
                       </div>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
+                    <div className="space-y-6 py-4">
+                      {/* Podstawowe info */}
                       <div className="flex items-center gap-4">
                         <Badge variant="outline">{exercise.duration}</Badge>
                         <Badge variant="secondary">{
@@ -705,12 +710,121 @@ const ClubDetail = () => {
                           exercise.category === 'visualization' ? 'Wizualizacja' : 'Gra'
                         }</Badge>
                       </div>
-                      <div>
-                        <h4 className="font-semibold mb-2">Opis ćwiczenia:</h4>
-                        <p className="text-sm leading-relaxed text-muted-foreground">
-                          {exercise.description}
-                        </p>
-                      </div>
+
+                      {/* Cel ćwiczenia */}
+                      {exercise.objective && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Cel ćwiczenia</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm leading-relaxed">{exercise.objective}</p>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Opis */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Opis</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm leading-relaxed">{exercise.description}</p>
+                        </CardContent>
+                      </Card>
+
+                      {/* Wyposażenie */}
+                      {exercise.equipment && exercise.equipment.length > 0 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Potrzebne wyposażenie</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="list-disc list-inside space-y-1">
+                              {exercise.equipment.map((item, idx) => (
+                                <li key={idx} className="text-sm">{item}</li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Instrukcja krok po kroku */}
+                      {exercise.steps && exercise.steps.length > 0 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Instrukcja (krok po kroku)</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              {exercise.steps.map((step, idx) => (
+                                <div key={idx} className="border-l-2 border-primary/30 pl-4 py-2">
+                                  <h4 className="font-semibold text-sm mb-1">{step.title}</h4>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">{step.content}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Wskazówki trenerskie */}
+                      {exercise.coachingTips && exercise.coachingTips.length > 0 && (
+                        <Card className="border-violet-200 bg-violet-50/50">
+                          <CardHeader>
+                            <CardTitle className="text-base">Wskazówki trenerskie</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-2">
+                              {exercise.coachingTips.map((tip, idx) => (
+                                <li key={idx} className="flex gap-2">
+                                  <span className="text-violet-600 font-bold">•</span>
+                                  <span className="text-sm leading-relaxed">{tip}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Adaptacje */}
+                      {exercise.adaptations && (exercise.adaptations.easier || exercise.adaptations.harder) && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Adaptacje trudności</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            {exercise.adaptations.easier && (
+                              <div>
+                                <p className="font-semibold text-sm text-green-700 mb-1">Łatwiejsza wersja:</p>
+                                <p className="text-sm text-muted-foreground">{exercise.adaptations.easier}</p>
+                              </div>
+                            )}
+                            {exercise.adaptations.harder && (
+                              <div>
+                                <p className="font-semibold text-sm text-orange-700 mb-1">Trudniejsza wersja:</p>
+                                <p className="text-sm text-muted-foreground">{exercise.adaptations.harder}</p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Metryki */}
+                      {exercise.metrics && exercise.metrics.length > 0 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Mierzone wskaźniki</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="list-disc list-inside space-y-1">
+                              {exercise.metrics.map((metric, idx) => (
+                                <li key={idx} className="text-sm">{metric}</li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      )}
                     </div>
                   </>
                 );
@@ -718,21 +832,70 @@ const ClubDetail = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Dialog - Widok gry (tryb treningowy) */}
+          {/* Renderowanie gry pełnoekranowo */}
+          {isPlayingGame && selectedGameInOutline && (() => {
+            const gameId = selectedGameInOutline;
+            
+            return (
+              <div className="fixed inset-0 z-50 bg-slate-900">
+                {gameId === 'game-scan' && (
+                  <ScanGame 
+                    onComplete={(data) => {
+                      console.log('Scan game completed:', data);
+                      setIsPlayingGame(false);
+                      setSelectedGameInOutline(null);
+                    }}
+                    onGoToCockpit={() => {
+                      setIsPlayingGame(false);
+                      setSelectedGameInOutline(null);
+                    }}
+                  />
+                )}
+                {gameId === 'game-focus' && (
+                  <FocusGame 
+                    onComplete={(data) => {
+                      console.log('Focus game completed:', data);
+                      setIsPlayingGame(false);
+                      setSelectedGameInOutline(null);
+                    }}
+                    onGoToCockpit={() => {
+                      setIsPlayingGame(false);
+                      setSelectedGameInOutline(null);
+                    }}
+                  />
+                )}
+                {gameId === 'game-control' && (
+                  <ControlGame 
+                    onComplete={(data) => {
+                      console.log('Control game completed:', data);
+                      setIsPlayingGame(false);
+                      setSelectedGameInOutline(null);
+                    }}
+                    onGoToCockpit={() => {
+                      setIsPlayingGame(false);
+                      setSelectedGameInOutline(null);
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Dialog - Widok instrukcji gry */}
           <Dialog 
-            open={selectedGameInOutline !== null} 
+            open={selectedGameInOutline !== null && !isPlayingGame} 
             onOpenChange={(open) => !open && setSelectedGameInOutline(null)}
           >
-            <DialogContent className="max-w-7xl h-[90vh] bg-white p-0">
-              {selectedGameInOutline && (() => {
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
+              {selectedGameInOutline && !isPlayingGame && (() => {
                 const game = getExerciseById(selectedGameInOutline);
                 if (!game) return null;
                 
                 return (
                   <>
-                    <DialogHeader className="px-8 py-6 border-b">
+                    <DialogHeader>
                       <div className="flex items-center justify-between">
-                        <DialogTitle className="text-2xl">{game.title} - Tryb Treningowy</DialogTitle>
+                        <DialogTitle className="text-2xl">{game.title}</DialogTitle>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -743,22 +906,74 @@ const ClubDetail = () => {
                         </Button>
                       </div>
                     </DialogHeader>
-                    <div className="flex items-center justify-center h-full p-8">
-                      <Card className="max-w-md">
-                        <CardContent className="p-8 text-center space-y-4">
+                    <div className="space-y-6 py-4">
+                      {/* Podstawowe info */}
+                      <div className="flex items-center gap-4">
+                        <Badge variant="outline">{game.duration}</Badge>
+                        <Badge variant="secondary">Wyzwanie Sigma</Badge>
+                      </div>
+
+                      {/* Cel */}
+                      {game.objective && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Cel wyzwania</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm leading-relaxed">{game.objective}</p>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Opis */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Opis</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm leading-relaxed">{game.description}</p>
+                        </CardContent>
+                      </Card>
+
+                      {/* Instrukcje */}
+                      {game.steps && game.steps.length > 0 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Instrukcje</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              {game.steps.map((step, idx) => (
+                                <div key={idx} className="border-l-2 border-primary/30 pl-4 py-2">
+                                  <h4 className="font-semibold text-sm mb-1">{step.title}</h4>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">{step.content}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Przycisk uruchomienia */}
+                      <Card className="bg-primary/5 border-primary/20">
+                        <CardContent className="p-6 text-center space-y-4">
                           <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                             <Trophy className="h-8 w-8 text-primary" />
                           </div>
                           <div>
-                            <h3 className="text-xl font-bold mb-2">{game.title}</h3>
-                            <p className="text-sm text-muted-foreground mb-4">
-                              {game.description}
+                            <h3 className="text-lg font-bold mb-2">Uruchom wyzwanie</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Kliknij przycisk poniżej aby rozpocząć tryb treningowy
                             </p>
-                            <Badge variant="outline" className="mb-4">{game.duration}</Badge>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            Tryb treningowy gry zostanie uruchomiony w pełnej wersji aplikacji
-                          </p>
+                          <Button 
+                            size="lg" 
+                            className="w-full gap-2"
+                            onClick={() => setIsPlayingGame(true)}
+                          >
+                            <Trophy className="h-5 w-5" />
+                            Rozpocznij Wyzwanie
+                          </Button>
                         </CardContent>
                       </Card>
                     </div>
