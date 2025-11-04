@@ -467,7 +467,7 @@ const AthleteProfile = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-xl font-bold text-slate-900 mb-2">
-                            Sesja {new Date(session.date).toLocaleDateString('pl-PL')}
+                            Sigma Score {new Date(session.date).toLocaleDateString('pl-PL')}
                           </h3>
                           <p className="text-slate-600">
                             Warunki: {session.conditions === 'gabinet' ? 'Gabinet (Cisza)' : 'Trening (Hałas)'}
