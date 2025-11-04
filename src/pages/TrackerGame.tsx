@@ -77,15 +77,21 @@ const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
 
   // Start gry
   const handleStart = () => {
-    const initializedBalls = initializeBalls();
-    if (initializedBalls) {
-      setBalls(initializedBalls);
-      setGameState('highlight');
-      setUserGuesses([]);
-      setFinalScore({ correct: 0, total: TARGET_BALLS });
-      setHrvInput("");
-    }
+    setGameState('highlight');
+    setUserGuesses([]);
+    setFinalScore({ correct: 0, total: TARGET_BALLS });
+    setHrvInput("");
   };
+
+  // Inicjalizuj kulki gdy przejdziemy do stanu highlight
+  useEffect(() => {
+    if (gameState === 'highlight' && balls.length === 0) {
+      const initializedBalls = initializeBalls();
+      if (initializedBalls) {
+        setBalls(initializedBalls);
+      }
+    }
+  }, [gameState, balls.length]);
 
   // Faza highlight -> moving
   useEffect(() => {
