@@ -10,6 +10,7 @@ import AthleteProfile from "./pages/AthleteProfile";
 import Clubs from "./pages/Clubs";
 import ClubDetail from "./pages/ClubDetail";
 import Settings from "./pages/Settings";
+import Library from "./pages/Library";
 import ScanGame from "./pages/ScanGame";
 import ControlGame from "./pages/ControlGame";
 import FocusGame from "./pages/FocusGame";
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/zawodnicy/:id" element={<AppLayout><AthleteProfile /></AppLayout>} />
           <Route path="/kluby" element={<AppLayout><Clubs /></AppLayout>} />
           <Route path="/kluby/:id" element={<AppLayout><ClubDetail /></AppLayout>} />
+          <Route path="/biblioteka" element={<AppLayout><Library /></AppLayout>} />
           <Route path="/ustawienia" element={<AppLayout><Settings /></AppLayout>} />
           <Route path="/scan/:athleteId" element={<ScanGame />} />
           <Route path="/control/:athleteId" element={<ControlGame />} />

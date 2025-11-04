@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Building, Settings } from "lucide-react";
+import { LayoutDashboard, Users, Building, Settings, BookOpen } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -16,6 +16,7 @@ const navigationItems = [
   { title: "Kokpit", url: "/", icon: LayoutDashboard },
   { title: "Zawodnicy", url: "/zawodnicy", icon: Users },
   { title: "Kluby", url: "/kluby", icon: Building },
+  { title: "Biblioteka", url: "/biblioteka", icon: BookOpen },
 ];
 
 export function AppSidebar() {
