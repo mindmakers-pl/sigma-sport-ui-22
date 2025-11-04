@@ -29,7 +29,7 @@ const HRVBaselineForm = ({ onComplete }: HRVBaselineFormProps) => {
 
           <div className="space-y-2">
             <Label htmlFor="hrv-baseline" className="text-slate-200">
-              Wynik HRV (ms)
+              HRV Max
             </Label>
             <Input
               id="hrv-baseline"
