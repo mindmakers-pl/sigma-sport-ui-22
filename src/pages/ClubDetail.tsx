@@ -687,31 +687,21 @@ const ClubDetail = () => {
                 if (!exercise) return null;
                 return (
                   <div className="space-y-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h2 className="text-3xl font-bold mb-2">{exercise.title}</h2>
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <Badge variant="outline" className="gap-1.5">
-                            <Clock className="h-3.5 w-3.5" />
-                            {exercise.duration}
-                          </Badge>
-                          <Badge variant="secondary" className="capitalize">
-                            {exercise.category === 'breathing' && 'Oddech'}
-                            {exercise.category === 'focus' && 'Uwaga'}
-                            {exercise.category === 'control' && 'Kontrola'}
-                            {exercise.category === 'visualization' && 'Wizualizacja'}
-                            {exercise.category === 'game' && 'Wyzwanie'}
-                          </Badge>
-                        </div>
+                    <div>
+                      <h2 className="text-3xl font-bold mb-2">{exercise.title}</h2>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <Badge variant="outline" className="gap-1.5">
+                          <Clock className="h-3.5 w-3.5" />
+                          {exercise.duration}
+                        </Badge>
+                        <Badge variant="secondary" className="capitalize">
+                          {exercise.category === 'breathing' && 'Oddech'}
+                          {exercise.category === 'focus' && 'Uwaga'}
+                          {exercise.category === 'control' && 'Kontrola'}
+                          {exercise.category === 'visualization' && 'Wizualizacja'}
+                          {exercise.category === 'game' && 'Wyzwanie'}
+                        </Badge>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedExerciseInOutline(null)}
-                      >
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Powrót
-                      </Button>
                     </div>
 
                     <Separator />
