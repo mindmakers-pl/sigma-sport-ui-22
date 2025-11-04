@@ -264,9 +264,9 @@ const AthleteProfile = () => {
                   className="flex gap-4"
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="gabinet" id="gabinet" />
-                    <Label htmlFor="gabinet" className="cursor-pointer text-slate-700">
-                      Gabinet (Cisza)
+                    <RadioGroupItem value="pracownia" id="pracownia" />
+                    <Label htmlFor="pracownia" className="cursor-pointer text-slate-700">
+                      Pracownia (Cisza)
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -470,7 +470,7 @@ const AthleteProfile = () => {
                             Sigma Score {new Date(session.date).toLocaleDateString('pl-PL')}
                           </h3>
                           <p className="text-slate-600">
-                            Warunki: {session.conditions === 'gabinet' ? 'Gabinet (Cisza)' : 'Trening (Hałas)'}
+                            Warunki: {session.conditions === 'pracownia' ? 'Pracownia (Cisza)' : 'Trening (Hałas)'}
                           </p>
                           <p className="text-slate-500 text-sm mt-1">
                             {new Date(session.date).toLocaleTimeString('pl-PL')}
@@ -511,7 +511,7 @@ const AthleteProfile = () => {
                       </h2>
                       <p className="text-slate-600 mt-2">
                         Data: {new Date(session.date).toLocaleString('pl-PL')} | 
-                        Warunki: {session.conditions === 'gabinet' ? 'Gabinet (Cisza)' : 'Trening (Hałas)'}
+                        Warunki: {session.conditions === 'pracownia' ? 'Pracownia (Cisza)' : 'Trening (Hałas)'}
                       </p>
                     </div>
 

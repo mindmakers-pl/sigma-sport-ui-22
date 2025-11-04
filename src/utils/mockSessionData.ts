@@ -6,7 +6,7 @@ export const generateMockSessions = (athleteId: string, athleteName: string) => 
       athlete_id: athleteId,
       athlete_name: athleteName,
       date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      conditions: 'gabinet',
+      conditions: 'pracownia',
       results: {
         kwestionariusz: {
           confidence: 8,
@@ -114,7 +114,7 @@ export const generateMockSessions = (athleteId: string, athleteName: string) => 
       athlete_id: athleteId,
       athlete_name: athleteName,
       date: new Date().toISOString(),
-      conditions: 'gabinet',
+      conditions: 'pracownia',
       results: {
         kwestionariusz: {
           confidence: 9,
