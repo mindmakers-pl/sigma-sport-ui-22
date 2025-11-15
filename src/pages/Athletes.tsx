@@ -585,18 +585,27 @@ const Athletes = () => {
               )}
               <TableHead className="font-semibold">Nazwisko i imię</TableHead>
               <TableHead className="font-semibold">Klub</TableHead>
-              <TableHead className="font-semibold">Trener</TableHead>
               <TableHead className="font-semibold">Dyscyplina</TableHead>
               <TableHead className="font-semibold">Rok ur.</TableHead>
-              <TableHead className="font-semibold">Liczba pomiarów</TableHead>
               <TableHead className="text-right font-semibold">Akcje</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedAthletes.map((athlete) => (
-              <TableRow key={athlete.id}>
+              <TableRow 
+                key={athlete.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={(e) => {
+                  // Don't navigate if clicking on checkbox or action button
+                  if ((e.target as HTMLElement).closest('input[type="checkbox"]') || 
+                      (e.target as HTMLElement).closest('button')) {
+                    return;
+                  }
+                  navigate(`/zawodnicy/${athlete.id}`);
+                }}
+              >
                 {isSelectionMode && (
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <Checkbox
                       checked={selectedAthletes.includes(athlete.id)}
                       onCheckedChange={() => toggleSelectAthlete(athlete.id)}
@@ -605,27 +614,16 @@ const Athletes = () => {
                 )}
                 <TableCell className="font-medium">{athlete.name}</TableCell>
                 <TableCell className="text-muted-foreground">{athlete.club}</TableCell>
-                <TableCell className="text-muted-foreground">{athlete.coach || "-"}</TableCell>
                 <TableCell className="text-muted-foreground">{athlete.discipline}</TableCell>
                 <TableCell className="text-muted-foreground">{athlete.birthYear}</TableCell>
-                <TableCell className="text-muted-foreground">{athlete.sessions}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex gap-2 justify-end">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => navigate(`/zawodnicy/${athlete.id}`)}
-                    >
-                      Zobacz profil
-                    </Button>
-                    <Button 
-                      variant="default" 
-                      size="sm"
-                      onClick={() => navigate(`/zawodnicy/${athlete.id}?addMeasurement=true`)}
-                    >
-                      Dodaj pomiar
-                    </Button>
-                  </div>
+                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={() => navigate(`/zawodnicy/${athlete.id}?addMeasurement=true`)}
+                  >
+                    Dodaj pomiar
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
