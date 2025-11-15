@@ -9,33 +9,50 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [searchAthlete, setSearchAthlete] = useState("");
   
+  // Pobierz dane z localStorage
+  const clubs = (() => {
+    const stored = localStorage.getItem('clubs');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return [];
+  })();
+
+  const athletes = (() => {
+    const stored = localStorage.getItem('athletes');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return [];
+  })();
+
   const stats = [
     {
       title: "Aktywni zawodnicy",
-      value: "24",
+      value: athletes.length.toString(),
       change: "+12%",
       icon: Users,
       color: "text-primary",
+    },
+    {
+      title: "Kluby",
+      value: clubs.length.toString(),
+      change: clubs.length > 0 ? `+${clubs.length}` : "0",
+      icon: Building2,
+      color: "text-accent",
     },
     {
       title: "Treningi w tym tygodniu",
       value: "48",
       change: "+8%",
       icon: Activity,
-      color: "text-accent",
+      color: "text-emerald-600",
     },
     {
       title: "Średnia wydajność",
       value: "87%",
       change: "+5%",
       icon: TrendingUp,
-      color: "text-emerald-600",
-    },
-    {
-      title: "Osiągnięcia",
-      value: "156",
-      change: "+23",
-      icon: Award,
       color: "text-violet-600",
     },
   ];
@@ -46,20 +63,13 @@ const Dashboard = () => {
     { text: "Maria Kowalczyk - nowy rekord w wyzwaniu Sigma Focus", time: "5 godzin temu" },
   ];
 
-  const myClubs = [
-    { name: "KS Górnik", members: 12, id: 1 },
-    { name: "MKS Cracovia", members: 8, id: 2 },
-    { name: "Wisła Kraków", members: 15, id: 3 },
-  ];
+  const myClubs = clubs.slice(0, 3).map((club: any) => ({
+    name: club.name,
+    members: club.members || 0,
+    id: club.id
+  }));
 
-  const athletes = [
-    { id: 1, name: "Jan Kowalski" },
-    { id: 2, name: "Anna Nowak" },
-    { id: 3, name: "Piotr Wiśniewski" },
-    { id: 4, name: "Maria Kowalczyk" },
-  ];
-
-  const filteredAthletes = athletes.filter(a => 
+  const filteredAthletes = athletes.filter((a: any) => 
     a.name.toLowerCase().includes(searchAthlete.toLowerCase())
   );
 
@@ -186,21 +196,35 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {myClubs.map((club) => (
-                <div 
-                  key={club.id}
-                  className="p-3 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
-                  onClick={() => navigate(`/kluby/${club.id}`)}
-                >
-                  <div className="flex items-center gap-3">
-                    <Building2 className="h-5 w-5 text-primary" />
-                    <div className="flex-1">
-                      <p className="font-medium">{club.name}</p>
-                      <p className="text-sm text-muted-foreground">Zawodnicy: {club.members}</p>
+              {myClubs.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  <Building2 className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Nie masz jeszcze żadnych klubów</p>
+                  <Button 
+                    variant="link" 
+                    className="text-primary mt-2" 
+                    onClick={() => navigate('/kluby')}
+                  >
+                    Dodaj pierwszy klub
+                  </Button>
+                </div>
+              ) : (
+                myClubs.map((club) => (
+                  <div 
+                    key={club.id}
+                    className="p-3 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
+                    onClick={() => navigate(`/kluby/${club.id}`)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Building2 className="h-5 w-5 text-primary" />
+                      <div className="flex-1">
+                        <p className="font-medium">{club.name}</p>
+                        <p className="text-sm text-muted-foreground">Zawodnicy: {club.members}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
