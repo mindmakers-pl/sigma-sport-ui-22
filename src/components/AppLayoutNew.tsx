@@ -29,7 +29,7 @@ const AppLayoutNew = ({ children }: AppLayoutNewProps) => {
       <main 
         className={cn(
           "pt-16 transition-all duration-300",
-          isSidebarExpanded ? "lg:ml-64" : "ml-16"
+          isSidebarExpanded ? "ml-64" : "ml-16"
         )}
       >
         <div className="p-6">
