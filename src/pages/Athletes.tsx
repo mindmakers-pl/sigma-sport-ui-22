@@ -451,53 +451,42 @@ const Athletes = () => {
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle className="text-lg">Filtruj zawodników</CardTitle>
-          <div className="flex gap-2 items-center">
-            {isSelectionMode ? (
-              <>
-                {selectedAthletes.length > 0 && (
-                  <>
-                    {!showArchived ? (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handleArchiveSelected}
-                        className="gap-2"
-                      >
-                        <Archive className="h-4 w-4" />
-                        Archiwizuj ({selectedAthletes.length})
-                      </Button>
-                    ) : (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handleRestoreSelected}
-                        className="gap-2"
-                      >
-                        <Archive className="h-4 w-4" />
-                        Przywróć ({selectedAthletes.length})
-                      </Button>
-                    )}
-                  </>
-                )}
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={cancelSelectionMode}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </>
-            ) : (
+          {isSelectionMode && (
+            <div className="flex gap-2 items-center">
+              {selectedAthletes.length > 0 && (
+                <>
+                  {!showArchived ? (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleArchiveSelected}
+                      className="gap-2"
+                    >
+                      <Archive className="h-4 w-4" />
+                      Archiwizuj ({selectedAthletes.length})
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleRestoreSelected}
+                      className="gap-2"
+                    >
+                      <Archive className="h-4 w-4" />
+                      Przywróć ({selectedAthletes.length})
+                    </Button>
+                  )}
+                </>
+              )}
               <Button 
                 variant="ghost" 
-                size="icon"
-                onClick={() => setIsSelectionMode(true)}
-                title="Tryb selekcji"
+                size="sm"
+                onClick={cancelSelectionMode}
               >
-                <Settings className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -545,15 +534,6 @@ const Athletes = () => {
           </div>
           <div className="mt-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button 
-                variant={showArchived ? "default" : "outline"} 
-                size="sm" 
-                className="gap-2"
-                onClick={() => setShowArchived(!showArchived)}
-              >
-                <Archive className="h-4 w-4" />
-                {showArchived ? "Pokaż aktywnych" : "Pokaż archiwum"}
-              </Button>
               {hasActiveFilters && (
                 <p className="text-sm text-muted-foreground">
                   Znaleziono {filteredAthletes.length} zawodników
@@ -587,15 +567,36 @@ const Athletes = () => {
               <TableHead className="font-semibold">Klub</TableHead>
               <TableHead className="font-semibold">Dyscyplina</TableHead>
               <TableHead className="font-semibold">Rok ur.</TableHead>
-              <TableHead className="text-right font-semibold">Akcje</TableHead>
+              <TableHead className="text-right font-semibold">
+                <div className="flex items-center justify-end gap-2">
+                  Akcje
+                  {!isSelectionMode && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setIsSelectionMode(true)}
+                      title="Tryb selekcji"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedAthletes.map((athlete) => (
               <TableRow 
                 key={athlete.id}
-                className="cursor-pointer hover:bg-muted/50"
+                className={isSelectionMode ? "cursor-pointer" : "cursor-pointer hover:bg-muted/50"}
                 onClick={(e) => {
+                  // In selection mode, toggle checkbox
+                  if (isSelectionMode) {
+                    toggleSelectAthlete(athlete.id);
+                    return;
+                  }
+                  
                   // Don't navigate if clicking on checkbox or action button
                   if ((e.target as HTMLElement).closest('input[type="checkbox"]') || 
                       (e.target as HTMLElement).closest('button')) {
@@ -629,10 +630,22 @@ const Athletes = () => {
             ))}
           </TableBody>
         </Table>
+      </Card>
+
+      {/* Paginacja i przycisk archiwum */}
+      <div className="flex items-center justify-between mt-4">
+        <Button 
+          variant={showArchived ? "default" : "outline"} 
+          size="sm" 
+          className="gap-2"
+          onClick={() => setShowArchived(!showArchived)}
+        >
+          <Archive className="h-4 w-4" />
+          {showArchived ? "Pokaż aktywnych" : "Pokaż archiwum"}
+        </Button>
         
-        {/* Paginacja */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t">
+          <div className="flex items-center gap-4">
             <p className="text-sm text-muted-foreground">
               Strona {currentPage} z {totalPages} ({filteredAthletes.length} zawodników)
             </p>
@@ -656,7 +669,7 @@ const Athletes = () => {
             </div>
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 };
