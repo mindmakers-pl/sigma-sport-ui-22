@@ -25,7 +25,7 @@ export function AppSidebar() {
   return (
     <Sidebar 
       collapsible={isMobile ? "offcanvas" : "icon"}
-      className="border-r-0 group-data-[collapsible=icon]:w-16 group-data-[collapsible=icon]:hover:w-56 transition-all duration-300 ease-in-out"
+      className="border-r-0"
     >
       <SidebarContent className="bg-sidebar-primary">
         <SidebarGroup className="pt-6">
