@@ -27,7 +27,7 @@ export function AppSidebar() {
   return (
     <Sidebar 
       collapsible={isMobile ? "offcanvas" : "icon"}
-      className="bg-slate-900 border-r border-slate-800 group-data-[collapsible=icon]:hover:w-60"
+      className="bg-primary z-50 group-data-[collapsible=icon]:hover:w-72"
     >
       <SidebarContent>
         <SidebarGroup>
@@ -43,9 +43,9 @@ export function AppSidebar() {
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="text-slate-300 hover:bg-slate-800 hover:text-white data-[active=true]:bg-primary data-[active=true]:text-white">
+                  <SidebarMenuButton asChild className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground data-[active=true]:bg-primary-foreground/20 data-[active=true]:text-primary-foreground">
                     <NavLink to={item.url} end>
-                      <item.icon className="h-5 w-5" />
+                      <item.icon className="h-6 w-6" />
                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
@@ -59,9 +59,9 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="text-slate-300 hover:bg-slate-800 hover:text-white">
+            <SidebarMenuButton asChild className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground">
               <NavLink to="/ustawienia">
-                <Settings className="h-5 w-5" />
+                <Settings className="h-6 w-6" />
                 <span>Ustawienia</span>
               </NavLink>
             </SidebarMenuButton>
