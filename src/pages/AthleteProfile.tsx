@@ -439,24 +439,24 @@ const AthleteProfile = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Imię i nazwisko rodzica</span>
+                  <div>
+                    <span className="text-xs text-slate-600 block mb-1">Imię i nazwisko rodzica</span>
                     <span className="font-semibold text-slate-900">{athlete.parentName || "Nie podano"}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Telefon rodzica</span>
+                  <div>
+                    <span className="text-xs text-slate-600 block mb-1">Telefon rodzica</span>
                     <span className="font-semibold text-slate-900">{athlete.parentPhone || "Nie podano"}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Email rodzica</span>
+                  <div>
+                    <span className="text-xs text-slate-600 block mb-1">Email rodzica</span>
                     <span className="font-semibold text-slate-900">{athlete.parentEmail || "Nie podano"}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Telefon zawodnika</span>
+                  <div>
+                    <span className="text-xs text-slate-600 block mb-1">Telefon zawodnika</span>
                     <span className="font-semibold text-slate-900">{athlete.phone || "Nie podano"}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Email zawodnika</span>
+                  <div>
+                    <span className="text-xs text-slate-600 block mb-1">Email zawodnika</span>
                     <span className="font-semibold text-slate-900">{athlete.email || "Nie podano"}</span>
                   </div>
                 </div>
