@@ -291,7 +291,7 @@ const AthleteProfile = () => {
                   </div>
                   {athlete.coach && (
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-600">Trener</span>
+                      <span className="text-slate-600">Przypisani trenerzy</span>
                       <span className="font-semibold text-slate-900">{athlete.coach}</span>
                     </div>
                   )}
@@ -303,6 +303,18 @@ const AthleteProfile = () => {
                     <span className="text-slate-600">Rok urodzenia</span>
                     <span className="font-semibold text-slate-900">{athlete.birthYear || "Nie podano"}</span>
                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-600">Liczba pomiarów</span>
+                    <span className="font-semibold text-slate-900">{savedSessions.length}</span>
+                  </div>
+                  {savedSessions.length > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-600">Data ostatniego pomiaru</span>
+                      <span className="font-semibold text-slate-900">
+                        {new Date(savedSessions[savedSessions.length - 1].date).toLocaleDateString('pl-PL')}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
