@@ -451,42 +451,6 @@ const Athletes = () => {
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle className="text-lg">Filtruj zawodników</CardTitle>
-          {isSelectionMode && (
-            <div className="flex gap-2 items-center">
-              {selectedAthletes.length > 0 && (
-                <>
-                  {!showArchived ? (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleArchiveSelected}
-                      className="gap-2"
-                    >
-                      <Archive className="h-4 w-4" />
-                      Archiwizuj ({selectedAthletes.length})
-                    </Button>
-                  ) : (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleRestoreSelected}
-                      className="gap-2"
-                    >
-                      <Archive className="h-4 w-4" />
-                      Przywróć ({selectedAthletes.length})
-                    </Button>
-                  )}
-                </>
-              )}
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={cancelSelectionMode}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -569,17 +533,54 @@ const Athletes = () => {
               <TableHead className="font-semibold">Rok ur.</TableHead>
               <TableHead className="text-right font-semibold">
                 <div className="flex items-center justify-end gap-2">
-                  Akcje
-                  {!isSelectionMode && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setIsSelectionMode(true)}
-                      title="Tryb selekcji"
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
+                  {!isSelectionMode ? (
+                    <>
+                      Akcje
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setIsSelectionMode(true)}
+                        title="Tryb selekcji"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      {selectedAthletes.length > 0 && (
+                        !showArchived ? (
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={handleArchiveSelected}
+                            className="gap-2"
+                          >
+                            <Archive className="h-4 w-4" />
+                            Archiwizuj ({selectedAthletes.length})
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={handleRestoreSelected}
+                            className="gap-2"
+                          >
+                            <Archive className="h-4 w-4" />
+                            Przywróć ({selectedAthletes.length})
+                          </Button>
+                        )
+                      )}
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={cancelSelectionMode}
+                        title="Anuluj tryb selekcji"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </TableHead>
