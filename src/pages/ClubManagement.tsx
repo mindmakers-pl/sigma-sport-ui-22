@@ -3,11 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, CalendarIcon, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { pl } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import DisciplineSelectorMultiple from "@/components/DisciplineSelectorMultiple";
 
 interface Coach {
   name: string;
@@ -26,8 +33,11 @@ interface Club {
   coaches?: Coach[];
   purchasedPrograms?: {
     sigmaTeamsGo?: boolean;
+    sigmaTeamsGoDate?: string;
     sigmaTeamsSprints?: string[];
+    sigmaTeamsSprintsDate?: string;
     sigmaTeamsPro?: boolean;
+    sigmaTeamsProDate?: string;
   };
   notes?: string;
 }
@@ -50,6 +60,12 @@ const ClubManagement = () => {
     email: "",
     phone: ""
   });
+  
+  const [showDatePicker, setShowDatePicker] = useState<{
+    sigmaTeamsGo?: boolean;
+    sigmaTeamsPro?: boolean;
+    sigmaTeamsSprints?: boolean;
+  }>({});
 
   useEffect(() => {
     // Pobierz dane klubu z localStorage
@@ -72,6 +88,8 @@ const ClubManagement = () => {
       const updatedClubs = clubs.map(c => c.id === clubData.id ? clubData : c);
       localStorage.setItem('clubs', JSON.stringify(updatedClubs));
       toast.success("Dane klubu zostały zapisane");
+      // Przekieruj do strony klubu
+      navigate(`/kluby/${id}`);
     }
   };
 
@@ -97,11 +115,71 @@ const ClubManagement = () => {
   const toggleProgram = (program: 'sigmaTeamsGo' | 'sigmaTeamsPro') => {
     if (!clubData) return;
     
+    const isCurrentlyChecked = clubData.purchasedPrograms?.[program];
+    
+    if (!isCurrentlyChecked) {
+      // Pokazuje date picker gdy zaznaczamy checkbox
+      setShowDatePicker({ ...showDatePicker, [program]: true });
+    }
+    
     setClubData({
       ...clubData,
       purchasedPrograms: {
         ...clubData.purchasedPrograms,
-        [program]: !clubData.purchasedPrograms?.[program]
+        [program]: !isCurrentlyChecked
+      }
+    });
+  };
+
+  const toggleSprintsProgram = () => {
+    if (!clubData) return;
+    
+    const currentModules = clubData.purchasedPrograms?.sigmaTeamsSprints || [];
+    const hasModules = currentModules.length > 0;
+    
+    if (hasModules) {
+      // Odznaczamy wszystkie moduły
+      setClubData({
+        ...clubData,
+        purchasedPrograms: {
+          ...clubData.purchasedPrograms,
+          sigmaTeamsSprints: [],
+          sigmaTeamsSprintsDate: undefined
+        }
+      });
+      setShowDatePicker({ ...showDatePicker, sigmaTeamsSprints: false });
+    } else {
+      // Pokazujemy date picker
+      setShowDatePicker({ ...showDatePicker, sigmaTeamsSprints: true });
+    }
+  };
+
+  const setProgramDate = (program: 'sigmaTeamsGo' | 'sigmaTeamsPro' | 'sigmaTeamsSprints', date: Date | undefined) => {
+    if (!clubData || !date) return;
+    
+    const dateKey = `${program}Date` as 'sigmaTeamsGoDate' | 'sigmaTeamsProDate' | 'sigmaTeamsSprintsDate';
+    
+    setClubData({
+      ...clubData,
+      purchasedPrograms: {
+        ...clubData.purchasedPrograms,
+        [dateKey]: date.toISOString()
+      }
+    });
+    
+    setShowDatePicker({ ...showDatePicker, [program]: false });
+  };
+
+  const removeProgramDate = (program: 'sigmaTeamsGo' | 'sigmaTeamsPro' | 'sigmaTeamsSprints') => {
+    if (!clubData) return;
+    
+    const dateKey = `${program}Date` as 'sigmaTeamsGoDate' | 'sigmaTeamsProDate' | 'sigmaTeamsSprintsDate';
+    
+    setClubData({
+      ...clubData,
+      purchasedPrograms: {
+        ...clubData.purchasedPrograms,
+        [dateKey]: undefined
       }
     });
   };
@@ -176,6 +254,13 @@ const ClubManagement = () => {
                     className="bg-slate-800 border-slate-600 text-slate-100"
                   />
                 </div>
+              </div>
+              <div>
+                <Label className="text-slate-200">Dyscyplina</Label>
+                <DisciplineSelectorMultiple
+                  value={clubData.disciplines || []}
+                  onChange={(disciplines) => setClubData({ ...clubData, disciplines })}
+                />
               </div>
             </CardContent>
           </Card>
@@ -297,16 +382,65 @@ const ClubManagement = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="sigmaTeamsGo"
-                    checked={clubData.purchasedPrograms?.sigmaTeamsGo || false}
-                    onCheckedChange={() => toggleProgram('sigmaTeamsGo')}
-                    className="border-slate-600"
-                  />
-                  <label htmlFor="sigmaTeamsGo" className="text-slate-200 font-medium cursor-pointer">
-                    Sigma Teams Go!
-                  </label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="sigmaTeamsGo"
+                      checked={clubData.purchasedPrograms?.sigmaTeamsGo || false}
+                      onCheckedChange={() => toggleProgram('sigmaTeamsGo')}
+                      className="border-slate-600"
+                    />
+                    <label htmlFor="sigmaTeamsGo" className="text-slate-200 font-medium cursor-pointer">
+                      Sigma Teams Go!
+                    </label>
+                  </div>
+                  {clubData.purchasedPrograms?.sigmaTeamsGo && (
+                    <div className="ml-6 flex items-center gap-2">
+                      {clubData.purchasedPrograms?.sigmaTeamsGoDate ? (
+                        <Badge variant="secondary" className="gap-2">
+                          {format(new Date(clubData.purchasedPrograms.sigmaTeamsGoDate), "dd MMM yyyy", { locale: pl })}
+                          <X 
+                            className="h-3 w-3 cursor-pointer" 
+                            onClick={() => removeProgramDate('sigmaTeamsGo')}
+                          />
+                        </Badge>
+                      ) : showDatePicker.sigmaTeamsGo ? (
+                        <Popover open={showDatePicker.sigmaTeamsGo} onOpenChange={(open) => setShowDatePicker({ ...showDatePicker, sigmaTeamsGo: open })}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={cn(
+                                "justify-start text-left font-normal bg-slate-800 border-slate-600 text-slate-300",
+                                !clubData.purchasedPrograms?.sigmaTeamsGoDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              Wybierz datę
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={clubData.purchasedPrograms?.sigmaTeamsGoDate ? new Date(clubData.purchasedPrograms.sigmaTeamsGoDate) : undefined}
+                              onSelect={(date) => setProgramDate('sigmaTeamsGo', date)}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setShowDatePicker({ ...showDatePicker, sigmaTeamsGo: true })}
+                          className="text-slate-400 hover:text-slate-200"
+                        >
+                          + Dodaj datę
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -321,10 +455,106 @@ const ClubManagement = () => {
                       Sigma Teams Pro
                     </label>
                   </div>
+                  {clubData.purchasedPrograms?.sigmaTeamsPro && (
+                    <div className="ml-6 flex items-center gap-2">
+                      {clubData.purchasedPrograms?.sigmaTeamsProDate ? (
+                        <Badge variant="secondary" className="gap-2">
+                          {format(new Date(clubData.purchasedPrograms.sigmaTeamsProDate), "dd MMM yyyy", { locale: pl })}
+                          <X 
+                            className="h-3 w-3 cursor-pointer" 
+                            onClick={() => removeProgramDate('sigmaTeamsPro')}
+                          />
+                        </Badge>
+                      ) : showDatePicker.sigmaTeamsPro ? (
+                        <Popover open={showDatePicker.sigmaTeamsPro} onOpenChange={(open) => setShowDatePicker({ ...showDatePicker, sigmaTeamsPro: open })}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={cn(
+                                "justify-start text-left font-normal bg-slate-800 border-slate-600 text-slate-300",
+                                !clubData.purchasedPrograms?.sigmaTeamsProDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              Wybierz datę
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={clubData.purchasedPrograms?.sigmaTeamsProDate ? new Date(clubData.purchasedPrograms.sigmaTeamsProDate) : undefined}
+                              onSelect={(date) => setProgramDate('sigmaTeamsPro', date)}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setShowDatePicker({ ...showDatePicker, sigmaTeamsPro: true })}
+                          className="text-slate-400 hover:text-slate-200"
+                        >
+                          + Dodaj datę
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-slate-200 font-medium">Sigma Teams Sprints - Moduły:</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-slate-200 font-medium">Sigma Teams Sprints - Moduły:</p>
+                    {(clubData.purchasedPrograms?.sigmaTeamsSprints?.length || 0) > 0 && (
+                      <div className="flex items-center gap-2">
+                        {clubData.purchasedPrograms?.sigmaTeamsSprintsDate ? (
+                          <Badge variant="secondary" className="gap-2">
+                            {format(new Date(clubData.purchasedPrograms.sigmaTeamsSprintsDate), "dd MMM yyyy", { locale: pl })}
+                            <X 
+                              className="h-3 w-3 cursor-pointer" 
+                              onClick={() => removeProgramDate('sigmaTeamsSprints')}
+                            />
+                          </Badge>
+                        ) : showDatePicker.sigmaTeamsSprints ? (
+                          <Popover open={showDatePicker.sigmaTeamsSprints} onOpenChange={(open) => setShowDatePicker({ ...showDatePicker, sigmaTeamsSprints: open })}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className={cn(
+                                  "justify-start text-left font-normal bg-slate-800 border-slate-600 text-slate-300",
+                                  !clubData.purchasedPrograms?.sigmaTeamsSprintsDate && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                Wybierz datę
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={clubData.purchasedPrograms?.sigmaTeamsSprintsDate ? new Date(clubData.purchasedPrograms.sigmaTeamsSprintsDate) : undefined}
+                                onSelect={(date) => setProgramDate('sigmaTeamsSprints', date)}
+                                initialFocus
+                                className="pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setShowDatePicker({ ...showDatePicker, sigmaTeamsSprints: true })}
+                            className="text-slate-400 hover:text-slate-200"
+                          >
+                            + Dodaj datę
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   <div className="pl-4 space-y-2">
                     {SIGMA_SPRINTS_MODULES.map((module) => (
                       <div key={module} className="flex items-center space-x-2">
