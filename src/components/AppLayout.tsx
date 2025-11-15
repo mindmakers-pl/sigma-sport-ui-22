@@ -18,7 +18,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             <SidebarTrigger className="text-slate-700 lg:hidden" />
             <h1 className="text-lg font-semibold text-slate-900">Panel Trenera</h1>
           </header>
-          <div className="px-8 py-6">
+          <div className="px-6 lg:px-12 xl:px-16 py-6">
             {children}
           </div>
         </main>
