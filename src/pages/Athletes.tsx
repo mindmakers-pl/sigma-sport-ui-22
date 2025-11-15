@@ -452,8 +452,55 @@ const Athletes = () => {
 
       {/* Filtrowanie/Wyszukiwanie */}
       <Card className="mb-6">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle className="text-lg">Filtruj zawodników</CardTitle>
+          <div className="flex gap-2 items-center">
+            {isSelectionMode ? (
+              <>
+                {selectedAthletes.length > 0 && (
+                  <>
+                    {!showArchived ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleArchiveSelected}
+                        className="gap-2"
+                      >
+                        <Archive className="h-4 w-4" />
+                        Archiwizuj ({selectedAthletes.length})
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleRestoreSelected}
+                        className="gap-2"
+                      >
+                        <Archive className="h-4 w-4" />
+                        Przywróć ({selectedAthletes.length})
+                      </Button>
+                    )}
+                  </>
+                )}
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={cancelSelectionMode}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setIsSelectionMode(true)}
+                title="Tryb selekcji"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -499,28 +546,30 @@ const Athletes = () => {
               </Select>
             </div>
           </div>
-          {hasActiveFilters && (
-            <div className="mt-4 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                Znaleziono {filteredAthletes.length} zawodników
-              </p>
-              <div className="flex gap-2">
-                <Button 
-                  variant={showArchived ? "default" : "outline"} 
-                  size="sm" 
-                  className="gap-2"
-                  onClick={() => setShowArchived(!showArchived)}
-                >
-                  <Archive className="h-4 w-4" />
-                  {showArchived ? "Pokaż aktywnych" : "Pokaż archiwum"}
-                </Button>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  Wygeneruj raport
-                </Button>
-              </div>
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant={showArchived ? "default" : "outline"} 
+                size="sm" 
+                className="gap-2"
+                onClick={() => setShowArchived(!showArchived)}
+              >
+                <Archive className="h-4 w-4" />
+                {showArchived ? "Pokaż aktywnych" : "Pokaż archiwum"}
+              </Button>
+              {hasActiveFilters && (
+                <p className="text-sm text-muted-foreground">
+                  Znaleziono {filteredAthletes.length} zawodników
+                </p>
+              )}
             </div>
-          )}
+            {hasActiveFilters && (
+              <Button variant="outline" size="sm" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Wygeneruj raport
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 
