@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, CheckCircle2, Lightbulb } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts";
 import { Progress } from "@/components/ui/progress";
@@ -66,6 +67,8 @@ const AthleteProfile = () => {
     hrv_training: ''
   });
 
+  const [newNote, setNewNote] = useState('');
+
   // Pobierz dane zawodnika z localStorage lub użyj mock data
   const getAthleteData = () => {
     const storedAthletes = localStorage.getItem('athletes');
@@ -81,13 +84,14 @@ const AthleteProfile = () => {
           phone: athlete.phone,
           birthYear: athlete.birthYear,
           notes: athlete.notes,
+          notesHistory: athlete.notesHistory || [],
         };
       }
     }
     
     // Fallback do mock data
     const athleteData: Record<string, any> = {
-      "1": { name: "Kowalski Jan", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2005, email: "jan.kowalski@example.com", phone: "+48 123 456 789", notes: "" },
+      "1": { name: "Kowalski Jan", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2005, email: "jan.kowalski@example.com", phone: "+48 123 456 789", notes: "", notesHistory: [] },
       "2": { name: "Nowak Anna", club: "MKS Cracovia", discipline: "Koszykówka", birthYear: 2004, email: "anna.nowak@example.com", phone: "+48 234 567 890", notes: "" },
       "3": { name: "Wiśniewski Piotr", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2006, email: "piotr.wisniewski@example.com", phone: "+48 345 678 901", notes: "" },
       "4": { name: "Kowalczyk Maria", club: "Wisła Kraków", discipline: "Siatkówka", birthYear: 2005, email: "maria.kowalczyk@example.com", phone: "+48 456 789 012", notes: "" },
@@ -150,6 +154,41 @@ const AthleteProfile = () => {
       hrv_training: 'pending',
     });
     setSelectedChallengeType('');
+  };
+
+  const handleAddNote = () => {
+    if (!newNote.trim()) return;
+    
+    const storedAthletes = localStorage.getItem('athletes');
+    if (storedAthletes) {
+      const athletes = JSON.parse(storedAthletes);
+      const athleteIndex = athletes.findIndex((a: any) => a.id === parseInt(id || "1"));
+      
+      if (athleteIndex !== -1) {
+        const currentDate = new Date().toLocaleString('pl-PL', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        
+        const noteEntry = {
+          date: currentDate,
+          text: newNote.trim()
+        };
+        
+        if (!athletes[athleteIndex].notesHistory) {
+          athletes[athleteIndex].notesHistory = [];
+        }
+        
+        athletes[athleteIndex].notesHistory.push(noteEntry);
+        localStorage.setItem('athletes', JSON.stringify(athletes));
+        
+        setNewNote('');
+        window.location.reload();
+      }
+    }
   };
 
   // Mock data for charts
@@ -284,7 +323,44 @@ const AthleteProfile = () => {
                 <CardTitle className="text-slate-900">Historia i notatki</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-slate-700 whitespace-pre-wrap">{athlete.notes || "Brak notatek"}</p>
+                <div className="space-y-4">
+                  <div className="bg-muted/30 rounded-md p-4 min-h-[200px] max-h-[400px] overflow-y-auto">
+                    {athlete.notesHistory && athlete.notesHistory.length > 0 ? (
+                      <div className="space-y-3">
+                        {athlete.notesHistory.map((note: any, index: number) => (
+                          <div key={index} className="border-b border-border/50 pb-3 last:border-0">
+                            <p className="text-xs text-muted-foreground font-semibold mb-1">
+                              {note.date}
+                            </p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap">
+                              {note.text}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">Brak notatek</p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="new-note" className="text-slate-900">Dodaj nową notatkę</Label>
+                    <Textarea
+                      id="new-note"
+                      placeholder="Wpisz notatkę..."
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                    <Button 
+                      onClick={handleAddNote}
+                      className="w-full"
+                      disabled={!newNote.trim()}
+                    >
+                      Dodaj notatkę
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
