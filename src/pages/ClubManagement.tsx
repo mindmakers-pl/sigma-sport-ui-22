@@ -9,6 +9,12 @@ import { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
+interface Coach {
+  name: string;
+  email: string;
+  phone: string;
+}
+
 interface Club {
   id: number;
   name: string;
@@ -17,7 +23,7 @@ interface Club {
   contactPerson?: string;
   email?: string;
   phone?: string;
-  coaches?: string[];
+  coaches?: Coach[];
   purchasedPrograms?: {
     sigmaTeamsGo?: boolean;
     sigmaTeamsSprints?: string[];
@@ -39,7 +45,11 @@ const ClubManagement = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [clubData, setClubData] = useState<Club | null>(null);
-  const [coachInput, setCoachInput] = useState("");
+  const [coachInput, setCoachInput] = useState({
+    name: "",
+    email: "",
+    phone: ""
+  });
 
   useEffect(() => {
     // Pobierz dane klubu z localStorage
@@ -66,13 +76,13 @@ const ClubManagement = () => {
   };
 
   const handleAddCoach = () => {
-    if (!clubData || !coachInput.trim()) return;
+    if (!clubData || !coachInput.name.trim()) return;
     
     setClubData({
       ...clubData,
       coaches: [...(clubData.coaches || []), coachInput]
     });
-    setCoachInput("");
+    setCoachInput({ name: "", email: "", phone: "" });
   };
 
   const handleRemoveCoach = (index: number) => {
@@ -219,30 +229,61 @@ const ClubManagement = () => {
               <CardTitle className="text-slate-100">Trenerzy</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  value={coachInput}
-                  onChange={(e) => setCoachInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCoach())}
-                  placeholder="Imię i nazwisko trenera"
-                  className="bg-slate-800 border-slate-600 text-slate-100"
-                />
-                <Button onClick={handleAddCoach} variant="outline" className="bg-slate-800 border-slate-600 text-slate-100 hover:bg-slate-700">
-                  Dodaj
-                </Button>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="coachName" className="text-slate-200">Imię i Nazwisko</Label>
+                  <Input
+                    id="coachName"
+                    value={coachInput.name}
+                    onChange={(e) => setCoachInput({ ...coachInput, name: e.target.value })}
+                    placeholder="Jan Kowalski"
+                    className="bg-slate-800 border-slate-600 text-slate-100 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="coachEmail" className="text-slate-200">Email</Label>
+                  <Input
+                    id="coachEmail"
+                    type="email"
+                    value={coachInput.email}
+                    onChange={(e) => setCoachInput({ ...coachInput, email: e.target.value })}
+                    placeholder="trener@example.com"
+                    className="bg-slate-800 border-slate-600 text-slate-100 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="coachPhone" className="text-slate-200">Numer telefonu</Label>
+                  <Input
+                    id="coachPhone"
+                    type="tel"
+                    value={coachInput.phone}
+                    onChange={(e) => setCoachInput({ ...coachInput, phone: e.target.value })}
+                    placeholder="+48 123 456 789"
+                    className="bg-slate-800 border-slate-600 text-slate-100 mt-1"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
+              <Button onClick={handleAddCoach} variant="outline" className="w-full bg-slate-800 border-slate-600 text-slate-100 hover:bg-slate-700">
+                Dodaj trenera
+              </Button>
+              <div className="space-y-2 mt-4">
                 {clubData.coaches?.map((coach, index) => (
-                  <div key={index} className="flex justify-between items-center p-3 bg-slate-800 rounded-md">
-                    <span className="text-slate-200">{coach}</span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleRemoveCoach(index)}
-                      className="text-slate-400 hover:text-slate-100"
-                    >
-                      Usuń
-                    </Button>
+                  <div key={index} className="p-4 bg-slate-800 rounded-md">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <p className="text-slate-100 font-semibold">{coach.name}</p>
+                        <p className="text-slate-400 text-sm">{coach.email}</p>
+                        <p className="text-slate-400 text-sm">{coach.phone}</p>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleRemoveCoach(index)}
+                        className="text-slate-400 hover:text-slate-100"
+                      >
+                        Usuń
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -79,6 +79,7 @@ const AthleteProfile = () => {
         return {
           name: athlete.name,
           club: athlete.club,
+          coach: athlete.coach,
           discipline: athlete.discipline,
           email: athlete.email,
           phone: athlete.phone,
@@ -91,7 +92,7 @@ const AthleteProfile = () => {
     
     // Fallback do mock data
     const athleteData: Record<string, any> = {
-      "1": { name: "Kowalski Jan", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2005, email: "jan.kowalski@example.com", phone: "+48 123 456 789", notes: "", notesHistory: [] },
+      "1": { name: "Kowalski Jan", club: "KS Górnik", coach: "", discipline: "Piłka nożna", birthYear: 2005, email: "jan.kowalski@example.com", phone: "+48 123 456 789", notes: "", notesHistory: [] },
       "2": { name: "Nowak Anna", club: "MKS Cracovia", discipline: "Koszykówka", birthYear: 2004, email: "anna.nowak@example.com", phone: "+48 234 567 890", notes: "" },
       "3": { name: "Wiśniewski Piotr", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2006, email: "piotr.wisniewski@example.com", phone: "+48 345 678 901", notes: "" },
       "4": { name: "Kowalczyk Maria", club: "Wisła Kraków", discipline: "Siatkówka", birthYear: 2005, email: "maria.kowalczyk@example.com", phone: "+48 456 789 012", notes: "" },
@@ -288,6 +289,12 @@ const AthleteProfile = () => {
                     <span className="text-slate-600">Klub</span>
                     <span className="font-semibold text-slate-900">{athlete.club}</span>
                   </div>
+                  {athlete.coach && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-600">Trener</span>
+                      <span className="font-semibold text-slate-900">{athlete.coach}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-slate-600">Dyscyplina</span>
                     <span className="font-semibold text-slate-900">{athlete.discipline || "Nie podano"}</span>
