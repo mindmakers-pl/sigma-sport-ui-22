@@ -403,30 +403,30 @@ const AthleteProfile = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Data utworzenia</span>
+                  <div>
+                    <span className="text-xs text-slate-600 block mb-1">Data utworzenia</span>
                     <span className="font-semibold text-slate-900">
                       {athlete.createdAt ? new Date(athlete.createdAt).toLocaleDateString('pl-PL') : 'Nie podano'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Imię i nazwisko</span>
+                  <div>
+                    <span className="text-xs text-slate-600 block mb-1">Imię i nazwisko</span>
                     <span className="font-semibold text-slate-900">{athlete.name}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Wiek</span>
+                  <div>
+                    <span className="text-xs text-slate-600 block mb-1">Wiek</span>
                     <span className="font-semibold text-slate-900">{calculateAge(athlete.birthDate)}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Klub</span>
+                  <div>
+                    <span className="text-xs text-slate-600 block mb-1">Klub</span>
                     <span className="font-semibold text-slate-900">{athlete.club}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Dyscyplina</span>
+                  <div>
+                    <span className="text-xs text-slate-600 block mb-1">Dyscyplina</span>
                     <span className="font-semibold text-slate-900">{athlete.discipline || "Nie podano"}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Trenerzy</span>
+                  <div>
+                    <span className="text-xs text-slate-600 block mb-1">Trenerzy</span>
                     <span className="font-semibold text-slate-900">{athlete.coach || "Nie przypisano"}</span>
                   </div>
                 </div>
@@ -469,13 +469,13 @@ const AthleteProfile = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Liczba pomiarów</span>
+                  <div>
+                    <span className="text-xs text-slate-600 block mb-1">Liczba pomiarów</span>
                     <span className="font-semibold text-slate-900">{savedSessions.length}</span>
                   </div>
                   {savedSessions.length > 0 && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-600">Data ostatniego pomiaru</span>
+                    <div>
+                      <span className="text-xs text-slate-600 block mb-1">Data ostatniego pomiaru</span>
                       <span className="font-semibold text-slate-900">
                         {new Date(savedSessions[savedSessions.length - 1].date).toLocaleDateString('pl-PL')}
                       </span>
