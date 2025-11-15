@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Activity, TrendingUp, Users, Award, Plus, UserPlus, Building2, PlayCircle, Lightbulb } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import BackButton from "@/components/BackButton";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -75,6 +76,7 @@ const Dashboard = () => {
 
   return (
     <div>
+      <BackButton />
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-foreground mb-2">Kokpit</h1>
         <p className="text-muted-foreground">Witaj ponownie! Oto podsumowanie aktywności Twoich zawodników</p>

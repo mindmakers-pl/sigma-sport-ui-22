@@ -7,6 +7,7 @@ import { Users, Building2, BookOpen, UserPlus, Shield, Database, Settings as Set
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import BackButton from "@/components/BackButton";
 
 const AdminPanel = () => {
   const navigate = useNavigate();
@@ -109,6 +110,7 @@ const AdminPanel = () => {
 
   return (
     <div>
+      <BackButton />
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-foreground mb-2">Panel Administratora</h1>

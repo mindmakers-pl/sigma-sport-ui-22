@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { Users, Building2, BookOpen, Settings, LayoutDashboard, Menu } from "lucide-react";
+import { Users, Building2, BookOpen, Settings, LayoutDashboard, Menu, UserCircle, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 interface SideNavProps {
@@ -12,14 +12,24 @@ interface SideNavProps {
 const SideNav = ({ isExpanded, onToggle }: SideNavProps) => {
   const location = useLocation();
   const [isHovered, setIsHovered] = useState(false);
+  const [userRole, setUserRole] = useState<string>("trainer");
   
-  const navItems = [
-    { path: "/", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/zawodnicy", label: "Zawodnicy", icon: Users },
-    { path: "/kluby", label: "Kluby", icon: Building2 },
-    { path: "/biblioteka", label: "Biblioteka", icon: BookOpen },
-    { path: "/ustawienia", label: "Ustawienia", icon: Settings },
+  useEffect(() => {
+    const role = localStorage.getItem("userRole") || "trainer";
+    setUserRole(role);
+  }, []);
+
+  const allNavItems = [
+    { path: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["trainer", "admin"] },
+    { path: "/panel-zawodnika", label: "Panel Zawodnika", icon: UserCircle, roles: ["athlete"] },
+    { path: "/panel-admin", label: "Panel Admin", icon: Shield, roles: ["admin"] },
+    { path: "/zawodnicy", label: "Zawodnicy", icon: Users, roles: ["trainer", "admin"] },
+    { path: "/kluby", label: "Kluby", icon: Building2, roles: ["trainer", "admin"] },
+    { path: "/biblioteka", label: "Biblioteka", icon: BookOpen, roles: ["trainer", "athlete", "admin"] },
+    { path: "/ustawienia", label: "Ustawienia", icon: Settings, roles: ["trainer", "athlete", "admin"] },
   ];
+
+  const navItems = allNavItems.filter(item => item.roles.includes(userRole));
 
   const showLabels = isExpanded || isHovered;
 

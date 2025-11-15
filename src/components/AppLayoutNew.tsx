@@ -28,11 +28,11 @@ const AppLayoutNew = ({ children }: AppLayoutNewProps) => {
       
       <main 
         className={cn(
-          "pt-16 transition-all duration-300",
+          "pt-16 transition-all duration-300 w-full",
           isSidebarExpanded ? "ml-64" : "ml-16"
         )}
       >
-        <div className="p-6">
+        <div className="p-6 max-w-full overflow-x-hidden">
           {children}
         </div>
       </main>
