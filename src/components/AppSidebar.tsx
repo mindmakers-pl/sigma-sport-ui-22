@@ -47,7 +47,7 @@ export function AppSidebar() {
                   >
                     <NavLink to={item.url} end className="flex items-center gap-3 text-sidebar-primary-foreground">
                       <item.icon className="h-5 w-5 shrink-0" />
-                      <span className="font-medium whitespace-nowrap overflow-hidden">{item.title}</span>
+                      <span className="font-medium whitespace-nowrap group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 transition-all duration-200">{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -67,7 +67,7 @@ export function AppSidebar() {
             >
               <NavLink to="/ustawienia" className="flex items-center gap-3 text-sidebar-primary-foreground">
                 <Settings className="h-5 w-5 shrink-0" />
-                <span className="font-medium whitespace-nowrap overflow-hidden">Ustawienia</span>
+                <span className="font-medium whitespace-nowrap group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 transition-all duration-200">Ustawienia</span>
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
