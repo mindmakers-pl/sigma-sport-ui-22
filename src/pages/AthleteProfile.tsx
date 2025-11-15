@@ -588,6 +588,186 @@ const AthleteProfile = () => {
         </TabsContent>
 
         <TabsContent value="dodaj-pomiar" className="mt-6">
+          <Card className="bg-white border-slate-200">
+            <CardHeader>
+              <CardTitle className="text-slate-900">Kokpit pomiarowy</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label className="text-slate-900 font-semibold mb-3 block">Warunki pomiaru</Label>
+                <RadioGroup value={measurementConditions} onValueChange={setMeasurementConditions}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="trening" id="trening" />
+                    <Label htmlFor="trening" className="text-slate-700 font-normal cursor-pointer">Po treningu</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="zawody" id="zawody" />
+                    <Label htmlFor="zawody" className="text-slate-700 font-normal cursor-pointer">Po zawodach</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="baseline" id="baseline" />
+                    <Label htmlFor="baseline" className="text-slate-700 font-normal cursor-pointer">Pomiar bazowy (przed sezonem)</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Kwestionariusz */}
+                <Card className={`cursor-pointer transition-all ${taskStatus.kwestionariusz === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-slate-900">Kwestionariusz</h3>
+                      {taskStatus.kwestionariusz === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                    </div>
+                    <p className="text-sm text-slate-600 mb-4">Ocena psychometryczna</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => setCurrentView('showing_questionnaire')}
+                    >
+                      {taskStatus.kwestionariusz === 'completed' ? 'Powtórz' : 'Rozpocznij'}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* HRV Baseline */}
+                <Card className={`cursor-pointer transition-all ${taskStatus.hrv_baseline === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-slate-900">HRV Baseline</h3>
+                      {taskStatus.hrv_baseline === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                    </div>
+                    <p className="text-sm text-slate-600 mb-4">Zmienność rytmu serca - stan bazowy</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => setCurrentView('measuring_baseline')}
+                    >
+                      {taskStatus.hrv_baseline === 'completed' ? 'Powtórz' : 'Rozpocznij'}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Scan */}
+                <Card className={`cursor-pointer transition-all ${taskStatus.scan === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-slate-900">Sigma Scan</h3>
+                      {taskStatus.scan === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                    </div>
+                    <p className="text-sm text-slate-600 mb-4">Test skanowania wzrokowego</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => setCurrentView('playing_scan')}
+                    >
+                      {taskStatus.scan === 'completed' ? 'Powtórz' : 'Rozpocznij'}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Control */}
+                <Card className={`cursor-pointer transition-all ${taskStatus.control === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-slate-900">Sigma Control</h3>
+                      {taskStatus.control === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                    </div>
+                    <p className="text-sm text-slate-600 mb-4">Test kontroli impulsów</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => setCurrentView('playing_control')}
+                    >
+                      {taskStatus.control === 'completed' ? 'Powtórz' : 'Rozpocznij'}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Focus */}
+                <Card className={`cursor-pointer transition-all ${taskStatus.focus === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-slate-900">Sigma Focus</h3>
+                      {taskStatus.focus === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                    </div>
+                    <p className="text-sm text-slate-600 mb-4">Test koncentracji</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => setCurrentView('playing_focus')}
+                    >
+                      {taskStatus.focus === 'completed' ? 'Powtórz' : 'Rozpocznij'}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Sigma Move */}
+                <Card className={`cursor-pointer transition-all ${taskStatus.sigma_move === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-slate-900">Sigma Move</h3>
+                      {taskStatus.sigma_move === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                    </div>
+                    <p className="text-sm text-slate-600 mb-4">Test mobilności i koordynacji</p>
+                    <div className="space-y-2">
+                      <Select value={selectedChallengeType} onValueChange={setSelectedChallengeType}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Wybierz test" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="plank">Plank</SelectItem>
+                          <SelectItem value="squat">Squat</SelectItem>
+                          <SelectItem value="lunge">Lunge</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => setCurrentView('measuring_move')}
+                        disabled={!selectedChallengeType}
+                      >
+                        {taskStatus.sigma_move === 'completed' ? 'Powtórz' : 'Rozpocznij'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* HRV Training */}
+                <Card className={`cursor-pointer transition-all ${taskStatus.hrv_training === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-slate-900">HRV Training</h3>
+                      {taskStatus.hrv_training === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                    </div>
+                    <p className="text-sm text-slate-600 mb-4">HRV pod obciążeniem</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => setCurrentView('measuring_training')}
+                    >
+                      {taskStatus.hrv_training === 'completed' ? 'Powtórz' : 'Rozpocznij'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-slate-200">
+                <Button 
+                  size="lg"
+                  onClick={handleSaveSession}
+                  disabled={Object.values(taskStatus).every(status => status === 'pending')}
+                >
+                  Zakończ i Zapisz Sesję
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="raporty" className="mt-6">
+          <p className="text-muted-foreground">Zawartość raportów - do zachowania z oryginalnego pliku</p>
+        </TabsContent>
       </Tabs>
 
       {/* Pełnoekranowy Dialog dla gier */}
