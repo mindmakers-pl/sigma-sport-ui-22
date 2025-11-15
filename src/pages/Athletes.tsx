@@ -59,6 +59,9 @@ const Athletes = () => {
     discipline: "",
     birthDate: undefined as Date | undefined,
     notes: "",
+    parentName: "",
+    parentPhone: "",
+    parentEmail: "",
   });
 
   const [athletes, setAthletes] = useState(() => {
@@ -202,10 +205,15 @@ const Athletes = () => {
       coach: newAthlete.coach,
       discipline: newAthlete.discipline,
       birthYear: birthYear,
+      birthDate: newAthlete.birthDate?.toISOString(),
       sessions: 0,
       email: newAthlete.email,
       phone: newAthlete.phone,
       notes: newAthlete.notes,
+      parentName: newAthlete.parentName,
+      parentPhone: newAthlete.parentPhone,
+      parentEmail: newAthlete.parentEmail,
+      createdAt: new Date().toISOString(),
     };
     
     const updatedAthletes = [...athletes, athleteToAdd];
@@ -248,6 +256,9 @@ const Athletes = () => {
       discipline: "",
       birthDate: undefined,
       notes: "",
+      parentName: "",
+      parentPhone: "",
+      parentEmail: "",
     });
   };
 
@@ -424,6 +435,53 @@ const Athletes = () => {
                     className="mt-2 min-h-[100px]"
                     rows={4}
                   />
+                </div>
+
+                <div className="border-t border-slate-200 pt-4 space-y-4">
+                  <h3 className="text-slate-900 font-semibold">Dane kontaktowe (opcjonalne)</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="parentName" className="text-slate-900 font-semibold">
+                        Imię i nazwisko rodzica
+                      </Label>
+                      <Input
+                        id="parentName"
+                        value={newAthlete.parentName}
+                        onChange={(e) => setNewAthlete({ ...newAthlete, parentName: e.target.value })}
+                        placeholder="Jan Kowalski"
+                        className="mt-2"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="parentPhone" className="text-slate-900 font-semibold">
+                        Telefon rodzica
+                      </Label>
+                      <Input
+                        id="parentPhone"
+                        type="tel"
+                        value={newAthlete.parentPhone}
+                        onChange={(e) => setNewAthlete({ ...newAthlete, parentPhone: e.target.value })}
+                        placeholder="+48 123 456 789"
+                        className="mt-2"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="parentEmail" className="text-slate-900 font-semibold">
+                        Email rodzica
+                      </Label>
+                      <Input
+                        id="parentEmail"
+                        type="email"
+                        value={newAthlete.parentEmail}
+                        onChange={(e) => setNewAthlete({ ...newAthlete, parentEmail: e.target.value })}
+                        placeholder="rodzic@example.com"
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex gap-4 pt-4 border-t border-slate-200">
