@@ -770,6 +770,124 @@ const AthleteProfile = () => {
         </TabsContent>
       </Tabs>
 
+      {/* Dialog edycji profilu */}
+      <Dialog open={isEditingProfile} onOpenChange={setIsEditingProfile}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900">Edytuj profil zawodnika</h2>
+              <p className="text-slate-600 mt-1">Zaktualizuj dane osobowe i kontaktowe</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Imię i nazwisko</Label>
+                <Input
+                  id="name"
+                  value={editedProfile.name}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, name: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="birthDate">Data urodzenia</Label>
+                <Input
+                  id="birthDate"
+                  type="date"
+                  value={editedProfile.birthDate ? editedProfile.birthDate.toISOString().split('T')[0] : ''}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, birthDate: e.target.value ? new Date(e.target.value) : undefined })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="club">Klub</Label>
+                <Input
+                  id="club"
+                  value={editedProfile.club}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, club: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="discipline">Dyscyplina</Label>
+                <Input
+                  id="discipline"
+                  value={editedProfile.discipline}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, discipline: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="coach">Trenerzy</Label>
+                <Input
+                  id="coach"
+                  value={editedProfile.coach}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, coach: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email zawodnika</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={editedProfile.email}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, email: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefon zawodnika</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={editedProfile.phone}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, phone: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="parentName">Imię i nazwisko rodzica</Label>
+                <Input
+                  id="parentName"
+                  value={editedProfile.parentName}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, parentName: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="parentEmail">Email rodzica</Label>
+                <Input
+                  id="parentEmail"
+                  type="email"
+                  value={editedProfile.parentEmail}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, parentEmail: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="parentPhone">Telefon rodzica</Label>
+                <Input
+                  id="parentPhone"
+                  type="tel"
+                  value={editedProfile.parentPhone}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, parentPhone: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button variant="outline" onClick={() => setIsEditingProfile(false)}>
+                Anuluj
+              </Button>
+              <Button onClick={handleSaveProfile}>
+                Zapisz zmiany
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Pełnoekranowy Dialog dla gier */}
       <Dialog open={currentView !== 'kokpit'} onOpenChange={(open) => {
         if (!open) setCurrentView('kokpit');
