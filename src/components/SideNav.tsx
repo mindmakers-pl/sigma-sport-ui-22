@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
-import { Users, Building2, BookOpen, Settings, LayoutDashboard, ChevronRight } from "lucide-react";
+import { Users, Building2, BookOpen, Settings, LayoutDashboard, Menu, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface SideNavProps {
   isExpanded: boolean;
@@ -27,11 +28,41 @@ const SideNav = ({ isExpanded, onToggle }: SideNavProps) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "fixed left-0 top-16 bottom-0 bg-slate-900 border-r border-slate-800 transition-all duration-300 ease-in-out z-50",
+        "fixed left-0 top-0 bottom-0 bg-slate-900 border-r border-slate-800 transition-all duration-300 ease-in-out z-50",
         showLabels ? "w-64" : "w-16"
       )}
     >
-      <nav className="flex flex-col gap-1 p-2 h-full">
+      {/* Mobile/Tablet hamburger & logo */}
+      <div className="h-16 flex items-center justify-between px-3 border-b border-slate-800 lg:hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggle}
+          className="text-slate-300 hover:text-white hover:bg-slate-800"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        {showLabels && (
+          <div className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
+            <span className="text-lg font-bold text-white">Sigma Sport</span>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop logo */}
+      <div className="hidden lg:flex h-16 items-center px-3 border-b border-slate-800">
+        <div className="flex items-center gap-2">
+          <Activity className="h-6 w-6 text-primary flex-shrink-0" />
+          {showLabels && (
+            <span className="text-xl font-bold text-white whitespace-nowrap">
+              Sigma Sport
+            </span>
+          )}
+        </div>
+      </div>
+
+      <nav className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path || 

@@ -18,28 +18,15 @@ const TopBar = ({ onToggleSidebar, isSidebarExpanded }: TopBarProps) => {
   const currentRole = "Panel Trenera"; // lub "Panel Zawodnika" / "Panel Admin"
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-background border-b border-border z-40">
-      <div className="flex items-center justify-between h-full px-4">
-        {/* Left: Logo & Menu Toggle */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggleSidebar}
-            className="lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          
-          <div className="flex items-center gap-2">
-            <Activity className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold text-foreground hidden sm:inline">
-              Sigma Sport
-            </span>
-          </div>
-        </div>
+    <header 
+      className={cn(
+        "fixed top-0 right-0 h-16 bg-background border-b border-border z-40 transition-all duration-300",
+        isSidebarExpanded ? "left-64" : "left-16"
+      )}
+    >
+      <div className="flex items-center justify-end h-full px-4">
 
-        {/* Right: Role Selector */}
+        {/* Role Selector */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
