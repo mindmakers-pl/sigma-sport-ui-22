@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Building, Settings, BookOpen, Activity } from "lucide-react";
+import { LayoutDashboard, Users, Building, Settings, BookOpen } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -27,25 +27,25 @@ export function AppSidebar() {
   return (
     <Sidebar 
       collapsible={isMobile ? "offcanvas" : "icon"}
-      className="bg-slate-900 border-r border-slate-800 group-data-[collapsible=icon]:w-20 group-data-[collapsible=icon]:hover:w-64"
+      className="bg-slate-900 border-r border-slate-800 group-data-[collapsible=icon]:hover:w-60"
     >
       <SidebarContent>
         <SidebarGroup>
-          <div className="px-4 py-4 flex items-center justify-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:hover:justify-start group-data-[collapsible=icon]:hover:px-6">
-            <Activity className="h-8 w-8 text-primary shrink-0" />
-            <div className="ml-3 group-data-[collapsible=icon]:hidden group-data-[collapsible=icon]:group-hover/sidebar:block">
-              <h2 className="font-bold text-white text-xl">
-                Sigma Sport
-              </h2>
-            </div>
+          <div className="px-6 py-6">
+            <h2 className="font-bold text-white text-xl group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/sidebar:opacity-100 transition-opacity">
+              Sigma Sport
+            </h2>
+            <p className="text-sm text-slate-400 mt-1 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/sidebar:opacity-100 transition-opacity">
+              Panel trenera
+            </p>
           </div>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="text-slate-300 hover:bg-slate-800 hover:text-white data-[active=true]:bg-primary data-[active=true]:text-white h-12">
+                  <SidebarMenuButton asChild className="text-slate-300 hover:bg-slate-800 hover:text-white data-[active=true]:bg-primary data-[active=true]:text-white">
                     <NavLink to={item.url} end>
-                      <item.icon className="h-6 w-6" />
+                      <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
@@ -59,9 +59,9 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="text-slate-300 hover:bg-slate-800 hover:text-white h-12">
+            <SidebarMenuButton asChild className="text-slate-300 hover:bg-slate-800 hover:text-white">
               <NavLink to="/ustawienia">
-                <Settings className="h-6 w-6" />
+                <Settings className="h-5 w-5" />
                 <span>Ustawienia</span>
               </NavLink>
             </SidebarMenuButton>
