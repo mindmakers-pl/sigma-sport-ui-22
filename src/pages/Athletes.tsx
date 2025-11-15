@@ -49,6 +49,7 @@ const Athletes = () => {
     email: "",
     phone: "",
     club: "",
+    coach: "",
     discipline: "",
     birthDate: undefined as Date | undefined,
     notes: "",
@@ -88,6 +89,21 @@ const Athletes = () => {
 
   const [disciplines, setDisciplines] = useState<string[]>(getDisciplines());
 
+  // Pobierz trenerów z wybranego klubu
+  const getCoachesForClub = () => {
+    if (!newAthlete.club) return [];
+    
+    const storedClubs = localStorage.getItem('clubs');
+    if (storedClubs) {
+      const clubsData = JSON.parse(storedClubs);
+      const selectedClub = clubsData.find((club: any) => club.name === newAthlete.club);
+      if (selectedClub && selectedClub.coaches) {
+        return selectedClub.coaches;
+      }
+    }
+    return [];
+  };
+
   // Synchronizuj listę klubów i dyscyplin z localStorage
   useEffect(() => {
     const storedClubs = localStorage.getItem('clubs');
@@ -118,6 +134,7 @@ const Athletes = () => {
       id: newId,
       name: fullName,
       club: newAthlete.club,
+      coach: newAthlete.coach,
       discipline: newAthlete.discipline,
       birthYear: birthYear,
       sessions: 0,
@@ -162,6 +179,7 @@ const Athletes = () => {
       email: "",
       phone: "",
       club: "",
+      coach: "",
       discipline: "",
       birthDate: undefined,
       notes: "",
@@ -253,7 +271,9 @@ const Athletes = () => {
                     <Input
                       id="club"
                       value={newAthlete.club}
-                      onChange={(e) => setNewAthlete({ ...newAthlete, club: e.target.value })}
+                      onChange={(e) => {
+                        setNewAthlete({ ...newAthlete, club: e.target.value, coach: "" });
+                      }}
                       placeholder="Wpisz nazwę klubu"
                       className="mt-2"
                       list="clubs-list"
@@ -265,6 +285,30 @@ const Athletes = () => {
                     </datalist>
                   </div>
                   
+                  <div>
+                    <Label htmlFor="coach" className="text-slate-900 font-semibold">
+                      Trener
+                    </Label>
+                    <Select
+                      value={newAthlete.coach}
+                      onValueChange={(value) => setNewAthlete({ ...newAthlete, coach: value })}
+                      disabled={!newAthlete.club}
+                    >
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder={newAthlete.club ? "Wybierz trenera" : "Najpierw wybierz klub"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getCoachesForClub().map((coach: any, index: number) => (
+                          <SelectItem key={index} value={coach.name}>
+                            {coach.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
                   <DisciplineSelector
                     value={newAthlete.discipline}
                     onChange={(value) => setNewAthlete({ ...newAthlete, discipline: value })}
@@ -411,6 +455,7 @@ const Athletes = () => {
             <TableRow>
               <TableHead className="font-semibold">Nazwisko i imię</TableHead>
               <TableHead className="font-semibold">Klub</TableHead>
+              <TableHead className="font-semibold">Trener</TableHead>
               <TableHead className="font-semibold">Dyscyplina</TableHead>
               <TableHead className="font-semibold">Rok ur.</TableHead>
               <TableHead className="font-semibold">Liczba pomiarów</TableHead>
@@ -422,6 +467,7 @@ const Athletes = () => {
               <TableRow key={athlete.id}>
                 <TableCell className="font-medium">{athlete.name}</TableCell>
                 <TableCell className="text-muted-foreground">{athlete.club}</TableCell>
+                <TableCell className="text-muted-foreground">{athlete.coach || "-"}</TableCell>
                 <TableCell className="text-muted-foreground">{athlete.discipline}</TableCell>
                 <TableCell className="text-muted-foreground">{athlete.birthYear}</TableCell>
                 <TableCell className="text-muted-foreground">{athlete.sessions}</TableCell>
