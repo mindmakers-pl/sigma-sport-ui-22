@@ -31,6 +31,7 @@ export function useTrackerGame() {
   const [level, setLevel] = useState(1);
   const [mistakes, setMistakes] = useState(0);
   const animationRef = useRef<number>();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const initializeBalls = () => {
     const newBalls: Ball[] = [];
@@ -202,6 +203,73 @@ export function useTrackerGame() {
     }
   };
 
+  const handleBallClick = (ballId: number) => {
+    if (gameState !== 'finished' || userGuesses.includes(ballId)) return;
+    
+    const newGuesses = [...userGuesses, ballId];
+    setUserGuesses(newGuesses);
+
+    if (newGuesses.length === TARGET_BALLS) {
+      const correctGuesses = newGuesses.filter(guessId => {
+        const ball = balls.find(b => b.id === guessId);
+        return ball?.isTarget;
+      }).length;
+
+      setFinalScore({ correct: correctGuesses, total: TARGET_BALLS });
+      
+      if (correctGuesses === TARGET_BALLS) {
+        setGameState('level_complete');
+        setTimeout(() => {
+          setLevel(prev => prev + 1);
+          runNextTrial();
+        }, 2000);
+      } else {
+        if (mistakes === 0) {
+          setMistakes(1);
+          setGameState('retry');
+          setTimeout(() => {
+            runNextTrial();
+          }, 2000);
+        } else {
+          setGameState('final_results');
+        }
+      }
+    }
+  };
+
+  const getBallColor = (ball: Ball) => {
+    if (gameState === 'highlight') {
+      return ball.isTarget ? 'bg-white' : 'bg-green-400';
+    }
+    if (gameState === 'moving') {
+      return 'bg-green-400';
+    }
+    if (gameState === 'finished') {
+      if (userGuesses.includes(ball.id)) {
+        return ball.isTarget ? 'bg-white' : 'bg-red-500';
+      }
+      return 'bg-green-400';
+    }
+    return 'bg-green-400';
+  };
+
+  const getBallScale = (ball: Ball) => {
+    return 0.5 + (ball.z_pos / Z_MAX) * 0.5;
+  };
+
+  const getBallZIndex = (ball: Ball) => {
+    return Math.round(ball.z_pos);
+  };
+
+  const getBallBlur = (ball: Ball) => {
+    const distanceFromFront = (Z_MAX - ball.z_pos) / Z_MAX;
+    return distanceFromFront * 2;
+  };
+
+  const getBallOpacity = (ball: Ball) => {
+    return 0.6 + (ball.z_pos / Z_MAX) * 0.4;
+  };
+
   return {
     gameState,
     balls,
@@ -210,10 +278,17 @@ export function useTrackerGame() {
     hrvInput,
     level,
     mistakes,
+    containerRef,
     setHrvInput,
     handleStart,
     runNextTrial,
     toggleBallGuess,
     handleSubmitGuess,
+    handleBallClick,
+    getBallColor,
+    getBallScale,
+    getBallZIndex,
+    getBallBlur,
+    getBallOpacity,
   };
 }

@@ -198,10 +198,26 @@ export function useControlGame() {
     };
   }, []);
 
+  const handleScreenClick = () => {
+    handleSpacePress();
+  };
+
   const calculateAvgRT = () => {
     if (reactionTimes.length === 0) return 0;
     const sum = reactionTimes.reduce((acc, val) => acc + val, 0);
     return Math.round(sum / reactionTimes.length);
+  };
+
+  const calculateAverageRT = () => calculateAvgRT();
+
+  const calculateMinRT = () => {
+    if (reactionTimes.length === 0) return 0;
+    return Math.min(...reactionTimes);
+  };
+
+  const calculateMaxRT = () => {
+    if (reactionTimes.length === 0) return 0;
+    return Math.max(...reactionTimes);
   };
 
   const calculateMedianRT = () => {
@@ -209,6 +225,21 @@ export function useControlGame() {
     const sorted = [...reactionTimes].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
     return sorted.length % 2 !== 0 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
+  };
+
+  const calculateMovingAverage = () => {
+    if (reactionTimes.length === 0) return [];
+    const windowSize = 5;
+    const result = [];
+    
+    for (let i = 0; i < reactionTimes.length; i++) {
+      const start = Math.max(0, i - windowSize + 1);
+      const window = reactionTimes.slice(start, i + 1);
+      const avg = Math.round(window.reduce((sum, val) => sum + val, 0) / window.length);
+      result.push({ trial: i + 1, avgRT: avg });
+    }
+    
+    return result;
   };
 
   return {
@@ -220,7 +251,12 @@ export function useControlGame() {
     manualHRV,
     setManualHRV,
     handleStartGame,
+    handleScreenClick,
     calculateAvgRT,
+    calculateAverageRT,
+    calculateMinRT,
+    calculateMaxRT,
     calculateMedianRT,
+    calculateMovingAverage,
   };
 }
