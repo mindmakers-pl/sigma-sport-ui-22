@@ -6,12 +6,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Plus, Search, FileText } from "lucide-react";
+import { Plus, Search, FileText, Settings, Archive, X } from "lucide-react";
 import DisciplineSelector from "@/components/DisciplineSelector";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
@@ -42,6 +43,11 @@ const Athletes = () => {
   const [filterClub, setFilterClub] = useState("all");
   const [filterDiscipline, setFilterDiscipline] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedAthletes, setSelectedAthletes] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showArchived, setShowArchived] = useState(false);
+  const itemsPerPage = 10;
   
   const [newAthlete, setNewAthlete] = useState({
     firstName: "",
@@ -117,11 +123,70 @@ const Athletes = () => {
   }, [athletes]);
 
   const filteredAthletes = athletes.filter(athlete => {
+    // Filtruj według statusu archiwizacji
+    if (!showArchived && athlete.archived) return false;
+    if (showArchived && !athlete.archived) return false;
+    
     const matchesSearch = athlete.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClub = filterClub === "all" || athlete.club === filterClub;
     const matchesDiscipline = filterDiscipline === "all" || athlete.discipline === filterDiscipline;
     return matchesSearch && matchesClub && matchesDiscipline;
   });
+
+  // Paginacja
+  const totalPages = Math.ceil(filteredAthletes.length / itemsPerPage);
+  const paginatedAthletes = filteredAthletes.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset strony przy zmianie filtrów
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterClub, filterDiscipline, showArchived]);
+
+  const toggleSelectAll = () => {
+    if (selectedAthletes.length === paginatedAthletes.length) {
+      setSelectedAthletes([]);
+    } else {
+      setSelectedAthletes(paginatedAthletes.map(a => a.id));
+    }
+  };
+
+  const toggleSelectAthlete = (id: string) => {
+    setSelectedAthletes(prev => 
+      prev.includes(id) ? prev.filter(aid => aid !== id) : [...prev, id]
+    );
+  };
+
+  const handleArchiveSelected = () => {
+    const updatedAthletes = athletes.map(athlete => 
+      selectedAthletes.includes(athlete.id) 
+        ? { ...athlete, archived: true, archivedAt: new Date().toISOString() }
+        : athlete
+    );
+    localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
+    setAthletes(updatedAthletes);
+    setSelectedAthletes([]);
+    setIsSelectionMode(false);
+  };
+
+  const handleRestoreSelected = () => {
+    const updatedAthletes = athletes.map(athlete => 
+      selectedAthletes.includes(athlete.id) 
+        ? { ...athlete, archived: false, archivedAt: null }
+        : athlete
+    );
+    localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
+    setAthletes(updatedAthletes);
+    setSelectedAthletes([]);
+    setIsSelectionMode(false);
+  };
+
+  const cancelSelectionMode = () => {
+    setIsSelectionMode(false);
+    setSelectedAthletes([]);
+  };
 
   const hasActiveFilters = filterClub !== "all" || filterDiscipline !== "all";
 
@@ -439,10 +504,21 @@ const Athletes = () => {
               <p className="text-sm text-muted-foreground">
                 Znaleziono {filteredAthletes.length} zawodników
               </p>
-              <Button variant="outline" size="sm" className="gap-2">
-                <FileText className="h-4 w-4" />
-                Wygeneruj raport
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant={showArchived ? "default" : "outline"} 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={() => setShowArchived(!showArchived)}
+                >
+                  <Archive className="h-4 w-4" />
+                  {showArchived ? "Pokaż aktywnych" : "Pokaż archiwum"}
+                </Button>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Wygeneruj raport
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
@@ -453,6 +529,14 @@ const Athletes = () => {
         <Table>
           <TableHeader>
             <TableRow>
+              {isSelectionMode && (
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={selectedAthletes.length === paginatedAthletes.length && paginatedAthletes.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </TableHead>
+              )}
               <TableHead className="font-semibold">Nazwisko i imię</TableHead>
               <TableHead className="font-semibold">Klub</TableHead>
               <TableHead className="font-semibold">Trener</TableHead>
@@ -463,8 +547,16 @@ const Athletes = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAthletes.map((athlete) => (
+            {paginatedAthletes.map((athlete) => (
               <TableRow key={athlete.id}>
+                {isSelectionMode && (
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedAthletes.includes(athlete.id)}
+                      onCheckedChange={() => toggleSelectAthlete(athlete.id)}
+                    />
+                  </TableCell>
+                )}
                 <TableCell className="font-medium">{athlete.name}</TableCell>
                 <TableCell className="text-muted-foreground">{athlete.club}</TableCell>
                 <TableCell className="text-muted-foreground">{athlete.coach || "-"}</TableCell>
@@ -472,18 +564,54 @@ const Athletes = () => {
                 <TableCell className="text-muted-foreground">{athlete.birthYear}</TableCell>
                 <TableCell className="text-muted-foreground">{athlete.sessions}</TableCell>
                 <TableCell className="text-right">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate(`/zawodnicy/${athlete.id}`)}
-                  >
-                    Zobacz profil
-                  </Button>
+                  <div className="flex gap-2 justify-end">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate(`/zawodnicy/${athlete.id}`)}
+                    >
+                      Zobacz profil
+                    </Button>
+                    <Button 
+                      variant="default" 
+                      size="sm"
+                      onClick={() => navigate(`/zawodnicy/${athlete.id}?addMeasurement=true`)}
+                    >
+                      Dodaj pomiar
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        
+        {/* Paginacja */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t">
+            <p className="text-sm text-muted-foreground">
+              Strona {currentPage} z {totalPages} ({filteredAthletes.length} zawodników)
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                Poprzednia
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Następna
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );
