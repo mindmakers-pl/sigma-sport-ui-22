@@ -20,9 +20,10 @@ const MAX_TRIALS = 10;
 interface ScanGameProps {
   onComplete?: (data: any) => void;
   onGoToCockpit?: () => void;
+  mode?: "training" | "measurement";
 }
 
-const ScanGame = ({ onComplete, onGoToCockpit }: ScanGameProps) => {
+const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameProps) => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
   const [gameState, setGameState] = useState<GameState>("ready");
@@ -265,9 +266,11 @@ const ScanGame = ({ onComplete, onGoToCockpit }: ScanGameProps) => {
                 </div>
               </div>
 
-              <div className="pt-2 pb-2 border-t border-slate-700">
-                <p className="text-green-400 text-sm">✓ Zapisaliśmy Twój wynik</p>
-              </div>
+              {mode === "measurement" && (
+                <div className="pt-2 pb-2 border-t border-slate-700">
+                  <p className="text-green-400 text-sm">✓ Zapisaliśmy Twój wynik</p>
+                </div>
+              )}
 
               <div className="flex gap-3">
                 <Button 

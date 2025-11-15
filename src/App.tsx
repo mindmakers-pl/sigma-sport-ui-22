@@ -14,6 +14,7 @@ import ClubDetail from "./pages/ClubDetail";
 import ClubManagement from "./pages/ClubManagement";
 import Settings from "./pages/Settings";
 import Library from "./pages/Library";
+import Training from "./pages/Training";
 import ExerciseDetail from "./pages/ExerciseDetail";
 import QuestionnaireDetail from "./pages/QuestionnaireDetail";
 import ScanGame from "./pages/ScanGame";
@@ -44,11 +45,16 @@ const App = () => (
           <Route path="/biblioteka" element={<AppLayoutNew><Library /></AppLayoutNew>} />
           <Route path="/biblioteka/cwiczenie/:id" element={<AppLayoutNew><ExerciseDetail /></AppLayoutNew>} />
           <Route path="/biblioteka/kwestionariusz/:id" element={<AppLayoutNew><QuestionnaireDetail /></AppLayoutNew>} />
+          <Route path="/trening" element={<AppLayoutNew><Training /></AppLayoutNew>} />
           <Route path="/ustawienia" element={<AppLayoutNew><Settings /></AppLayoutNew>} />
           <Route path="/scan/:athleteId" element={<ScanGame />} />
           <Route path="/control/:athleteId" element={<ControlGame />} />
           <Route path="/focus/:athleteId" element={<FocusGame />} />
           <Route path="/tracker/:athleteId" element={<TrackerGame />} />
+          <Route path="/scan/training" element={<ScanGame mode="training" />} />
+          <Route path="/control/training" element={<ControlGame mode="training" />} />
+          <Route path="/focus/training" element={<FocusGame mode="training" />} />
+          <Route path="/tracker/training" element={<TrackerGame mode="training" />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

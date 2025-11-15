@@ -8,9 +8,10 @@ import { useFocusGame, colorStyles, colorButtonStyles } from "@/hooks/useFocusGa
 interface FocusGameProps {
   onComplete?: (data: any) => void;
   onGoToCockpit?: () => void;
+  mode?: "training" | "measurement";
 }
 
-const FocusGame = ({ onComplete, onGoToCockpit }: FocusGameProps) => {
+const FocusGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: FocusGameProps) => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
   
