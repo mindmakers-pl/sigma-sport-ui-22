@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, CheckCircle2, Lightbulb } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts";
 import { Progress } from "@/components/ui/progress";
@@ -777,7 +778,335 @@ const AthleteProfile = () => {
         </TabsContent>
 
         <TabsContent value="raporty" className="mt-6">
-          <p className="text-muted-foreground">Zawartość raportów - do zachowania z oryginalnego pliku</p>
+          <Tabs value={reportTab} onValueChange={setReportTab}>
+            <TabsList className="mb-6">
+              <TabsTrigger value="historia">Historia sesji</TabsTrigger>
+              <TabsTrigger value="postepy">Postępy</TabsTrigger>
+              <TabsTrigger value="porownanie">Porównanie</TabsTrigger>
+            </TabsList>
+
+            {/* Historia sesji */}
+            <TabsContent value="historia" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle>Historia pomiarów</CardTitle>
+                    <Select value={conditionsFilter} onValueChange={setConditionsFilter}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filtruj warunki" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white z-50">
+                        <SelectItem value="wszystkie">Wszystkie warunki</SelectItem>
+                        <SelectItem value="trening">Trening</SelectItem>
+                        <SelectItem value="mecz">Mecz</SelectItem>
+                        <SelectItem value="baseline">Baseline</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[
+                      {
+                        id: 1,
+                        date: "2024-03-15",
+                        conditions: "trening",
+                        hrv: 68,
+                        scan: 8.2,
+                        control: 5,
+                        focus: 72,
+                        completed: 7
+                      },
+                      {
+                        id: 2,
+                        date: "2024-03-08",
+                        conditions: "baseline",
+                        hrv: 65,
+                        scan: 8.5,
+                        control: 6,
+                        focus: 68,
+                        completed: 7
+                      },
+                      {
+                        id: 3,
+                        date: "2024-03-01",
+                        conditions: "trening",
+                        hrv: 62,
+                        scan: 9.1,
+                        control: 7,
+                        focus: 65,
+                        completed: 6
+                      },
+                      {
+                        id: 4,
+                        date: "2024-02-23",
+                        conditions: "mecz",
+                        hrv: 60,
+                        scan: 9.8,
+                        control: 8,
+                        focus: 62,
+                        completed: 7
+                      }
+                    ].filter(session => 
+                      conditionsFilter === 'wszystkie' || session.conditions === conditionsFilter
+                    ).map((session) => (
+                      <Card key={session.id} className="border-slate-200 hover:border-primary/50 transition-colors cursor-pointer">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <p className="font-semibold text-slate-900">
+                                {new Date(session.date).toLocaleDateString('pl-PL', { 
+                                  weekday: 'long', 
+                                  year: 'numeric', 
+                                  month: 'long', 
+                                  day: 'numeric' 
+                                })}
+                              </p>
+                              <Badge variant="outline" className="mt-1">
+                                {session.conditions}
+                              </Badge>
+                            </div>
+                            <Badge variant="secondary">
+                              {session.completed}/7 testów
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                              <span className="text-xs text-slate-600 block mb-1">HRV Baseline</span>
+                              <span className="font-semibold text-lg">{session.hrv}</span>
+                            </div>
+                            <div>
+                              <span className="text-xs text-slate-600 block mb-1">Sigma Scan</span>
+                              <span className="font-semibold text-lg">{session.scan}s</span>
+                            </div>
+                            <div>
+                              <span className="text-xs text-slate-600 block mb-1">Sigma Control</span>
+                              <span className="font-semibold text-lg">{session.control}</span>
+                            </div>
+                            <div>
+                              <span className="text-xs text-slate-600 block mb-1">Sigma Focus</span>
+                              <span className="font-semibold text-lg">{session.focus}%</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Postępy */}
+            <TabsContent value="postepy" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Progres HRV Baseline</CardTitle>
+                  <p className="text-sm text-muted-foreground">Wyższe wartości = lepsza regeneracja</p>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={[
+                      { date: '23.02', value: 60 },
+                      { date: '01.03', value: 62 },
+                      { date: '08.03', value: 65 },
+                      { date: '15.03', value: 68 }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis domain={[50, 80]} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      <strong>Trend wzrostowy (+13%)</strong> - Świetna regeneracja! Zawodniczka systematycznie poprawia parametry HRV.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Progres Sigma Scan</CardTitle>
+                  <p className="text-sm text-muted-foreground">Niższe wartości = szybsza reakcja</p>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={[
+                      { date: '23.02', value: 9.8 },
+                      { date: '01.03', value: 9.1 },
+                      { date: '08.03', value: 8.5 },
+                      { date: '15.03', value: 8.2 }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis domain={[7, 11]} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      <strong>Postęp -16%</strong> - Znacząca poprawa czasu reakcji wizualnej!
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Progres Sigma Control</CardTitle>
+                  <p className="text-sm text-muted-foreground">Niższe wartości = lepsza kontrola</p>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={[
+                      { date: '23.02', value: 8 },
+                      { date: '01.03', value: 7 },
+                      { date: '08.03', value: 6 },
+                      { date: '15.03', value: 5 }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis domain={[0, 12]} />
+                      <Tooltip />
+                      <Bar dataKey="value" fill="hsl(var(--primary))" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      <strong>Poprawa -37.5%</strong> - Wyraźny postęp w kontroli emocji i koncentracji!
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Progres Sigma Focus</CardTitle>
+                  <p className="text-sm text-muted-foreground">Wyższe wartości = lepsza koncentracja</p>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={[
+                      { date: '23.02', value: 62 },
+                      { date: '01.03', value: 65 },
+                      { date: '08.03', value: 68 },
+                      { date: '15.03', value: 72 }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis domain={[50, 80]} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      <strong>Wzrost +16%</strong> - Znacząca poprawa zdolności koncentracji!
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Porównanie */}
+            <TabsContent value="porownanie" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Porównanie pierwszego i ostatniego pomiaru</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-4">Pierwszy pomiar (23.02.2024)</h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between p-3 bg-slate-50 rounded">
+                          <span>HRV Baseline</span>
+                          <span className="font-semibold">60</span>
+                        </div>
+                        <div className="flex justify-between p-3 bg-slate-50 rounded">
+                          <span>Sigma Scan</span>
+                          <span className="font-semibold">9.8s</span>
+                        </div>
+                        <div className="flex justify-between p-3 bg-slate-50 rounded">
+                          <span>Sigma Control</span>
+                          <span className="font-semibold">8</span>
+                        </div>
+                        <div className="flex justify-between p-3 bg-slate-50 rounded">
+                          <span>Sigma Focus</span>
+                          <span className="font-semibold">62%</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-4">Ostatni pomiar (15.03.2024)</h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between p-3 bg-green-50 rounded">
+                          <span>HRV Baseline</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">68</span>
+                            <span className="text-xs text-green-600">+13%</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between p-3 bg-green-50 rounded">
+                          <span>Sigma Scan</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">8.2s</span>
+                            <span className="text-xs text-green-600">-16%</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between p-3 bg-green-50 rounded">
+                          <span>Sigma Control</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">5</span>
+                            <span className="text-xs text-green-600">-37.5%</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between p-3 bg-green-50 rounded">
+                          <span>Sigma Focus</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">72%</span>
+                            <span className="text-xs text-green-600">+16%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Profil psychofizyczny</CardTitle>
+                  <p className="text-sm text-muted-foreground">Porównanie aktualnych wyników</p>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <RadarChart data={[
+                      { category: 'HRV', value: 85, fullMark: 100 },
+                      { category: 'Reakcja', value: 82, fullMark: 100 },
+                      { category: 'Kontrola', value: 75, fullMark: 100 },
+                      { category: 'Koncentracja', value: 78, fullMark: 100 },
+                      { category: 'Mobilność', value: 70, fullMark: 100 }
+                    ]}>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="category" />
+                      <PolarRadiusAxis domain={[0, 100]} />
+                      <Radar name="Aktualne wyniki" dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Mocne strony:</strong> HRV i czas reakcji - utrzymuj obecny poziom treningów.<br/>
+                      <strong>Do rozwoju:</strong> Mobilność - rozważ zwiększenie treningów ruchowych.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
 
