@@ -11,7 +11,7 @@ const Training = () => {
   const challenges = [
     {
       id: "scan",
-      title: "Wyzwanie Sigma Scan",
+      title: "Sigma Scan",
       description: "Trening szybkości percepcji i reakcji wzrokowo-ruchowej",
       icon: Zap,
       color: "bg-blue-500",
@@ -19,7 +19,7 @@ const Training = () => {
     },
     {
       id: "control",
-      title: "Wyzwanie Sigma Control",
+      title: "Sigma Control",
       description: "Trening kontroli impulsów i podejmowania decyzji pod presją",
       icon: Target,
       color: "bg-orange-500",
@@ -27,7 +27,7 @@ const Training = () => {
     },
     {
       id: "focus",
-      title: "Wyzwanie Sigma Focus",
+      title: "Sigma Focus",
       description: "Trening koncentracji i odporności na dystrakcje",
       icon: Brain,
       color: "bg-purple-500",
@@ -35,7 +35,7 @@ const Training = () => {
     },
     {
       id: "tracker",
-      title: "Wyzwanie Sigma Tracker",
+      title: "Sigma Tracker",
       description: "Trening śledzenia wielu obiektów i pamięci roboczej",
       icon: Eye,
       color: "bg-emerald-500",
@@ -94,16 +94,14 @@ const Training = () => {
                 <Card key={challenge.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-3 rounded-lg ${challenge.color}`}>
-                          <Icon className="h-6 w-6 text-white" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-xl">{challenge.title}</CardTitle>
-                          <CardDescription className="mt-1">
-                            {challenge.description}
-                          </CardDescription>
-                        </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-xl">{challenge.title}</CardTitle>
+                        <CardDescription className="mt-1">
+                          {challenge.description}
+                        </CardDescription>
+                      </div>
+                      <div className={`p-2 rounded-lg ${challenge.color} flex-shrink-0`}>
+                        <Icon className="h-5 w-5 text-white" />
                       </div>
                     </div>
                   </CardHeader>
