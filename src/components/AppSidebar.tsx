@@ -45,9 +45,9 @@ export function AppSidebar() {
                     asChild 
                     className="h-11 px-3 hover:bg-sidebar-primary-foreground/15 data-[active=true]:bg-sidebar-primary-foreground/20 transition-colors duration-200"
                   >
-                    <NavLink to={item.url} end className="flex items-center gap-3 text-sidebar-primary-foreground">
+                    <NavLink to={item.url} end className="flex items-center gap-3 text-sidebar-primary-foreground overflow-hidden">
                       <item.icon className="h-5 w-5 shrink-0" />
-                      <span className="font-medium whitespace-nowrap group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 transition-all duration-200">{item.title}</span>
+                      <span className="font-medium whitespace-nowrap group-data-[collapsible=icon]:opacity-0 transition-all duration-200">{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -65,9 +65,9 @@ export function AppSidebar() {
               asChild 
               className="h-11 px-3 hover:bg-sidebar-primary-foreground/15 transition-colors duration-200"
             >
-              <NavLink to="/ustawienia" className="flex items-center gap-3 text-sidebar-primary-foreground">
+              <NavLink to="/ustawienia" className="flex items-center gap-3 text-sidebar-primary-foreground overflow-hidden">
                 <Settings className="h-5 w-5 shrink-0" />
-                <span className="font-medium whitespace-nowrap group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 transition-all duration-200">Ustawienia</span>
+                <span className="font-medium whitespace-nowrap group-data-[collapsible=icon]:opacity-0 transition-all duration-200">Ustawienia</span>
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
