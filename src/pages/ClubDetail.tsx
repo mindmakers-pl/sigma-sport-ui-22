@@ -283,6 +283,7 @@ const ClubDetail = () => {
           <TabsTrigger value="zawodnicy">Lista zawodników</TabsTrigger>
           <TabsTrigger value="sigma-teams">Sigma Teams</TabsTrigger>
           <TabsTrigger value="raporty">Raporty</TabsTrigger>
+          <TabsTrigger value="informacje">Informacje o klubie</TabsTrigger>
         </TabsList>
 
         {/* ZAKŁADKA 1: Lista zawodników (Centrum dowodzenia) */}
@@ -1413,6 +1414,159 @@ const ClubDetail = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ZAKŁADKA 4: Informacje o klubie */}
+        <TabsContent value="informacje" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Podstawowe informacje</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-1">Nazwa klubu</span>
+                  <span className="font-semibold text-lg">{club.name}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-1">Miasto</span>
+                  <span className="font-semibold">{club.city}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-1">Dyscypliny</span>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {club.disciplines && club.disciplines.length > 0 ? (
+                      club.disciplines.map((discipline: string, index: number) => (
+                        <Badge key={index} variant="secondary">{discipline}</Badge>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground">Nie podano</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Dane kontaktowe</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-1">Osoba kontaktowa</span>
+                  <span className="font-semibold">{club.contactPerson || "Nie podano"}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-1">Email</span>
+                  <span className="font-semibold">{club.email || "Nie podano"}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-1">Telefon</span>
+                  <span className="font-semibold">{club.phone || "Nie podano"}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Trenerzy</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {club.coaches && club.coaches.length > 0 ? (
+                <div className="space-y-3">
+                  {club.coaches.map((coach: any, index: number) => (
+                    <div key={index} className="p-4 bg-muted/30 rounded-lg">
+                      <div className="space-y-1">
+                        <p className="font-semibold">{coach.name}</p>
+                        <p className="text-sm text-muted-foreground">{coach.email}</p>
+                        <p className="text-sm text-muted-foreground">{coach.phone}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Brak przypisanych trenerów</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Zakupione programy</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {club.purchasedPrograms?.sigmaTeamsGo && (
+                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                    <div>
+                      <p className="font-semibold text-green-900 dark:text-green-100">Sigma Teams Go!</p>
+                      {club.purchasedPrograms.sigmaTeamsGoDate && (
+                        <p className="text-sm text-green-700 dark:text-green-300">
+                          Data zakupu: {format(new Date(club.purchasedPrograms.sigmaTeamsGoDate), "dd.MM.yyyy", { locale: pl })}
+                        </p>
+                      )}
+                    </div>
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  </div>
+                )}
+                
+                {club.purchasedPrograms?.sigmaTeamsSprints && club.purchasedPrograms.sigmaTeamsSprints.length > 0 && (
+                  <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-semibold text-blue-900 dark:text-blue-100">Sigma Teams Sprints</p>
+                      <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                    </div>
+                    {club.purchasedPrograms.sigmaTeamsSprintsDate && (
+                      <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+                        Data zakupu: {format(new Date(club.purchasedPrograms.sigmaTeamsSprintsDate), "dd.MM.yyyy", { locale: pl })}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {club.purchasedPrograms.sigmaTeamsSprints.map((module: string, index: number) => (
+                        <Badge key={index} variant="outline" className="bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700">
+                          {module}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {club.purchasedPrograms?.sigmaTeamsPro && (
+                  <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
+                    <div>
+                      <p className="font-semibold text-purple-900 dark:text-purple-100">Sigma Teams Pro</p>
+                      {club.purchasedPrograms.sigmaTeamsProDate && (
+                        <p className="text-sm text-purple-700 dark:text-purple-300">
+                          Data zakupu: {format(new Date(club.purchasedPrograms.sigmaTeamsProDate), "dd.MM.yyyy", { locale: pl })}
+                        </p>
+                      )}
+                    </div>
+                    <CheckCircle2 className="h-5 w-5 text-purple-600" />
+                  </div>
+                )}
+
+                {!club.purchasedPrograms?.sigmaTeamsGo && 
+                 !club.purchasedPrograms?.sigmaTeamsSprints?.length && 
+                 !club.purchasedPrograms?.sigmaTeamsPro && (
+                  <p className="text-muted-foreground">Brak zakupionych programów</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {club.notes && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Notatki</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground whitespace-pre-wrap">{club.notes}</p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>
