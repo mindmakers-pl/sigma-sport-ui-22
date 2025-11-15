@@ -27,12 +27,12 @@ export function AppSidebar() {
   return (
     <Sidebar 
       collapsible={isMobile ? "offcanvas" : "icon"}
-      className="bg-accent z-50 group-data-[collapsible=icon]:hover:w-72"
+      className="bg-sidebar-primary z-50 group-data-[collapsible=icon]:hover:w-72"
     >
       <SidebarContent>
         <SidebarGroup>
           <div className="px-6 pt-4 pb-2 group-data-[collapsible=icon]:hidden">
-            <h2 className="font-bold text-white text-xl transition-opacity">
+            <h2 className="font-bold text-sidebar-primary-foreground text-xl transition-opacity">
               Sigma Sport
             </h2>
           </div>
@@ -41,7 +41,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="text-white/80 hover:bg-white/10 hover:text-white data-[active=true]:bg-white/20 data-[active=true]:text-white">
+                  <SidebarMenuButton asChild className="text-sidebar-primary-foreground/80 hover:bg-sidebar-primary-foreground/10 hover:text-sidebar-primary-foreground data-[active=true]:bg-sidebar-primary-foreground/20 data-[active=true]:text-sidebar-primary-foreground">
                     <NavLink to={item.url} end>
                       <item.icon className="h-6 w-6" />
                       <span>{item.title}</span>
@@ -57,7 +57,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="text-white/80 hover:bg-white/10 hover:text-white">
+            <SidebarMenuButton asChild className="text-sidebar-primary-foreground/80 hover:bg-sidebar-primary-foreground/10 hover:text-sidebar-primary-foreground">
               <NavLink to="/ustawienia">
                 <Settings className="h-6 w-6" />
                 <span>Ustawienia</span>
