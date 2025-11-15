@@ -36,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import BackButton from "@/components/BackButton";
 
 const Athletes = () => {
   const navigate = useNavigate();
@@ -268,6 +269,7 @@ const Athletes = () => {
 
   return (
     <div>
+      <BackButton />
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-4xl font-bold mb-2">Zawodnicy</h1>

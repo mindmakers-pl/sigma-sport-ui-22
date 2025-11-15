@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Activity, TrendingUp, Calendar, Award, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import BackButton from "@/components/BackButton";
 
 const AthletePanel = () => {
   const navigate = useNavigate();
@@ -62,6 +63,7 @@ const AthletePanel = () => {
 
   return (
     <div>
+      <BackButton />
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-foreground mb-2">Panel Zawodnika</h1>
         <p className="text-muted-foreground">

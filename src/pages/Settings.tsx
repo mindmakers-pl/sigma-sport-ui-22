@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import BackButton from "@/components/BackButton";
 
 const Settings = () => {
   const [profile, setProfile] = useState({
@@ -45,6 +46,7 @@ const Settings = () => {
 
   return (
     <div className="max-w-3xl">
+      <BackButton />
       <h1 className="text-4xl font-bold mb-2">Ustawienia</h1>
       <p className="text-muted-foreground mb-8">Zarządzaj swoim kontem i preferencjami</p>
 

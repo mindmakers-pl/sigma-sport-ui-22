@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Brain, Zap, Target, FileText, ClipboardList, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import BackButton from "@/components/BackButton";
 
 const Library = () => {
   const navigate = useNavigate();
@@ -214,6 +215,7 @@ const Library = () => {
 
   return (
     <div className="space-y-6">
+      <BackButton />
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Biblioteka</h1>
         <p className="text-slate-600 mt-2">Zasoby treningowe i narzędzia diagnostyczne</p>

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import DisciplineSelectorMultiple from "@/components/DisciplineSelectorMultiple";
+import BackButton from "@/components/BackButton";
 
 const Clubs = () => {
   const navigate = useNavigate();
@@ -60,6 +61,7 @@ const Clubs = () => {
 
   return (
     <div>
+      <BackButton />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-4xl font-bold mb-2">Kluby</h1>
