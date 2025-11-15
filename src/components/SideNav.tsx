@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Users, Building2, BookOpen, Settings, LayoutDashboard, Menu, Activity } from "lucide-react";
+import { Users, Building2, BookOpen, Settings, LayoutDashboard, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -32,8 +32,8 @@ const SideNav = ({ isExpanded, onToggle }: SideNavProps) => {
         showLabels ? "w-64" : "w-16"
       )}
     >
-      {/* Mobile/Tablet hamburger & logo */}
-      <div className="h-16 flex items-center justify-between px-3 border-b border-slate-800 lg:hidden">
+      {/* Mobile/Tablet hamburger */}
+      <div className="h-16 flex items-center px-3 border-b border-slate-800 lg:hidden">
         <Button
           variant="ghost"
           size="icon"
@@ -42,25 +42,10 @@ const SideNav = ({ isExpanded, onToggle }: SideNavProps) => {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        {showLabels && (
-          <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
-            <span className="text-lg font-bold text-white">Sigma Sport</span>
-          </div>
-        )}
       </div>
 
-      {/* Desktop logo */}
-      <div className="hidden lg:flex h-16 items-center px-3 border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <Activity className="h-6 w-6 text-primary flex-shrink-0" />
-          {showLabels && (
-            <span className="text-xl font-bold text-white whitespace-nowrap">
-              Sigma Sport
-            </span>
-          )}
-        </div>
-      </div>
+      {/* Desktop spacer */}
+      <div className="hidden lg:block h-16 border-b border-slate-800" />
 
       <nav className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
         {navItems.map((item) => {

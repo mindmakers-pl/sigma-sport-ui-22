@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayoutNew from "./components/AppLayoutNew";
 import Dashboard from "./pages/Dashboard";
+import AthletePanel from "./pages/AthletePanel";
+import AdminPanel from "./pages/AdminPanel";
 import Athletes from "./pages/Athletes";
 import AthleteProfile from "./pages/AthleteProfile";
 import Clubs from "./pages/Clubs";
@@ -32,6 +34,8 @@ const App = () => (
         <Routes>
           <Route path="/landing" element={<Index />} />
           <Route path="/" element={<AppLayoutNew><Dashboard /></AppLayoutNew>} />
+          <Route path="/panel-zawodnika" element={<AppLayoutNew><AthletePanel /></AppLayoutNew>} />
+          <Route path="/panel-admin" element={<AppLayoutNew><AdminPanel /></AppLayoutNew>} />
           <Route path="/zawodnicy" element={<AppLayoutNew><Athletes /></AppLayoutNew>} />
           <Route path="/zawodnicy/:id" element={<AppLayoutNew><AthleteProfile /></AppLayoutNew>} />
           <Route path="/kluby" element={<AppLayoutNew><Clubs /></AppLayoutNew>} />
