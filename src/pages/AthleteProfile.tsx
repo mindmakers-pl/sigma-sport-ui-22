@@ -835,22 +835,19 @@ const AthleteProfile = () => {
                   onValueChange={(value) => setEditedProfile({ ...editedProfile, coach: value })}
                 >
                   <SelectTrigger id="coach">
-                    <SelectValue placeholder="Wybierz trenera" />
+                    <SelectValue placeholder={getClubCoaches().length > 0 ? "Wybierz trenera" : "Brak trenerów w klubie"} />
                   </SelectTrigger>
                   <SelectContent className="bg-white z-50">
-                    {getClubCoaches().length > 0 ? (
-                      getClubCoaches().map((coach: any, index: number) => (
-                        <SelectItem key={index} value={coach.name}>
-                          {coach.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="" disabled>
-                        Brak trenerów w klubie
+                    {getClubCoaches().map((coach: any, index: number) => (
+                      <SelectItem key={index} value={coach.name}>
+                        {coach.name}
                       </SelectItem>
-                    )}
+                    ))}
                   </SelectContent>
                 </Select>
+                {getClubCoaches().length === 0 && (
+                  <p className="text-xs text-muted-foreground">Dodaj trenerów w ustawieniach klubu</p>
+                )}
               </div>
 
               <div className="space-y-2">
