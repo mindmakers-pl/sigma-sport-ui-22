@@ -27,15 +27,15 @@ export function AppSidebar() {
   return (
     <Sidebar 
       collapsible={isMobile ? "offcanvas" : "icon"}
-      className="bg-primary z-50 group-data-[collapsible=icon]:hover:w-72"
+      className="bg-accent z-50 group-data-[collapsible=icon]:hover:w-72"
     >
       <SidebarContent>
         <SidebarGroup>
           <div className="px-6 py-6">
-            <h2 className="font-bold text-white text-xl group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/sidebar:opacity-100 transition-opacity">
+            <h2 className="font-bold text-accent-foreground text-xl group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/sidebar:opacity-100 transition-opacity">
               Sigma Sport
             </h2>
-            <p className="text-sm text-slate-400 mt-1 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/sidebar:opacity-100 transition-opacity">
+            <p className="text-sm text-accent-foreground/60 mt-1 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/sidebar:opacity-100 transition-opacity">
               Panel trenera
             </p>
           </div>
@@ -43,7 +43,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground data-[active=true]:bg-primary-foreground/20 data-[active=true]:text-primary-foreground">
+                  <SidebarMenuButton asChild className="text-accent-foreground/80 hover:bg-accent-foreground/10 hover:text-accent-foreground data-[active=true]:bg-accent-foreground/20 data-[active=true]:text-accent-foreground">
                     <NavLink to={item.url} end>
                       <item.icon className="h-6 w-6" />
                       <span>{item.title}</span>
@@ -59,7 +59,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground">
+            <SidebarMenuButton asChild className="text-accent-foreground/80 hover:bg-accent-foreground/10 hover:text-accent-foreground">
               <NavLink to="/ustawienia">
                 <Settings className="h-6 w-6" />
                 <span>Ustawienia</span>
