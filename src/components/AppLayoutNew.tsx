@@ -9,10 +9,13 @@ interface AppLayoutNewProps {
 
 const AppLayoutNew = ({ children }: AppLayoutNewProps) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
 
   const toggleSidebar = () => {
     setIsSidebarExpanded(!isSidebarExpanded);
   };
+
+  const effectiveExpanded = isSidebarExpanded || isSidebarHovered;
 
   return (
     <div className="min-h-screen bg-background">
@@ -24,12 +27,13 @@ const AppLayoutNew = ({ children }: AppLayoutNewProps) => {
       <SideNav 
         isExpanded={isSidebarExpanded}
         onToggle={toggleSidebar}
+        onHoverChange={setIsSidebarHovered}
       />
       
       <main 
         className={cn(
-          "pt-16 transition-all duration-300 w-full",
-          isSidebarExpanded ? "ml-64" : "ml-16"
+          "pt-16 transition-all duration-300",
+          effectiveExpanded ? "ml-64" : "ml-16"
         )}
       >
         <div className="p-6 max-w-full overflow-x-hidden">
