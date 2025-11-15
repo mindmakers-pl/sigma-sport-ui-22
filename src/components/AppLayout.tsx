@@ -14,7 +14,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <main className="flex-1 bg-slate-50">
-          <header className="sticky top-0 z-40 bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-4">
+          <header className="sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-4">
             <SidebarTrigger className="text-slate-700 lg:hidden" />
             <h1 className="text-lg font-semibold text-slate-900">Panel Trenera</h1>
           </header>
