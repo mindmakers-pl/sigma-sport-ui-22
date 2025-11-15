@@ -43,9 +43,9 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
-                    className="h-11 px-3 text-sidebar-primary-foreground hover:bg-sidebar-primary-foreground/15 data-[active=true]:bg-sidebar-primary-foreground/20 transition-colors duration-200"
+                    className="h-11 px-3 hover:bg-sidebar-primary-foreground/15 data-[active=true]:bg-sidebar-primary-foreground/20 transition-colors duration-200"
                   >
-                    <NavLink to={item.url} end className="flex items-center gap-3">
+                    <NavLink to={item.url} end className="flex items-center gap-3 text-sidebar-primary-foreground">
                       <item.icon className="h-5 w-5 shrink-0" />
                       <span className="font-medium whitespace-nowrap overflow-hidden">{item.title}</span>
                     </NavLink>
@@ -63,9 +63,9 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton 
               asChild 
-              className="h-11 px-3 text-sidebar-primary-foreground hover:bg-sidebar-primary-foreground/15 transition-colors duration-200"
+              className="h-11 px-3 hover:bg-sidebar-primary-foreground/15 transition-colors duration-200"
             >
-              <NavLink to="/ustawienia" className="flex items-center gap-3">
+              <NavLink to="/ustawienia" className="flex items-center gap-3 text-sidebar-primary-foreground">
                 <Settings className="h-5 w-5 shrink-0" />
                 <span className="font-medium whitespace-nowrap overflow-hidden">Ustawienia</span>
               </NavLink>
