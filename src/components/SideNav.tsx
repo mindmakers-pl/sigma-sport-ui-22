@@ -17,7 +17,16 @@ const SideNav = ({ isExpanded, onToggle }: SideNavProps) => {
   useEffect(() => {
     const role = localStorage.getItem("userRole") || "trainer";
     setUserRole(role);
-  }, []);
+    
+    // Nasłuchuj zmian roli
+    const handleStorageChange = () => {
+      const newRole = localStorage.getItem("userRole") || "trainer";
+      setUserRole(newRole);
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [location.pathname]);
 
   const allNavItems = [
     { path: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["trainer", "admin"] },

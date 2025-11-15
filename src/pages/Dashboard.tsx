@@ -10,6 +10,12 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [searchAthlete, setSearchAthlete] = useState("");
   
+  // Ustaw rolę na trenera gdy wchodzimy do dashboardu
+  useState(() => {
+    localStorage.setItem("userRole", "trainer");
+    window.dispatchEvent(new Event('storage'));
+  });
+  
   // Pobierz dane z localStorage
   const clubs = (() => {
     const stored = localStorage.getItem('clubs');

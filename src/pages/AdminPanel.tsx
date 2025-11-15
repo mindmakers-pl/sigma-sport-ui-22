@@ -18,6 +18,10 @@ const AdminPanel = () => {
   const [newTrainer, setNewTrainer] = useState({ email: "", name: "", phone: "" });
 
   useEffect(() => {
+    // Ustaw rolę na admina gdy wchodzimy do panelu
+    localStorage.setItem("userRole", "admin");
+    window.dispatchEvent(new Event('storage'));
+    
     // Załaduj trenerów
     const storedTrainers = localStorage.getItem('trainers');
     if (storedTrainers) {
