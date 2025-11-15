@@ -11,6 +11,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const navigationItems = [
   { title: "Kokpit", url: "/", icon: LayoutDashboard },
@@ -20,33 +21,32 @@ const navigationItems = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
-  const isCollapsed = state === "collapsed";
+  const { open } = useSidebar();
+  const isMobile = useIsMobile();
 
   return (
-    <Sidebar className="bg-slate-900 border-r border-slate-800">
+    <Sidebar 
+      collapsible={isMobile ? "offcanvas" : "icon"}
+      className="bg-slate-900 border-r border-slate-800 group-data-[collapsible=icon]:hover:w-60"
+    >
       <SidebarContent>
         <SidebarGroup>
           <div className="px-6 py-6">
-            <h2 className={`font-bold text-white transition-all ${isCollapsed ? "text-lg" : "text-xl"}`}>
-              {isCollapsed ? "SS" : "Sigma Sport"}
+            <h2 className="font-bold text-white text-xl group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/sidebar:opacity-100 transition-opacity">
+              Sigma Sport
             </h2>
-            {!isCollapsed && (
-              <p className="text-sm text-slate-400 mt-1">Panel trenera</p>
-            )}
+            <p className="text-sm text-slate-400 mt-1 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/sidebar:opacity-100 transition-opacity">
+              Panel trenera
+            </p>
           </div>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="text-slate-900 hover:bg-slate-800 hover:text-white data-[active=true]:bg-primary data-[active=true]:text-white">
+                  <SidebarMenuButton asChild className="text-slate-300 hover:bg-slate-800 hover:text-white data-[active=true]:bg-primary data-[active=true]:text-white">
                     <NavLink to={item.url} end>
-                      {({ isActive }) => (
-                        <>
-                          <item.icon className="h-5 w-5" />
-                          {!isCollapsed && <span>{item.title}</span>}
-                        </>
-                      )}
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -59,10 +59,10 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="text-slate-900 hover:bg-slate-800 hover:text-white">
+            <SidebarMenuButton asChild className="text-slate-300 hover:bg-slate-800 hover:text-white">
               <NavLink to="/ustawienia">
                 <Settings className="h-5 w-5" />
-                {!isCollapsed && <span>Ustawienia</span>}
+                <span>Ustawienia</span>
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
