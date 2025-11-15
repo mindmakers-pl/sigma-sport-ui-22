@@ -31,19 +31,17 @@ export function AppSidebar() {
     >
       <SidebarContent>
         <SidebarGroup>
-          <div className="px-6 py-6">
-            <h2 className="font-bold text-accent-foreground text-xl group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/sidebar:opacity-100 transition-opacity">
+          <div className="px-6 pt-4 pb-2 group-data-[collapsible=icon]:hidden">
+            <h2 className="font-bold text-white text-xl transition-opacity">
               Sigma Sport
             </h2>
-            <p className="text-sm text-accent-foreground/60 mt-1 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/sidebar:opacity-100 transition-opacity">
-              Panel trenera
-            </p>
           </div>
+          <div className="h-4 group-data-[collapsible=icon]:block hidden"></div>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="text-accent-foreground/80 hover:bg-accent-foreground/10 hover:text-accent-foreground data-[active=true]:bg-accent-foreground/20 data-[active=true]:text-accent-foreground">
+                  <SidebarMenuButton asChild className="text-white/80 hover:bg-white/10 hover:text-white data-[active=true]:bg-white/20 data-[active=true]:text-white">
                     <NavLink to={item.url} end>
                       <item.icon className="h-6 w-6" />
                       <span>{item.title}</span>
@@ -59,7 +57,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="text-accent-foreground/80 hover:bg-accent-foreground/10 hover:text-accent-foreground">
+            <SidebarMenuButton asChild className="text-white/80 hover:bg-white/10 hover:text-white">
               <NavLink to="/ustawienia">
                 <Settings className="h-6 w-6" />
                 <span>Ustawienia</span>
