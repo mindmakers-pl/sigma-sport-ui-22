@@ -9,9 +9,10 @@ import { useControlGame } from "@/hooks/useControlGame";
 interface ControlGameProps {
   onComplete?: (data: any) => void;
   onGoToCockpit?: () => void;
+  mode?: "training" | "measurement";
 }
 
-const ControlGame = ({ onComplete, onGoToCockpit }: ControlGameProps) => {
+const ControlGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ControlGameProps) => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
   

@@ -45,7 +45,8 @@ const SideNav = ({ isExpanded, onToggle, onHoverChange }: SideNavProps) => {
     { path: "/panel-admin", label: "Admin", icon: Shield, roles: ["admin"] },
     { path: "/zawodnicy", label: "Zawodnicy", icon: Users, roles: ["trainer", "admin"] },
     { path: "/kluby", label: "Kluby", icon: Building2, roles: ["trainer", "admin"] },
-    { path: "/biblioteka", label: "Biblioteka", icon: BookOpen, roles: ["trainer", "athlete", "admin"] },
+    { path: "/biblioteka", label: "Biblioteka", icon: BookOpen, roles: ["trainer", "admin"] },
+    { path: "/trening", label: "Trening", icon: BookOpen, roles: ["athlete"] },
     { path: "/ustawienia", label: "Ustawienia", icon: Settings, roles: ["trainer", "athlete", "admin"] },
   ];
 

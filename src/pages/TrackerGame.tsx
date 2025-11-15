@@ -9,9 +9,10 @@ import { useTrackerGame } from "@/hooks/useTrackerGame";
 interface TrackerGameProps {
   onComplete?: (data: any) => void;
   onGoToCockpit?: () => void;
+  mode?: "training" | "measurement";
 }
 
-const TrackerGame = ({ onComplete, onGoToCockpit }: TrackerGameProps) => {
+const TrackerGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: TrackerGameProps) => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
   
