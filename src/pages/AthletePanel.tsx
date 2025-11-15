@@ -11,6 +11,9 @@ const AthletePanel = () => {
   const [sessions, setSessions] = useState<any[]>([]);
 
   useEffect(() => {
+    // Ustaw rolę na zawodnika gdy wchodzimy do panelu
+    localStorage.setItem("userRole", "athlete");
+    
     // W przyszłości pobierzemy z localStorage dane zalogowanego zawodnika
     // Na razie mockujemy podstawowe dane
     const mockAthlete = {
@@ -26,6 +29,9 @@ const AthletePanel = () => {
     if (allSessions) {
       setSessions(JSON.parse(allSessions));
     }
+    
+    // Wymuś odświeżenie nawigacji
+    window.dispatchEvent(new Event('storage'));
   }, []);
 
   const stats = [
