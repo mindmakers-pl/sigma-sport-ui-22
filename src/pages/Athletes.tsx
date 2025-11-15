@@ -393,13 +393,13 @@ const Athletes = () => {
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {newAthlete.birthDate ? (
-                          format(newAthlete.birthDate, "PPP", { locale: pl })
+                          format(newAthlete.birthDate, "dd MMM yyyy", { locale: pl })
                         ) : (
                           <span>Wybierz datę</span>
                         )}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-white" align="start">
+                    <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
                         selected={newAthlete.birthDate}
@@ -408,9 +408,6 @@ const Athletes = () => {
                           date > new Date() || date < new Date("1950-01-01")
                         }
                         initialFocus
-                        captionLayout="dropdown-buttons"
-                        fromYear={1950}
-                        toYear={new Date().getFullYear()}
                         className="pointer-events-auto"
                       />
                     </PopoverContent>
