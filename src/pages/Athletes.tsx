@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Plus, Search, FileText, X } from "lucide-react";
+import { Plus, Search, FileText } from "lucide-react";
+import DisciplineSelector from "@/components/DisciplineSelector";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -58,15 +59,7 @@ const Athletes = () => {
     if (stored) {
       return JSON.parse(stored);
     }
-    const defaultAthletes = [
-      { id: 1, name: "Kowalski Jan", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2005, sessions: 12, email: "jan.kowalski@example.com", phone: "+48 123 456 789", notes: "" },
-      { id: 2, name: "Nowak Anna", club: "MKS Cracovia", discipline: "Koszykówka", birthYear: 2004, sessions: 8, email: "anna.nowak@example.com", phone: "+48 234 567 890", notes: "" },
-      { id: 3, name: "Wiśniewski Piotr", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2006, sessions: 15, email: "piotr.wisniewski@example.com", phone: "+48 345 678 901", notes: "" },
-      { id: 4, name: "Kowalczyk Maria", club: "Wisła Kraków", discipline: "Siatkówka", birthYear: 2005, sessions: 10, email: "maria.kowalczyk@example.com", phone: "+48 456 789 012", notes: "" },
-      { id: 5, name: "Zieliński Tomasz", club: "Legia Warszawa", discipline: "Piłka nożna", birthYear: 2003, sessions: 20, email: "tomasz.zielinski@example.com", phone: "+48 567 890 123", notes: "" },
-    ];
-    localStorage.setItem('athletes', JSON.stringify(defaultAthletes));
-    return defaultAthletes;
+    return [];
   });
 
   const [clubs, setClubs] = useState(() => {
@@ -193,21 +186,11 @@ const Athletes = () => {
               Dodaj zawodnika
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-screen h-screen max-w-none p-0 overflow-y-auto bg-slate-50">
-            <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-8 py-6 flex items-center justify-between">
-              <DialogTitle className="text-2xl font-bold text-slate-900">Stwórz nowy profil zawodnika</DialogTitle>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setIsAddDialogOpen(false)}
-                className="h-8 w-8"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <div className="max-w-3xl mx-auto p-8">
-              <div className="bg-white rounded-lg border border-slate-200 p-8 space-y-6">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Stwórz nowy profil zawodnika</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="firstName" className="text-slate-900 font-semibold">
@@ -282,16 +265,10 @@ const Athletes = () => {
                     </datalist>
                   </div>
                   
-                  <div>
-                    <Label htmlFor="discipline" className="text-slate-900 font-semibold">Dyscyplina</Label>
-                    <Input
-                      id="discipline"
-                      value={newAthlete.discipline}
-                      onChange={(e) => setNewAthlete({ ...newAthlete, discipline: e.target.value })}
-                      placeholder="np. Judo"
-                      className="mt-2"
-                    />
-                  </div>
+                  <DisciplineSelector
+                    value={newAthlete.discipline}
+                    onChange={(value) => setNewAthlete({ ...newAthlete, discipline: value })}
+                  />
                 </div>
 
                 <div>
@@ -353,14 +330,13 @@ const Athletes = () => {
                   </Button>
                   <Button 
                     onClick={handleAddAthlete} 
-                    className="flex-1"
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                     disabled={!isFormValid}
                   >
                     Zapisz zawodnika
                   </Button>
                 </div>
               </div>
-            </div>
           </DialogContent>
         </Dialog>
       </div>

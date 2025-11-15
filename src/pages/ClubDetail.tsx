@@ -12,7 +12,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, Plus, ArrowLeft, Search, Trophy, TrendingUp, TrendingDown, Calendar as CalendarIcon, Target, ClipboardList, Dumbbell, CheckCircle2, Clock, BookOpen } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import DisciplineSelector from "@/components/DisciplineSelector";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,6 +40,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -57,6 +60,18 @@ const ClubDetail = () => {
   const [activeWizardAthleteId, setActiveWizardAthleteId] = useState<string | null>(null);
   const [selectedM1, setSelectedM1] = useState("m1-oct");
   const [selectedM2, setSelectedM2] = useState("m2-nov");
+  const [isAddAthleteDialogOpen, setIsAddAthleteDialogOpen] = useState(false);
+  
+  const [newAthlete, setNewAthlete] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    club: "",
+    discipline: "",
+    birthDate: undefined as Date | undefined,
+    notes: "",
+  });
   
   // Nowe stany dla Sigma Teams
   const [selectedMeetingForOutline, setSelectedMeetingForOutline] = useState<{
@@ -90,6 +105,22 @@ const ClubDetail = () => {
   };
 
   const club = getClubData();
+  
+  // Refresh athletes when dialog opens
+  useEffect(() => {
+    if (isAddAthleteDialogOpen) {
+      setNewAthlete({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        club: club.name, // Pre-fill with current club
+        discipline: "",
+        birthDate: undefined,
+        notes: "",
+      });
+    }
+  }, [isAddAthleteDialogOpen, club.name]);
 
   // Pobierz zawodników klubu z localStorage
   const getClubAthletes = () => {
@@ -110,6 +141,40 @@ const ClubDetail = () => {
   };
 
   const athletes = getClubAthletes();
+  
+  // Funkcja do dodawania zawodnika
+  const handleAddAthlete = () => {
+    const storedAthletes = localStorage.getItem('athletes');
+    const existingAthletes = storedAthletes ? JSON.parse(storedAthletes) : [];
+    
+    const newId = existingAthletes.length > 0 ? Math.max(...existingAthletes.map((a: any) => a.id)) + 1 : 1;
+    const fullName = `${newAthlete.lastName} ${newAthlete.firstName}`;
+    const birthYear = newAthlete.birthDate ? newAthlete.birthDate.getFullYear() : new Date().getFullYear();
+    
+    const athleteToAdd = {
+      id: newId,
+      name: fullName,
+      club: newAthlete.club,
+      discipline: newAthlete.discipline,
+      birthYear: birthYear,
+      sessions: 0,
+      email: newAthlete.email,
+      phone: newAthlete.phone,
+      notes: newAthlete.notes,
+    };
+    
+    const updatedAthletes = [...existingAthletes, athleteToAdd];
+    localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
+    
+    setIsAddAthleteDialogOpen(false);
+    
+    // Reload the page to show new athlete
+    window.location.reload();
+  };
+  
+  const isFormValid = newAthlete.firstName.trim() !== "" && 
+                      newAthlete.lastName.trim() !== "" && 
+                      newAthlete.club !== "";
 
   // Funkcja pomocnicza do określenia status badge
   const getStatusBadge = (sprint: Sprint) => {
@@ -226,13 +291,160 @@ const ClubDetail = () => {
             <CardHeader>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <CardTitle>Zawodnicy klubu {club.name}</CardTitle>
-                <Button 
-                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-                  onClick={() => navigate('/zawodnicy')}
-                >
-                  <Plus className="h-4 w-4" />
-                  Dodaj zawodnika
-                </Button>
+                <Dialog open={isAddAthleteDialogOpen} onOpenChange={setIsAddAthleteDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                      <Plus className="h-4 w-4" />
+                      Dodaj zawodnika
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Stwórz nowy profil zawodnika</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6 pt-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <Label htmlFor="firstName">
+                            Imię <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id="firstName"
+                            value={newAthlete.firstName}
+                            onChange={(e) => setNewAthlete({ ...newAthlete, firstName: e.target.value })}
+                            placeholder="Jan"
+                            className="mt-2"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="lastName">
+                            Nazwisko <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id="lastName"
+                            value={newAthlete.lastName}
+                            onChange={(e) => setNewAthlete({ ...newAthlete, lastName: e.target.value })}
+                            placeholder="Kowalski"
+                            className="mt-2"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <Label htmlFor="email">E-mail</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={newAthlete.email}
+                            onChange={(e) => setNewAthlete({ ...newAthlete, email: e.target.value })}
+                            placeholder="jan.kowalski@example.com"
+                            className="mt-2"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="phone">Numer telefonu</Label>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            value={newAthlete.phone}
+                            onChange={(e) => setNewAthlete({ ...newAthlete, phone: e.target.value })}
+                            placeholder="+48 123 456 789"
+                            className="mt-2"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <Label htmlFor="club">
+                            Klub <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id="club"
+                            value={newAthlete.club}
+                            onChange={(e) => setNewAthlete({ ...newAthlete, club: e.target.value })}
+                            placeholder="Wpisz nazwę klubu"
+                            className="mt-2"
+                          />
+                        </div>
+                        
+                        <DisciplineSelector
+                          value={newAthlete.discipline}
+                          onChange={(value) => setNewAthlete({ ...newAthlete, discipline: value })}
+                        />
+                      </div>
+
+                      <div>
+                        <Label>Data urodzenia</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal mt-2 bg-white",
+                                !newAthlete.birthDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {newAthlete.birthDate ? (
+                                format(newAthlete.birthDate, "PPP", { locale: pl })
+                              ) : (
+                                <span>Wybierz datę</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 bg-white" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={newAthlete.birthDate}
+                              onSelect={(date) => setNewAthlete({ ...newAthlete, birthDate: date })}
+                              disabled={(date) =>
+                                date > new Date() || date < new Date("1950-01-01")
+                              }
+                              initialFocus
+                              captionLayout="dropdown-buttons"
+                              fromYear={1950}
+                              toYear={new Date().getFullYear()}
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="notes">Historia i notatki</Label>
+                        <Textarea
+                          id="notes"
+                          value={newAthlete.notes}
+                          onChange={(e) => setNewAthlete({ ...newAthlete, notes: e.target.value })}
+                          placeholder="Dodaj informacje o zawodniku, jego historię sportową, cele treningowe..."
+                          className="mt-2 min-h-[100px]"
+                          rows={4}
+                        />
+                      </div>
+
+                      <div className="flex gap-4 pt-4 border-t">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setIsAddAthleteDialogOpen(false)}
+                          className="flex-1"
+                        >
+                          Anuluj
+                        </Button>
+                        <Button 
+                          onClick={handleAddAthlete} 
+                          className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                          disabled={!isFormValid}
+                        >
+                          Zapisz zawodnika
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
               
               {/* Wyszukiwarka */}
