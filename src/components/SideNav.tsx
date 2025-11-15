@@ -40,9 +40,9 @@ const SideNav = ({ isExpanded, onToggle, onHoverChange }: SideNavProps) => {
   }, [location.pathname]);
 
   const allNavItems = [
-    { path: "/", label: "Kokpit", icon: LayoutDashboard, roles: ["trainer", "admin"] },
+    { path: "/", label: "Kokpit", icon: LayoutDashboard, roles: ["trainer"] },
     { path: "/panel-zawodnika", label: "Kokpit", icon: UserCircle, roles: ["athlete"] },
-    { path: "/panel-admin", label: "Kokpit", icon: Shield, roles: ["admin"] },
+    { path: "/panel-admin", label: "Admin", icon: Shield, roles: ["admin"] },
     { path: "/zawodnicy", label: "Zawodnicy", icon: Users, roles: ["trainer", "admin"] },
     { path: "/kluby", label: "Kluby", icon: Building2, roles: ["trainer", "admin"] },
     { path: "/biblioteka", label: "Biblioteka", icon: BookOpen, roles: ["trainer", "athlete", "admin"] },
