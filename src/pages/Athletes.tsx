@@ -78,16 +78,34 @@ const Athletes = () => {
     return ["KS Górnik", "MKS Cracovia", "Wisła Kraków", "Legia Warszawa"];
   });
   
-  const disciplines = ["Piłka nożna", "Koszykówka", "Siatkówka"];
+  // Pobierz unikalne dyscypliny z zawodników w localStorage
+  const getDisciplines = () => {
+    const storedAthletes = localStorage.getItem('athletes');
+    if (storedAthletes) {
+      const athletesData = JSON.parse(storedAthletes);
+      const uniqueDisciplines = Array.from(new Set(
+        athletesData
+          .map((athlete: any) => athlete.discipline)
+          .filter((discipline: string) => discipline && discipline.trim() !== "")
+      ));
+      return uniqueDisciplines as string[];
+    }
+    return ["Piłka nożna", "Koszykówka", "Siatkówka"];
+  };
 
-  // Synchronizuj listę klubów z localStorage
+  const [disciplines, setDisciplines] = useState<string[]>(getDisciplines());
+
+  // Synchronizuj listę klubów i dyscyplin z localStorage
   useEffect(() => {
     const storedClubs = localStorage.getItem('clubs');
     if (storedClubs) {
       const clubsData = JSON.parse(storedClubs);
       setClubs(clubsData.map((club: any) => club.name));
     }
-  }, []);
+    
+    // Aktualizuj dyscypliny przy zmianie athletes
+    setDisciplines(getDisciplines());
+  }, [athletes]);
 
   const filteredAthletes = athletes.filter(athlete => {
     const matchesSearch = athlete.name.toLowerCase().includes(searchTerm.toLowerCase());

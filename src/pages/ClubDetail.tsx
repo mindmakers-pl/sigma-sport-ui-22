@@ -91,13 +91,25 @@ const ClubDetail = () => {
 
   const club = getClubData();
 
-  // Zawodnicy klubu
-  const athletes = [
-    { id: 1, name: "Kowalski Jan", birthDate: "2005-03-15", lastSession: "2024-01-15" },
-    { id: 3, name: "Wiśniewski Piotr", birthDate: "2006-07-22", lastSession: "2024-01-14" },
-    { id: 6, name: "Lewandowski Adam", birthDate: "2005-11-08", lastSession: "2024-01-13" },
-    { id: 7, name: "Nowak Anna", birthDate: "2004-05-19", lastSession: "2024-01-16" },
-  ];
+  // Pobierz zawodników klubu z localStorage
+  const getClubAthletes = () => {
+    const storedAthletes = localStorage.getItem('athletes');
+    if (storedAthletes) {
+      const allAthletes = JSON.parse(storedAthletes);
+      // Filtruj zawodników przypisanych do tego klubu
+      return allAthletes
+        .filter((athlete: any) => athlete.club === club.name)
+        .map((athlete: any) => ({
+          id: athlete.id,
+          name: athlete.name,
+          birthDate: athlete.birthYear ? `${athlete.birthYear}-01-01` : "N/A",
+          lastSession: "Brak danych",
+        }));
+    }
+    return [];
+  };
+
+  const athletes = getClubAthletes();
 
   // Funkcja pomocnicza do określenia status badge
   const getStatusBadge = (sprint: Sprint) => {
@@ -214,7 +226,10 @@ const ClubDetail = () => {
             <CardHeader>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <CardTitle>Zawodnicy klubu {club.name}</CardTitle>
-                <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button 
+                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={() => navigate('/zawodnicy')}
+                >
                   <Plus className="h-4 w-4" />
                   Dodaj zawodnika
                 </Button>
@@ -242,32 +257,47 @@ const ClubDetail = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredAthletes.map((athlete) => (
-                    <TableRow key={athlete.id}>
-                      <TableCell className="font-medium">{athlete.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{athlete.birthDate}</TableCell>
-                      <TableCell className="text-muted-foreground">{athlete.lastSession}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => navigate(`/zawodnicy/${athlete.id}`)}
-                          >
-                            Zobacz profil
-                          </Button>
-                          <Button 
-                            size="sm"
-                            className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-                            onClick={() => setActiveWizardAthleteId(athlete.id.toString())}
-                          >
-                            <Plus className="h-3 w-3" />
-                            Pomiar
-                          </Button>
-                        </div>
+                  {filteredAthletes.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                        Brak zawodników w tym klubie. 
+                        <Button 
+                          variant="link" 
+                          className="text-primary ml-2"
+                          onClick={() => navigate('/zawodnicy')}
+                        >
+                          Dodaj pierwszego zawodnika
+                        </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    filteredAthletes.map((athlete) => (
+                      <TableRow key={athlete.id}>
+                        <TableCell className="font-medium">{athlete.name}</TableCell>
+                        <TableCell className="text-muted-foreground">{athlete.birthDate}</TableCell>
+                        <TableCell className="text-muted-foreground">{athlete.lastSession}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => navigate(`/zawodnicy/${athlete.id}`)}
+                            >
+                              Zobacz profil
+                            </Button>
+                            <Button 
+                              size="sm"
+                              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                              onClick={() => setActiveWizardAthleteId(athlete.id.toString())}
+                            >
+                              <Plus className="h-3 w-3" />
+                              Pomiar
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
