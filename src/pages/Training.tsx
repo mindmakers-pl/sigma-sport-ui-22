@@ -93,17 +93,10 @@ const Training = () => {
               return (
                 <Card key={challenge.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-xl">{challenge.title}</CardTitle>
-                        <CardDescription className="mt-1">
-                          {challenge.description}
-                        </CardDescription>
-                      </div>
-                      <div className={`p-2 rounded-lg ${challenge.color} flex-shrink-0`}>
-                        <Icon className="h-5 w-5 text-white" />
-                      </div>
-                    </div>
+                    <CardTitle className="text-xl">{challenge.title}</CardTitle>
+                    <CardDescription className="mt-1">
+                      {challenge.description}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Button
