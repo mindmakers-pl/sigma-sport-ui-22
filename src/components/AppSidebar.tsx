@@ -25,13 +25,13 @@ export function AppSidebar() {
   return (
     <Sidebar 
       collapsible={isMobile ? "offcanvas" : "icon"}
-      className="border-r-0 bg-sidebar-primary text-sidebar-primary-foreground transition-all duration-300 ease-in-out"
+      className="border-r-0 group-data-[collapsible=icon]:w-16 group-data-[collapsible=icon]:hover:w-56 transition-all duration-300 ease-in-out"
     >
       <SidebarContent className="bg-sidebar-primary">
         <SidebarGroup className="pt-6">
           {/* Logo */}
-          <div className="px-6 pb-6 overflow-hidden">
-            <h2 className="font-bold text-sidebar-primary-foreground text-xl whitespace-nowrap">
+          <div className="px-6 pb-6 group-data-[collapsible=icon]:px-3 group-data-[collapsible=icon]:pb-4 overflow-hidden">
+            <h2 className="font-bold text-sidebar-primary-foreground text-xl group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:h-0 transition-all duration-200">
               Sigma Sport
             </h2>
           </div>
@@ -46,10 +46,8 @@ export function AppSidebar() {
                     className="h-11 px-3 text-sidebar-primary-foreground hover:bg-sidebar-primary-foreground/15 data-[active=true]:bg-sidebar-primary-foreground/20 transition-colors duration-200"
                   >
                     <NavLink to={item.url} end className="flex items-center gap-3">
-                      <item.icon className="h-5 w-5 shrink-0 text-sidebar-primary-foreground" />
-                      <span className="font-medium text-sidebar-primary-foreground whitespace-nowrap">
-                        {item.title}
-                      </span>
+                      <item.icon className="h-5 w-5 shrink-0" />
+                      <span className="font-medium whitespace-nowrap overflow-hidden">{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -68,10 +66,8 @@ export function AppSidebar() {
               className="h-11 px-3 text-sidebar-primary-foreground hover:bg-sidebar-primary-foreground/15 transition-colors duration-200"
             >
               <NavLink to="/ustawienia" className="flex items-center gap-3">
-                <Settings className="h-5 w-5 shrink-0 text-sidebar-primary-foreground" />
-                <span className="font-medium text-sidebar-primary-foreground whitespace-nowrap">
-                  Ustawienia
-                </span>
+                <Settings className="h-5 w-5 shrink-0" />
+                <span className="font-medium whitespace-nowrap overflow-hidden">Ustawienia</span>
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
