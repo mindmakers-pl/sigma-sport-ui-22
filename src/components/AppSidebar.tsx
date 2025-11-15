@@ -25,26 +25,29 @@ export function AppSidebar() {
   return (
     <Sidebar 
       collapsible={isMobile ? "offcanvas" : "icon"}
-      className="border-r-0 group-data-[collapsible=icon]:w-16 group-data-[collapsible=icon]:hover:w-56 transition-all duration-300"
+      className="border-r-0 group-data-[collapsible=icon]:w-16 group-data-[collapsible=icon]:hover:w-56 transition-all duration-300 ease-in-out"
     >
-      <SidebarContent className="bg-sidebar-primary text-sidebar-primary-foreground">
+      <SidebarContent className="bg-sidebar-primary">
         <SidebarGroup className="pt-6">
-          <div className="px-6 pb-6 group-data-[collapsible=icon]:px-3 group-data-[collapsible=icon]:pb-4">
-            <h2 className="font-bold text-sidebar-primary-foreground text-xl group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:text-xs transition-all duration-200">
+          {/* Logo */}
+          <div className="px-6 pb-6 group-data-[collapsible=icon]:px-3 group-data-[collapsible=icon]:pb-4 overflow-hidden">
+            <h2 className="font-bold text-sidebar-primary-foreground text-xl group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:h-0 transition-all duration-200">
               Sigma Sport
             </h2>
           </div>
+
+          {/* Navigation Items */}
           <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
+            <SidebarMenu className="gap-1 px-3">
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
-                    className="h-11 text-sidebar-primary-foreground hover:bg-sidebar-primary-foreground/15 hover:text-sidebar-primary-foreground data-[active=true]:bg-sidebar-primary-foreground/20 data-[active=true]:text-sidebar-primary-foreground transition-colors duration-200"
+                    className="h-11 px-3 text-sidebar-primary-foreground hover:bg-sidebar-primary-foreground/15 data-[active=true]:bg-sidebar-primary-foreground/20 transition-colors duration-200"
                   >
-                    <NavLink to={item.url} end>
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                      <span className="font-medium whitespace-nowrap">{item.title}</span>
+                    <NavLink to={item.url} end className="flex items-center gap-3">
+                      <item.icon className="h-5 w-5 shrink-0" />
+                      <span className="font-medium whitespace-nowrap overflow-hidden">{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -54,16 +57,17 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="bg-sidebar-primary border-t border-sidebar-primary-foreground/10 text-sidebar-primary-foreground">
-        <SidebarMenu>
+      {/* Footer */}
+      <SidebarFooter className="bg-sidebar-primary border-t border-sidebar-primary-foreground/10">
+        <SidebarMenu className="px-3">
           <SidebarMenuItem>
             <SidebarMenuButton 
               asChild 
-              className="h-11 text-sidebar-primary-foreground hover:bg-sidebar-primary-foreground/15 hover:text-sidebar-primary-foreground transition-colors duration-200"
+              className="h-11 px-3 text-sidebar-primary-foreground hover:bg-sidebar-primary-foreground/15 transition-colors duration-200"
             >
-              <NavLink to="/ustawienia">
-                <Settings className="h-5 w-5 flex-shrink-0" />
-                <span className="font-medium whitespace-nowrap">Ustawienia</span>
+              <NavLink to="/ustawienia" className="flex items-center gap-3">
+                <Settings className="h-5 w-5 shrink-0" />
+                <span className="font-medium whitespace-nowrap overflow-hidden">Ustawienia</span>
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
