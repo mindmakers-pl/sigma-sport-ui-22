@@ -261,15 +261,8 @@ const Library = () => {
                 onClick={() => navigate(challenge.route)}
               >
                 <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-xl">{challenge.title}</CardTitle>
-                      <CardDescription className="text-base">{challenge.description}</CardDescription>
-                    </div>
-                    <div className={`${challenge.color} p-2 rounded-lg flex-shrink-0`}>
-                      <challenge.icon className="h-5 w-5 text-white" />
-                    </div>
-                  </div>
+                  <CardTitle className="text-xl">{challenge.title}</CardTitle>
+                  <CardDescription className="text-base">{challenge.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
