@@ -7,12 +7,23 @@ import { Button } from "@/components/ui/button";
 interface SideNavProps {
   isExpanded: boolean;
   onToggle: () => void;
+  onHoverChange?: (isHovered: boolean) => void;
 }
 
-const SideNav = ({ isExpanded, onToggle }: SideNavProps) => {
+const SideNav = ({ isExpanded, onToggle, onHoverChange }: SideNavProps) => {
   const location = useLocation();
   const [isHovered, setIsHovered] = useState(false);
   const [userRole, setUserRole] = useState<string>("trainer");
+  
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    onHoverChange?.(true);
+  };
+  
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    onHoverChange?.(false);
+  };
   
   useEffect(() => {
     const role = localStorage.getItem("userRole") || "trainer";
@@ -29,9 +40,9 @@ const SideNav = ({ isExpanded, onToggle }: SideNavProps) => {
   }, [location.pathname]);
 
   const allNavItems = [
-    { path: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["trainer", "admin"] },
-    { path: "/panel-zawodnika", label: "Panel Zawodnika", icon: UserCircle, roles: ["athlete"] },
-    { path: "/panel-admin", label: "Panel Admin", icon: Shield, roles: ["admin"] },
+    { path: "/", label: "Kokpit", icon: LayoutDashboard, roles: ["trainer", "admin"] },
+    { path: "/panel-zawodnika", label: "Kokpit", icon: UserCircle, roles: ["athlete"] },
+    { path: "/panel-admin", label: "Kokpit", icon: Shield, roles: ["admin"] },
     { path: "/zawodnicy", label: "Zawodnicy", icon: Users, roles: ["trainer", "admin"] },
     { path: "/kluby", label: "Kluby", icon: Building2, roles: ["trainer", "admin"] },
     { path: "/biblioteka", label: "Biblioteka", icon: BookOpen, roles: ["trainer", "athlete", "admin"] },
@@ -44,8 +55,8 @@ const SideNav = ({ isExpanded, onToggle }: SideNavProps) => {
 
   return (
     <aside
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className={cn(
         "fixed left-0 top-0 bottom-0 bg-slate-900 border-r border-slate-800 transition-all duration-300 ease-in-out z-50",
         showLabels ? "w-64" : "w-16"
