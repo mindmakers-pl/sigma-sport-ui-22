@@ -86,6 +86,17 @@ const AthleteProfile = () => {
     birthDate: undefined as Date | undefined,
   });
 
+  // Pobierz listę trenerów z klubu zawodnika
+  const getClubCoaches = () => {
+    const storedClubs = localStorage.getItem('clubs');
+    if (storedClubs) {
+      const clubs = JSON.parse(storedClubs);
+      const club = clubs.find((c: any) => c.name === athlete.club);
+      return club?.coaches || [];
+    }
+    return [];
+  };
+
   // Pobierz dane zawodnika z localStorage lub użyj mock data
   const getAthleteData = () => {
     const storedAthletes = localStorage.getItem('athletes');
@@ -818,12 +829,28 @@ const AthleteProfile = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="coach">Trenerzy</Label>
-                <Input
-                  id="coach"
+                <Label htmlFor="coach">Trener</Label>
+                <Select
                   value={editedProfile.coach}
-                  onChange={(e) => setEditedProfile({ ...editedProfile, coach: e.target.value })}
-                />
+                  onValueChange={(value) => setEditedProfile({ ...editedProfile, coach: value })}
+                >
+                  <SelectTrigger id="coach">
+                    <SelectValue placeholder="Wybierz trenera" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50">
+                    {getClubCoaches().length > 0 ? (
+                      getClubCoaches().map((coach: any, index: number) => (
+                        <SelectItem key={index} value={coach.name}>
+                          {coach.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>
+                        Brak trenerów w klubie
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
