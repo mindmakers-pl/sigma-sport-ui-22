@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Plus, ArrowLeft, Search, Trophy, TrendingUp, TrendingDown, Calendar as CalendarIcon, Target, ClipboardList, Dumbbell, CheckCircle2, Clock, BookOpen } from "lucide-react";
+import { Settings, Plus, ArrowLeft, Search, Trophy, TrendingUp, TrendingDown, Calendar as CalendarIcon, Target, ClipboardList, Dumbbell, CheckCircle2, Clock, BookOpen, Archive, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -61,6 +61,9 @@ const ClubDetail = () => {
   const [selectedM1, setSelectedM1] = useState("m1-oct");
   const [selectedM2, setSelectedM2] = useState("m2-nov");
   const [isAddAthleteDialogOpen, setIsAddAthleteDialogOpen] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedAthletes, setSelectedAthletes] = useState<string[]>([]);
+  const [showArchived, setShowArchived] = useState(false);
   
   const [newAthlete, setNewAthlete] = useState({
     firstName: "",
@@ -135,12 +138,19 @@ const ClubDetail = () => {
           name: athlete.name,
           birthDate: athlete.birthYear ? `${athlete.birthYear}-01-01` : "N/A",
           lastSession: "Brak danych",
+          archived: athlete.archived || false,
+          archivedAt: athlete.archivedAt || null,
         }));
     }
     return [];
   };
 
-  const athletes = getClubAthletes();
+  const [athletes, setAthletes] = useState(getClubAthletes());
+  
+  // Refresh athletes when needed
+  useEffect(() => {
+    setAthletes(getClubAthletes());
+  }, [club.name]);
   
   // Funkcja do dodawania zawodnika
   const handleAddAthlete = () => {
@@ -168,8 +178,8 @@ const ClubDetail = () => {
     
     setIsAddAthleteDialogOpen(false);
     
-    // Reload the page to show new athlete
-    window.location.reload();
+    // Update athletes state
+    setAthletes(getClubAthletes());
   };
   
   const isFormValid = newAthlete.firstName.trim() !== "" && 
@@ -234,9 +244,62 @@ const ClubDetail = () => {
     { name: "Wiśniewski Piotr", metric: "Focus HRV", improvement: "+2ms" },
   ];
 
-  const filteredAthletes = athletes.filter(athlete =>
-    athlete.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAthletes = athletes.filter(athlete => {
+    // Filter by archive status
+    if (!showArchived && athlete.archived) return false;
+    if (showArchived && !athlete.archived) return false;
+    
+    return athlete.name.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  const toggleSelectAll = () => {
+    if (selectedAthletes.length === filteredAthletes.length) {
+      setSelectedAthletes([]);
+    } else {
+      setSelectedAthletes(filteredAthletes.map(a => a.id.toString()));
+    }
+  };
+
+  const toggleSelectAthlete = (id: string) => {
+    setSelectedAthletes(prev => 
+      prev.includes(id) ? prev.filter(aid => aid !== id) : [...prev, id]
+    );
+  };
+
+  const handleArchiveSelected = () => {
+    const storedAthletes = localStorage.getItem('athletes');
+    const allAthletes = storedAthletes ? JSON.parse(storedAthletes) : [];
+    
+    const updatedAthletes = allAthletes.map((athlete: any) => 
+      selectedAthletes.includes(athlete.id.toString()) 
+        ? { ...athlete, archived: true, archivedAt: new Date().toISOString() }
+        : athlete
+    );
+    localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
+    setAthletes(getClubAthletes());
+    setSelectedAthletes([]);
+    setIsSelectionMode(false);
+  };
+
+  const handleRestoreSelected = () => {
+    const storedAthletes = localStorage.getItem('athletes');
+    const allAthletes = storedAthletes ? JSON.parse(storedAthletes) : [];
+    
+    const updatedAthletes = allAthletes.map((athlete: any) => 
+      selectedAthletes.includes(athlete.id.toString()) 
+        ? { ...athlete, archived: false, archivedAt: null }
+        : athlete
+    );
+    localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
+    setAthletes(getClubAthletes());
+    setSelectedAthletes([]);
+    setIsSelectionMode(false);
+  };
+
+  const cancelSelectionMode = () => {
+    setIsSelectionMode(false);
+    setSelectedAthletes([]);
+  };
 
   const handleSaveSession = (results: any) => {
     console.log("Sesja zapisana:", results);
@@ -449,64 +512,156 @@ const ClubDetail = () => {
               </div>
               
               {/* Wyszukiwarka */}
-              <div className="relative mt-4">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Wyszukaj zawodnika..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
+              <div className="flex gap-4 items-center mt-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Wyszukaj zawodnika..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Button 
+                  variant={showArchived ? "default" : "outline"}
+                  onClick={() => {
+                    setShowArchived(!showArchived);
+                    setIsSelectionMode(false);
+                    setSelectedAthletes([]);
+                  }}
+                  className="gap-2"
+                >
+                  <Archive className="h-4 w-4" />
+                  {showArchived ? "Aktywni" : "Archiwum"}
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {isSelectionMode && (
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={selectedAthletes.length === filteredAthletes.length && filteredAthletes.length > 0}
+                          onCheckedChange={toggleSelectAll}
+                        />
+                      </TableHead>
+                    )}
                     <TableHead className="font-semibold">Nazwisko i imię</TableHead>
                     <TableHead className="font-semibold">Data ur.</TableHead>
                     <TableHead className="font-semibold">Data ost. pomiaru</TableHead>
-                    <TableHead className="text-right font-semibold">Akcje</TableHead>
+                    <TableHead className="text-right font-semibold">
+                      <div className="flex items-center justify-end gap-2">
+                        {!isSelectionMode ? (
+                          <>
+                            <span>Akcje</span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => setIsSelectionMode(true)}
+                              title="Tryb selekcji"
+                            >
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            {selectedAthletes.length > 0 && (
+                              !showArchived ? (
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm"
+                                  onClick={handleArchiveSelected}
+                                  className="gap-2"
+                                >
+                                  <Archive className="h-4 w-4" />
+                                  Archiwizuj ({selectedAthletes.length})
+                                </Button>
+                              ) : (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={handleRestoreSelected}
+                                  className="gap-2"
+                                >
+                                  <Archive className="h-4 w-4" />
+                                  Przywróć ({selectedAthletes.length})
+                                </Button>
+                              )
+                            )}
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={cancelSelectionMode}
+                              title="Anuluj tryb selekcji"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredAthletes.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                        Brak zawodników w tym klubie. 
-                        <Button 
-                          variant="link" 
-                          className="text-primary ml-2"
-                          onClick={() => navigate('/zawodnicy')}
-                        >
-                          Dodaj pierwszego zawodnika
-                        </Button>
+                      <TableCell colSpan={isSelectionMode ? 5 : 4} className="text-center py-8 text-muted-foreground">
+                        {showArchived ? "Brak zarchiwizowanych zawodników." : "Brak zawodników w tym klubie."}
+                        {!showArchived && (
+                          <Button 
+                            variant="link" 
+                            className="text-primary ml-2"
+                            onClick={() => navigate('/zawodnicy')}
+                          >
+                            Dodaj pierwszego zawodnika
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredAthletes.map((athlete) => (
-                      <TableRow key={athlete.id}>
+                      <TableRow 
+                        key={athlete.id}
+                        className={isSelectionMode ? "cursor-pointer" : "cursor-pointer hover:bg-muted/50"}
+                        onClick={(e) => {
+                          // In selection mode, toggle checkbox
+                          if (isSelectionMode) {
+                            toggleSelectAthlete(athlete.id.toString());
+                            return;
+                          }
+                          
+                          // Don't navigate if clicking on checkbox or action button
+                          if ((e.target as HTMLElement).closest('input[type="checkbox"]') || 
+                              (e.target as HTMLElement).closest('button')) {
+                            return;
+                          }
+                          navigate(`/zawodnicy/${athlete.id}`);
+                        }}
+                      >
+                        {isSelectionMode && (
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedAthletes.includes(athlete.id.toString())}
+                              onCheckedChange={() => toggleSelectAthlete(athlete.id.toString())}
+                            />
+                          </TableCell>
+                        )}
                         <TableCell className="font-medium">{athlete.name}</TableCell>
                         <TableCell className="text-muted-foreground">{athlete.birthDate}</TableCell>
                         <TableCell className="text-muted-foreground">{athlete.lastSession}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => navigate(`/zawodnicy/${athlete.id}`)}
-                            >
-                              Zobacz profil
-                            </Button>
-                            <Button 
-                              size="sm"
-                              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-                              onClick={() => setActiveWizardAthleteId(athlete.id.toString())}
-                            >
-                              <Plus className="h-3 w-3" />
-                              Pomiar
-                            </Button>
-                          </div>
+                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                          <Button 
+                            size="sm"
+                            className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                            onClick={() => setActiveWizardAthleteId(athlete.id.toString())}
+                          >
+                            <Plus className="h-3 w-3" />
+                            Pomiar
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
