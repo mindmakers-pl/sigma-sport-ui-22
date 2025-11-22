@@ -68,6 +68,7 @@ const ClubDetail = () => {
   const [newAthlete, setNewAthlete] = useState({
     firstName: "",
     lastName: "",
+    gender: "",
     email: "",
     phone: "",
     club: "",
@@ -115,6 +116,7 @@ const ClubDetail = () => {
       setNewAthlete({
         firstName: "",
         lastName: "",
+        gender: "",
         email: "",
         phone: "",
         club: club.name, // Pre-fill with current club
@@ -164,6 +166,9 @@ const ClubDetail = () => {
     const athleteToAdd = {
       id: newId,
       name: fullName,
+      firstName: newAthlete.firstName,
+      lastName: newAthlete.lastName,
+      gender: newAthlete.gender,
       club: newAthlete.club,
       discipline: newAthlete.discipline,
       birthYear: birthYear,
@@ -440,10 +445,28 @@ const ClubDetail = () => {
                           onChange={(value) => setNewAthlete({ ...newAthlete, discipline: value })}
                         />
                       </div>
-
-                      <div>
-                        <Label>Data urodzenia</Label>
-                        <Popover>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <Label htmlFor="gender">Płeć</Label>
+                          <Select
+                            value={newAthlete.gender}
+                            onValueChange={(value) => setNewAthlete({ ...newAthlete, gender: value })}
+                          >
+                            <SelectTrigger className="mt-2">
+                              <SelectValue placeholder="Wybierz płeć" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">Mężczyzna</SelectItem>
+                              <SelectItem value="female">Kobieta</SelectItem>
+                              <SelectItem value="other">Inna</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <Label>Data urodzenia</Label>
+                          <Popover>
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
@@ -477,6 +500,7 @@ const ClubDetail = () => {
                           </PopoverContent>
                         </Popover>
                       </div>
+                    </div>
 
                       <div>
                         <Label htmlFor="notes">Historia i notatki</Label>
