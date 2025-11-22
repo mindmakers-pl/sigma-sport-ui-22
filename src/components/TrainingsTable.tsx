@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TrainingsTableProps {
   athleteId: string | undefined;
@@ -14,6 +15,7 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
   const [trainings, setTrainings] = useState<any[]>([]);
   const [filteredTrainings, setFilteredTrainings] = useState<any[]>([]);
   const [gameFilter, setGameFilter] = useState('wszystkie');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
     const allTrainings = JSON.parse(localStorage.getItem('athlete_trainings') || '[]');
@@ -49,30 +51,60 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
     };
   };
 
+  const getGameBadgeColor = (gameType: string) => {
+    switch(gameType) {
+      case 'focus': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'scan': return 'bg-green-100 text-green-800 border-green-300';
+      case 'control': return 'bg-purple-100 text-purple-800 border-purple-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
   const uniqueGameTypes = [...new Set(trainings.map(t => t.game_type))];
-  const showProgressReport = gameFilter !== 'wszystkie' && filteredTrainings.length > 1;
+  const showProgressReport = gameFilter !== 'wszystkie' && selectedIds.length >= 2;
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredTrainings.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredTrainings.map(t => t.id));
+    }
+  };
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <Select value={gameFilter} onValueChange={setGameFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtruj gry" />
-          </SelectTrigger>
-          <SelectContent className="bg-white z-50">
-            <SelectItem value="wszystkie">Wszystkie gry</SelectItem>
-            {uniqueGameTypes.map(type => (
-              <SelectItem key={type} value={type}>
-                {type === 'focus' ? 'Sigma Focus' : 
-                 type === 'scan' ? 'Sigma Scan' :
-                 type === 'control' ? 'Sigma Control' : type}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex gap-4 items-center">
+          <Select value={gameFilter} onValueChange={setGameFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filtruj gry" />
+            </SelectTrigger>
+            <SelectContent className="bg-white z-50">
+              <SelectItem value="wszystkie">Wszystkie gry</SelectItem>
+              {uniqueGameTypes.map(type => (
+                <SelectItem key={type} value={type}>
+                  {type === 'focus' ? 'Sigma Focus' : 
+                   type === 'scan' ? 'Sigma Scan' :
+                   type === 'control' ? 'Sigma Control' : type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {gameFilter !== 'wszystkie' && filteredTrainings.length > 0 && (
+            <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+              {selectedIds.length === filteredTrainings.length ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
+            </Button>
+          )}
+        </div>
         {showProgressReport && (
-          <Button onClick={() => navigate(`/zawodnicy/${athleteId}/postepy/${gameFilter}`)}>
-            Raport postępów
+          <Button onClick={() => navigate(`/zawodnicy/${athleteId}/postepy/${gameFilter}?ids=${selectedIds.join(',')}`)}>
+            Raport postępów ({selectedIds.length})
           </Button>
         )}
       </div>
@@ -85,26 +117,43 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
+              {gameFilter !== 'wszystkie' && <TableHead className="w-12"></TableHead>}
               <TableHead>Gra</TableHead>
               <TableHead>Data</TableHead>
-              <TableHead>Wskaźnik 1</TableHead>
-              <TableHead>Wskaźnik 2</TableHead>
-              <TableHead>Wskaźnik 3</TableHead>
-              <TableHead></TableHead>
+              <TableHead>Mediana RT</TableHead>
+              <TableHead>Trafność</TableHead>
+              <TableHead>Koszt koncentracji</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredTrainings.map((training) => {
               const metrics = getGameMetrics(training);
+              const isSelected = selectedIds.includes(training.id);
               return (
                 <TableRow 
                   key={training.id}
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => navigate(`/zawodnicy/${athleteId}/trening/${training.id}`)}
+                  onClick={(e) => {
+                    // If clicking checkbox, don't navigate
+                    if ((e.target as HTMLElement).closest('[data-checkbox]')) {
+                      return;
+                    }
+                    navigate(`/zawodnicy/${athleteId}/trening/${training.id}`);
+                  }}
                 >
+                  {gameFilter !== 'wszystkie' && (
+                    <TableCell onClick={(e) => e.stopPropagation()} data-checkbox>
+                      <Checkbox 
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelection(training.id)}
+                      />
+                    </TableCell>
+                  )}
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{training.game_name}</Badge>
+                      <Badge className={getGameBadgeColor(training.game_type)}>
+                        {training.game_name}
+                      </Badge>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -117,25 +166,13 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
                     })}
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">{metrics.metric1.label}: </span>
-                      <span className="font-semibold">{metrics.metric1.value}</span>
-                    </div>
+                    <span className="font-semibold">{metrics.metric1.value}</span>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">{metrics.metric2.label}: </span>
-                      <span className="font-semibold">{metrics.metric2.value}</span>
-                    </div>
+                    <span className="font-semibold">{metrics.metric2.value}</span>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">{metrics.metric3.label}: </span>
-                      <span className="font-semibold">{metrics.metric3.value}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm">Zobacz</Button>
+                    <span className="font-semibold">{metrics.metric3.value}</span>
                   </TableCell>
                 </TableRow>
               );
