@@ -297,7 +297,7 @@ const Library = () => {
         </TabsContent>
 
         <TabsContent value="kwestionariusze" className="space-y-6">
-          <Card className="bg-primary/5 border-primary/20">
+          <Card className="bg-primary/5 border-primary/20 mt-6">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <Brain className="h-6 w-6 text-primary" />
@@ -346,7 +346,6 @@ const Library = () => {
                     </div>
                     <div className="text-right">
                       <Badge variant="outline" className="bg-background">{questionnaire.duration}</Badge>
-                      <p className="text-sm text-muted-foreground mt-1">{questionnaire.frequency}</p>
                     </div>
                   </div>
                   <CardDescription className="mt-4 text-base leading-relaxed">{questionnaire.description}</CardDescription>
