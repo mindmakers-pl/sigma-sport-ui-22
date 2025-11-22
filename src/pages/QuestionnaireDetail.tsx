@@ -31,10 +31,22 @@ const QuestionnaireDetail = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [isCompleted, setIsCompleted] = useState(false);
+  const [randomizedQuestions, setRandomizedQuestions] = useState<Array<{
+    questionId: string;
+    question: any;
+    competencyName: string;
+  }>>([]);
   const questionnaire = getQuestionnaireById(id || '');
   if (!questionnaire) {
     return <div className="min-h-screen bg-background p-6">
-        <BackButton />
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/biblioteka')}
+          className="mb-4 gap-2 hover:bg-muted"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Powrót
+        </Button>
         <div className="flex items-center justify-center h-[80vh]">
           <Card className="max-w-md border-border">
             <CardHeader>
@@ -82,8 +94,16 @@ const QuestionnaireDetail = () => {
       });
     });
   }
-  const totalQuestions = allQuestions.length;
-  const currentQuestionData = allQuestions[currentQuestionIndex];
+
+  // Randomize questions on first render
+  if (!isStarted && randomizedQuestions.length === 0) {
+    const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+    setRandomizedQuestions(shuffled);
+  }
+
+  const questionsToUse = isStarted ? randomizedQuestions : allQuestions;
+  const totalQuestions = questionsToUse.length;
+  const currentQuestionData = questionsToUse[currentQuestionIndex];
   const progress = Object.keys(answers).length / totalQuestions * 100;
   const handleAnswer = (value: number) => {
     setAnswers(prev => ({
@@ -114,39 +134,47 @@ const QuestionnaireDetail = () => {
   };
   if (!isStarted) {
     return <div className="min-h-screen bg-background p-6">
-        <BackButton />
-        <div className="max-w-3xl mx-auto mt-8">
-          <Card className="border-border overflow-hidden">
-            <CardHeader className="bg-gradient-to-br from-primary/10 to-background p-8">
-              <CardTitle className="text-3xl text-foreground mb-6">{questionnaire.name}</CardTitle>
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/biblioteka')}
+          className="mb-4 gap-2 hover:bg-muted"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Powrót
+        </Button>
+        <div className="max-w-2xl mx-auto mt-12">
+          <Card className="border-border">
+            <CardContent className="p-12">
+              <CardTitle className="text-4xl text-foreground mb-8 text-center font-bold">
+                {questionnaire.name}
+              </CardTitle>
               
-              <div className="space-y-4 text-base text-foreground leading-relaxed">
-                <p>{questionnaire.description}</p>
-                <p className="text-muted-foreground">{questionnaire.usage}</p>
+              <div className="space-y-6 text-lg text-foreground leading-relaxed mb-10">
+                {questionnaire.description.split('\n\n').map((paragraph, idx) => (
+                  <p key={idx}>{paragraph}</p>
+                ))}
               </div>
-            </CardHeader>
-            
-            <CardContent className="space-y-6 p-8">
-              <div className="grid grid-cols-3 gap-6 text-center">
-                <div>
-                  <div className="text-3xl font-bold text-primary mb-1">{totalQuestions}</div>
-                  <div className="text-sm text-muted-foreground">pytań</div>
+
+              <div className="grid grid-cols-2 gap-8 mb-10">
+                <div className="text-center">
+                  <div className="text-5xl font-bold text-primary mb-2">{totalQuestions}</div>
+                  <div className="text-base text-muted-foreground">pytań</div>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold text-primary mb-1">{questionnaire.estimatedTime}</div>
-                  <div className="text-sm text-muted-foreground">czas</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-primary mb-1">
-                    {questionnaire.id === 'six_sigma_full' ? '2x' : questionnaire.id === 'six_sigma_lite' ? '1x/mc' : ''}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {questionnaire.id === 'six_sigma_full' ? 'w sezonie' : questionnaire.id === 'six_sigma_lite' ? 'miesięcznie' : 'przy pomiarze'}
-                  </div>
+                <div className="text-center">
+                  <div className="text-5xl font-bold text-primary mb-2">{questionnaire.estimatedTime}</div>
+                  <div className="text-base text-muted-foreground">minut</div>
                 </div>
               </div>
 
-              <Button onClick={() => setIsStarted(true)} size="lg" className="w-full text-xl py-7 font-bold">
+              <Button 
+                onClick={() => {
+                  const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+                  setRandomizedQuestions(shuffled);
+                  setIsStarted(true);
+                }} 
+                size="lg" 
+                className="w-full text-2xl py-8 font-bold"
+              >
                 GO!
               </Button>
             </CardContent>
@@ -156,7 +184,14 @@ const QuestionnaireDetail = () => {
   }
   if (isCompleted) {
     return <div className="min-h-screen bg-background p-6">
-        <BackButton />
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/biblioteka')}
+          className="mb-4 gap-2 hover:bg-muted"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Powrót
+        </Button>
         <div className="max-w-4xl mx-auto mt-8">
           <Card className="border-border">
             <CardHeader className="bg-gradient-to-br from-primary/10 to-background">
@@ -189,6 +224,7 @@ const QuestionnaireDetail = () => {
                 setCurrentQuestionIndex(0);
                 setAnswers({});
                 setIsCompleted(false);
+                setRandomizedQuestions([]);
               }} className="flex-1">
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Wypełnij ponownie
@@ -209,50 +245,58 @@ const QuestionnaireDetail = () => {
       length: questionnaire.scale
     }, (_, i) => i + 1);
     
-    // Color intensity based on value (1=lightest, 5=strongest)
+    // Color intensity based on value (1=lightest, 5=strongest) using primary color
     const getColorClasses = (value: number, isSelected: boolean) => {
       if (isSelected) {
-        return 'border-primary bg-primary shadow-lg scale-105';
+        return 'border-primary bg-primary shadow-lg scale-105 text-primary-foreground';
       }
       
-      // Progressive color intensity: 1 (lightest) to 5 (strongest)
+      // Progressive primary color intensity: 1 (lightest) to 5 (strongest)
       const intensities = [
-        'bg-red-100 border-red-200 hover:border-red-300', // 1
-        'bg-red-200 border-red-300 hover:border-red-400', // 2
-        'bg-orange-300 border-orange-400 hover:border-orange-500', // 3
-        'bg-green-400 border-green-500 hover:border-green-600', // 4
-        'bg-green-500 border-green-600 hover:border-green-700', // 5
+        'bg-primary/10 border-primary/20 hover:border-primary/30 hover:bg-primary/15', // 1
+        'bg-primary/25 border-primary/35 hover:border-primary/45 hover:bg-primary/30', // 2
+        'bg-primary/40 border-primary/50 hover:border-primary/60 hover:bg-primary/45', // 3
+        'bg-primary/60 border-primary/70 hover:border-primary/80 hover:bg-primary/65', // 4
+        'bg-primary/80 border-primary/90 hover:border-primary hover:bg-primary/85', // 5
       ];
       return intensities[value - 1];
     };
     
-    return <div className="space-y-4">
+    return <div className="space-y-6">
+        <div className="text-center text-base text-muted-foreground mb-4">
+          <p>1 = Zupełnie nie o mnie | 5 = To o mnie!</p>
+        </div>
+        
         <div className="grid grid-cols-5 gap-3">
           {scaleValues.map(value => {
           const isSelected = answers[currentQuestionData.questionId] === value;
-          const isMin = value === 1;
-          const isMax = value === questionnaire.scale;
-          const isMid = value === 3;
           return <button key={value} onClick={() => handleAnswer(value)} className={`
-                  relative flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all
+                  relative flex flex-col items-center justify-center p-8 rounded-xl border-2 transition-all
                   ${getColorClasses(value, isSelected)}
                 `}>
-                <span className={`text-3xl font-bold ${isSelected ? 'text-background' : 'text-foreground'}`}>
+                <span className={`text-4xl font-bold ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
                   {value}
                 </span>
               </button>;
         })}
         </div>
         
-        <div className="flex justify-between text-sm text-muted-foreground px-1">
-          <span className="text-left max-w-[30%]">{questionnaire.scaleLabels.min}</span>
-          <span className="text-center">To trochę o mnie</span>
-          <span className="text-right max-w-[30%]">{questionnaire.scaleLabels.max}</span>
+        <div className="flex justify-between text-base font-medium text-foreground px-2 mt-6">
+          <span className="text-left">Zupełnie nie o mnie</span>
+          <span className="text-center">Trochę o mnie</span>
+          <span className="text-right">O mnie!</span>
         </div>
       </div>;
   };
   return <div className="min-h-screen bg-background p-4 md:p-6">
-      <BackButton />
+      <Button
+        variant="ghost"
+        onClick={() => navigate('/biblioteka')}
+        className="mb-4 gap-2 hover:bg-muted"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Powrót
+      </Button>
       <div className="max-w-4xl mx-auto mt-8">
         <Card className="border-border">
           <CardHeader className="bg-gradient-to-br from-primary/5 to-background">
@@ -263,7 +307,7 @@ const QuestionnaireDetail = () => {
                 </div>
                 <div>
                   <CardTitle className="text-lg text-foreground">
-                    {currentQuestionData.competencyName}
+                    {questionnaire.name}
                   </CardTitle>
                   <span className="text-sm text-muted-foreground">
                     Pytanie {currentQuestionIndex + 1} z {totalQuestions}
