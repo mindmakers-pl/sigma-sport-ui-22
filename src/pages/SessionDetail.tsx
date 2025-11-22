@@ -195,6 +195,7 @@ export default function SessionDetail() {
 
     // Prepare trial-by-trial chart data (showing errors)
     const rawTrials = coachReport.rawTrials || focusData.trials || [];
+    console.log('Debug rawTrials:', rawTrials.length, coachReport.rawTrials?.length, focusData.trials?.length);
     const trialChartData = rawTrials.length > 0 ? rawTrials.slice(0, 80).map((trial: any, idx: number) => ({
       trial: trial.trialId || idx + 1,
       rt: trial.reactionTime,
@@ -298,7 +299,8 @@ export default function SessionDetail() {
                       <Bar dataKey="medianRT" fill="hsl(var(--primary))" label={{
                       position: 'top',
                       fill: 'hsl(var(--primary))',
-                      fontWeight: 'bold'
+                      fontWeight: 'bold',
+                      formatter: (value: number) => `${value} ms`
                     }} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -367,7 +369,7 @@ export default function SessionDetail() {
 
           </TabsContent>
 
-          {/* Coach View - Advanced metrics */}
+          {/* Coach View - Advanced metrics with charts */}
           <TabsContent value="coach" className="space-y-6">
             <Card>
               <CardHeader>
@@ -397,7 +399,7 @@ export default function SessionDetail() {
               </CardContent>
             </Card>
 
-            {/* Overall Metrics First */}
+            {/* Overall Performance Metrics with Visualizations */}
             <Card>
               <CardHeader>
                 <CardTitle>Ogólne Wyniki</CardTitle>
@@ -427,89 +429,124 @@ export default function SessionDetail() {
               </CardContent>
             </Card>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Easy Trials */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-green-700">Próby Łatwe</CardTitle>
-                  <p className="text-sm text-slate-600">Bez konfliktu (kolor = słowo)</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            {/* Comparative Charts */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Analiza Porównawcza: Łatwe vs Trudne</CardTitle>
+                <p className="text-sm text-slate-600">Próby bez konfliktu vs z konfliktem</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6 mb-6">
+                  {/* RT Comparison */}
                   <div>
-                    <p className="text-sm text-slate-600">Mediana RT</p>
-                    <p className="text-3xl font-bold text-slate-900">
-                      {coachReport.coachMetrics.congruent.medianRT} <span className="text-lg font-normal">ms</span>
-                    </p>
+                    <h4 className="font-semibold text-slate-900 mb-4">Mediana czasu reakcji</h4>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={[
+                        { name: 'Łatwe\n(Bez konfliktu)', value: coachReport.coachMetrics.congruent.medianRT, fill: 'hsl(142, 71%, 45%)' },
+                        { name: 'Trudne\n(Z konfliktem)', value: coachReport.coachMetrics.incongruent.medianRT, fill: 'hsl(0, 84%, 60%)' }
+                      ]}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis label={{ value: 'ms', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip formatter={(value: number) => [`${value} ms`, 'Czas reakcji']} />
+                        <Bar dataKey="value" label={{ position: 'top', formatter: (value: number) => `${value} ms` }}>
+                          {[0, 1].map((entry, index) => (
+                            <Bar key={`cell-${index}`} dataKey="value" fill={index === 0 ? 'hsl(142, 71%, 45%)' : 'hsl(0, 84%, 60%)'} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-600">Procent błędów</p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {(coachReport.coachMetrics.congruent.errorRate * 100).toFixed(1)}%
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">IES</p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {coachReport.coachMetrics.congruent.ies}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">Niższy = lepszy</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">IQR (Zmienność)</p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {coachReport.coachMetrics.variability.congruentIQR} <span className="text-lg font-normal">ms</span>
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">Próby analizowane</p>
-                    <p className="text-xl font-bold text-slate-900">
-                      {coachReport.coachMetrics.congruent.validTrials}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
 
-              {/* Difficult Trials */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-red-700">Próby Trudne</CardTitle>
-                  <p className="text-sm text-slate-600">Z konfliktem (kolor ≠ słowo)</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                  {/* Error Rate Comparison */}
                   <div>
-                    <p className="text-sm text-slate-600">Mediana RT</p>
-                    <p className="text-3xl font-bold text-slate-900">
-                      {coachReport.coachMetrics.incongruent.medianRT} <span className="text-lg font-normal">ms</span>
-                    </p>
+                    <h4 className="font-semibold text-slate-900 mb-4">Procent błędów</h4>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={[
+                        { name: 'Łatwe', value: (coachReport.coachMetrics.congruent.errorRate * 100), fill: 'hsl(142, 71%, 45%)' },
+                        { name: 'Trudne', value: (coachReport.coachMetrics.incongruent.errorRate * 100), fill: 'hsl(0, 84%, 60%)' }
+                      ]}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis label={{ value: '%', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip formatter={(value: number) => [`${value.toFixed(1)}%`, 'Błędy']} />
+                        <Bar dataKey="value" label={{ position: 'top', formatter: (value: number) => `${value.toFixed(1)}%` }}>
+                          {[0, 1].map((entry, index) => (
+                            <Bar key={`cell-${index}`} dataKey="value" fill={index === 0 ? 'hsl(142, 71%, 45%)' : 'hsl(0, 84%, 60%)'} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* IES Comparison */}
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-4">IES (niższy = lepszy)</h4>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={[
+                        { name: 'Łatwe', value: coachReport.coachMetrics.congruent.ies, fill: 'hsl(142, 71%, 45%)' },
+                        { name: 'Trudne', value: coachReport.coachMetrics.incongruent.ies, fill: 'hsl(0, 84%, 60%)' }
+                      ]}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis label={{ value: 'IES', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip formatter={(value: number) => [value, 'IES']} />
+                        <Bar dataKey="value" label={{ position: 'top' }}>
+                          {[0, 1].map((entry, index) => (
+                            <Bar key={`cell-${index}`} dataKey="value" fill={index === 0 ? 'hsl(142, 71%, 45%)' : 'hsl(0, 84%, 60%)'} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Variability (IQR) Comparison */}
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-4">Zmienność (IQR)</h4>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={[
+                        { name: 'Łatwe', value: coachReport.coachMetrics.variability.congruentIQR, fill: 'hsl(142, 71%, 45%)' },
+                        { name: 'Trudne', value: coachReport.coachMetrics.variability.incongruentIQR, fill: 'hsl(0, 84%, 60%)' }
+                      ]}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis label={{ value: 'ms', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip formatter={(value: number) => [`${value} ms`, 'IQR']} />
+                        <Bar dataKey="value" label={{ position: 'top', formatter: (value: number) => `${value} ms` }}>
+                          {[0, 1].map((entry, index) => (
+                            <Bar key={`cell-${index}`} dataKey="value" fill={index === 0 ? 'hsl(142, 71%, 45%)' : 'hsl(0, 84%, 60%)'} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Detailed metrics table */}
+                <div className="grid md:grid-cols-2 gap-4 mt-6 p-4 bg-slate-50 rounded-lg">
+                  <div>
+                    <h4 className="font-semibold text-green-700 mb-2">Próby Łatwe (bez konfliktu)</h4>
+                    <div className="text-sm space-y-1">
+                      <div className="flex justify-between"><span>Próby analizowane:</span><strong>{coachReport.coachMetrics.congruent.validTrials}</strong></div>
+                      <div className="flex justify-between"><span>Mediana RT:</span><strong>{coachReport.coachMetrics.congruent.medianRT} ms</strong></div>
+                      <div className="flex justify-between"><span>Błędy:</span><strong>{(coachReport.coachMetrics.congruent.errorRate * 100).toFixed(1)}%</strong></div>
+                      <div className="flex justify-between"><span>IES:</span><strong>{coachReport.coachMetrics.congruent.ies}</strong></div>
+                      <div className="flex justify-between"><span>IQR:</span><strong>{coachReport.coachMetrics.variability.congruentIQR} ms</strong></div>
+                    </div>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-600">Procent błędów</p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {(coachReport.coachMetrics.incongruent.errorRate * 100).toFixed(1)}%
-                    </p>
+                    <h4 className="font-semibold text-red-700 mb-2">Próby Trudne (z konfliktem)</h4>
+                    <div className="text-sm space-y-1">
+                      <div className="flex justify-between"><span>Próby analizowane:</span><strong>{coachReport.coachMetrics.incongruent.validTrials}</strong></div>
+                      <div className="flex justify-between"><span>Mediana RT:</span><strong>{coachReport.coachMetrics.incongruent.medianRT} ms</strong></div>
+                      <div className="flex justify-between"><span>Błędy:</span><strong>{(coachReport.coachMetrics.incongruent.errorRate * 100).toFixed(1)}%</strong></div>
+                      <div className="flex justify-between"><span>IES:</span><strong>{coachReport.coachMetrics.incongruent.ies}</strong></div>
+                      <div className="flex justify-between"><span>IQR:</span><strong>{coachReport.coachMetrics.variability.incongruentIQR} ms</strong></div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-600">IES</p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {coachReport.coachMetrics.incongruent.ies}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">Niższy = lepszy</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">IQR (Zmienność)</p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {coachReport.coachMetrics.variability.incongruentIQR} <span className="text-lg font-normal">ms</span>
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">Próby analizowane</p>
-                    <p className="text-xl font-bold text-slate-900">
-                      {coachReport.coachMetrics.incongruent.validTrials}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
 
             <Card>
               <CardHeader>
@@ -573,11 +610,11 @@ export default function SessionDetail() {
                       </div>}
                   </div>
                   <div className="p-4 bg-slate-50 rounded-lg">
-                    <h4 className="font-semibold text-slate-900 mb-2">📊 Interpretacja HRV:</h4>
-                    <ul className="text-sm text-slate-700 space-y-1">
-                      <li><strong>HR (Heart Rate):</strong> Średnia częstość akcji serca podczas testu. Wzrost może wskazywać na mobilizację lub stres.</li>
-                      <li><strong>rMSSD:</strong> Kluczowy wskaźnik HRV z domeny czasowej. Wyższe wartości = większa zmienność = lepszy stan regeneracji i gotowości.</li>
-                      
+                    <h4 className="font-semibold text-slate-900 mb-2">📊 Czy HR i rMSSD to rzeczywiście HRV?</h4>
+                    <ul className="text-sm text-slate-700 space-y-2">
+                      <li><strong>HR (Heart Rate):</strong> Średnia częstość akcji serca podczas testu. Nie jest to bezpośredni wskaźnik HRV, ale dostarcza kontekstu - wzrost HR może wskazywać na mobilizację lub stres.</li>
+                      <li><strong>rMSSD:</strong> TAK, to kluczowy wskaźnik HRV z domeny czasowej! Root Mean Square of Successive Differences mierzy zmienność między kolejnymi odstępami RR. Wyższe wartości rMSSD = większa zmienność = lepszy stan autonomicznego układu nerwowego, lepsza regeneracja i gotowość.</li>
+                      <li><strong>Polar H10:</strong> Doskonały wybór do tego zadania! Polar H10 to jeden z najbardziej precyzyjnych pasów na rynku do pomiaru RR intervals, co jest fundamentem dla rzetelnego obliczania rMSSD. Jest używany w wielu badaniach naukowych ze względu na swoją dokładność.</li>
                     </ul>
                   </div>
                 </CardContent>
