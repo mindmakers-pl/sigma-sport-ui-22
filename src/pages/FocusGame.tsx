@@ -250,12 +250,16 @@ export default function FocusGame({
           <div className="max-w-3xl w-full bg-slate-900 rounded-2xl p-12 space-y-8 shadow-2xl">
           <h1 className="text-5xl font-bold text-white text-center mb-6">Sigma Focus</h1>
           
-          <div className="space-y-6 text-slate-200 text-lg leading-relaxed text-center">
-            <p className="text-lg text-center">
-              
+          <div className="space-y-6 text-slate-200 leading-relaxed text-center animate-fade-in">
+            <p className="text-lg">
+              Na ekranie pojawi się słowo nazwy koloru (np. "CZERWONY") napisane w określonym kolorze.
             </p>
             
-            <p className="font-semibold text-red-400 text-lg">
+            <p className="text-lg">
+              Twoim zadaniem jest wybrać przycisk odpowiadający <span className="font-semibold text-white">KOLOROWI tekstu</span>, nie jego treści.
+            </p>
+            
+            <p className="text-lg font-semibold text-red-400">
               Ignoruj treść słowa!
             </p>
 
