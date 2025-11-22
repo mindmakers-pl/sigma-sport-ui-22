@@ -252,15 +252,13 @@ export default function FocusGame({
           
           <div className="space-y-6 text-slate-200 leading-relaxed text-center animate-fade-in">
             <p className="text-lg">
-              Na ekranie pojawi się słowo nazwy koloru (np. &quot;CZERWONY&quot;). Twoim zadaniem jest kliknąć w kwadrat w kolorze słowa. Zrób to jak najszybciej.                                  
+              Na ekranie pojawi się napis z nazwą koloru (np. &quot;CZERWONY&quot;). Twoim zadaniem jest kliknąć w kwadrat w kolorze wyświetlonego napisu. Zrób to jak najszybciej potrafisz unikając błędów.                                  
 
 
   
             </p>
             
-            <p className="text-lg">
-              Twoim zadaniem jest wybrać przycisk odpowiadający <span className="font-semibold text-white">KOLOROWI tekstu</span>, nie jego treści.
-            </p>
+            
             
             <p className="text-lg font-semibold text-red-400">
               Ignoruj treść słowa!
