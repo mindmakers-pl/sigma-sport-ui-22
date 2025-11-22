@@ -19,6 +19,7 @@ interface SessionWizardNewProps {
 type WizardStep = 
   | 'questionnaire-select'
   | 'questionnaires'
+  | 'challenge-select'
   | 'scan' 
   | 'control' 
   | 'focus' 
@@ -40,18 +41,35 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
     setSessionResults(updatedResults);
     console.log('Zapisano dane dla kroku:', stepName, data);
 
-    // Show completion message then return to selection
+    // After completing a challenge, show completion screen
     setCurrentStep('complete');
   };
 
-  const handleReturnToSelection = () => {
-    // Save progress and return to selection screen
-    setCurrentStep('questionnaire-select');
+  const handleReturnToChallengeSelect = () => {
+    // Return to challenge selection
+    setCurrentStep('challenge-select');
   };
 
   const handleQuestionnaireSelection = (questionnaireIds: string[]) => {
     setSelectedQuestionnaires(questionnaireIds);
-    setCurrentStep('questionnaires');
+    if (questionnaireIds.length > 0) {
+      setCurrentStep('questionnaires');
+    } else {
+      // Skip questionnaires, go directly to challenges
+      setCurrentStep('challenge-select');
+    }
+  };
+
+  const handleQuestionnairesComplete = (data: any) => {
+    const updatedResults = {
+      ...sessionResults,
+      questionnaires: data
+    };
+    setSessionResults(updatedResults);
+    console.log('Zapisano dane kwestionariuszy:', data);
+    
+    // After questionnaires, go to challenge selection
+    setCurrentStep('challenge-select');
   };
 
   const handleFinalSave = () => {
@@ -74,16 +92,85 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
         return (
           <QuestionnaireRunner
             questionnaireIds={selectedQuestionnaires}
-            onComplete={(data) => handleStepComplete('questionnaires', data)}
+            onComplete={handleQuestionnairesComplete}
             onCancel={() => setCurrentStep('questionnaire-select')}
           />
+        );
+
+      case 'challenge-select':
+        return (
+          <div className="min-h-screen bg-background p-6">
+            <Card className="max-w-4xl mx-auto">
+              <CardContent className="pt-6">
+                <h2 className="text-2xl font-bold mb-6">Wybierz Wyzwanie</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setCurrentStep('scan')}
+                    className="h-24"
+                  >
+                    Sigma Scan
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setCurrentStep('control')}
+                    className="h-24"
+                  >
+                    Sigma Control
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setCurrentStep('focus')}
+                    className="h-24"
+                  >
+                    Sigma Focus
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setCurrentStep('move')}
+                    className="h-24"
+                  >
+                    Sigma Move
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setCurrentStep('hrv_baseline')}
+                    className="h-24"
+                  >
+                    HRV Baseline
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setCurrentStep('hrv_training')}
+                    className="h-24"
+                  >
+                    HRV Training
+                  </Button>
+                </div>
+                <div className="mt-6 flex justify-between">
+                  <Button variant="ghost" onClick={onClose}>
+                    Anuluj
+                  </Button>
+                  <Button onClick={handleFinalSave}>
+                    Zakończ Sesję
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         );
 
       case 'scan':
         return (
           <ScanGame 
             onComplete={(data) => handleStepComplete('scan', data)}
-            onGoToCockpit={handleReturnToSelection}
+            onGoToCockpit={handleReturnToChallengeSelect}
           />
         );
 
@@ -91,7 +178,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
         return (
           <ControlGame 
             onComplete={(data) => handleStepComplete('control', data)}
-            onGoToCockpit={handleReturnToSelection}
+            onGoToCockpit={handleReturnToChallengeSelect}
           />
         );
 
@@ -99,7 +186,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
         return (
           <FocusGame 
             onComplete={(data) => handleStepComplete('focus', data)}
-            onGoToCockpit={handleReturnToSelection}
+            onGoToCockpit={handleReturnToChallengeSelect}
           />
         );
 
@@ -108,7 +195,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
           <SigmaMoveForm 
             challengeType="time"
             onComplete={(data) => handleStepComplete('move', data)}
-            onGoToCockpit={handleReturnToSelection}
+            onGoToCockpit={handleReturnToChallengeSelect}
           />
         );
 
@@ -116,7 +203,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
         return (
           <HRVTrainingForm 
             onComplete={(data) => handleStepComplete('hrv_training', data)}
-            onGoToCockpit={handleReturnToSelection}
+            onGoToCockpit={handleReturnToChallengeSelect}
           />
         );
 
@@ -124,7 +211,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
         return (
           <HRVBaselineForm 
             onComplete={(data) => handleStepComplete('hrv_baseline', data)}
-            onGoToCockpit={handleReturnToSelection}
+            onGoToCockpit={handleReturnToChallengeSelect}
           />
         );
 
@@ -154,10 +241,10 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
                     Zakończ Sesję
                   </Button>
                   <Button 
-                    onClick={onClose}
+                    onClick={handleReturnToChallengeSelect}
                     className="flex-1"
                   >
-                    Wybierz Kolejne
+                    Wybierz Kolejne Wyzwanie
                   </Button>
                 </div>
               </CardContent>
