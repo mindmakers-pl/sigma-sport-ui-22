@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 interface FocusGameProps {
@@ -35,6 +36,160 @@ const FIXATION_TIME = 500;
 const ISI_MIN = 500;
 const ISI_MAX = 1500;
 const STIMULUS_MAX_TIME = 2000;
+
+// Data filtering thresholds
+const MIN_RT = 150; // Minimum valid reaction time (falstart threshold)
+const MAX_RT = 1500; // Maximum valid reaction time (zawiechy threshold)
+
+// ============= ANALYTICS FUNCTIONS =============
+
+/**
+ * Filter trials by RT thresholds (150-1500ms)
+ * Returns only trials within valid range
+ */
+function filterTrials(trials: TrialResult[]): TrialResult[] {
+  return trials.filter(t => t.reactionTime >= MIN_RT && t.reactionTime <= MAX_RT);
+}
+
+/**
+ * Calculate median from sorted array of numbers
+ */
+function calculateMedian(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 
+    ? (sorted[mid - 1] + sorted[mid]) / 2 
+    : sorted[mid];
+}
+
+/**
+ * Calculate IQR (Interquartile Range) - miara zmienności
+ */
+function calculateIQR(values: number[]): number {
+  if (values.length < 4) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const q1Index = Math.floor(sorted.length * 0.25);
+  const q3Index = Math.floor(sorted.length * 0.75);
+  return sorted[q3Index] - sorted[q1Index];
+}
+
+/**
+ * Calculate IES (Inverse Efficiency Score)
+ * IES = medianRT / (1 - errorRate)
+ * Lower is better (faster and more accurate)
+ */
+function calculateIES(medianRT: number, errorRate: number): number {
+  // Safety: if error rate is 100%, cap at 99% to avoid division by zero
+  const safeErrorRate = errorRate >= 1 ? 0.99 : errorRate;
+  return medianRT / (1 - safeErrorRate);
+}
+
+/**
+ * Calculate longest streak of consecutive correct trials
+ */
+function calculateBestStreak(trials: TrialResult[]): number {
+  let maxStreak = 0;
+  let currentStreak = 0;
+  
+  for (const trial of trials) {
+    if (trial.isCorrect) {
+      currentStreak++;
+      maxStreak = Math.max(maxStreak, currentStreak);
+    } else {
+      currentStreak = 0;
+    }
+  }
+  
+  return maxStreak;
+}
+
+/**
+ * Generate comprehensive coach report with all metrics
+ */
+function generateCoachReport(rawTrials: TrialResult[]): any {
+  // Step 1: Filter data (150-1500ms)
+  const validTrials = filterTrials(rawTrials);
+  
+  // Step 2: Separate by trial type
+  const congruentTrials = validTrials.filter(t => t.type === 'CONGRUENT');
+  const incongruentTrials = validTrials.filter(t => t.type === 'INCONGRUENT');
+  
+  const congruentCorrect = congruentTrials.filter(t => t.isCorrect);
+  const incongruentCorrect = incongruentTrials.filter(t => t.isCorrect);
+  
+  // Step 3: Calculate RT arrays for correct trials only
+  const congruentRTs = congruentCorrect.map(t => t.reactionTime);
+  const incongruentRTs = incongruentCorrect.map(t => t.reactionTime);
+  const allCorrectRTs = [...congruentRTs, ...incongruentRTs];
+  
+  // Step 4: Calculate medians
+  const medianCongruent = calculateMedian(congruentRTs);
+  const medianIncongruent = calculateMedian(incongruentRTs);
+  const overallMedian = calculateMedian(allCorrectRTs);
+  
+  // Step 5: Calculate error rates (as fraction 0.0 - 1.0)
+  const congruentErrorRate = congruentTrials.length > 0 
+    ? (congruentTrials.length - congruentCorrect.length) / congruentTrials.length 
+    : 0;
+  const incongruentErrorRate = incongruentTrials.length > 0 
+    ? (incongruentTrials.length - incongruentCorrect.length) / incongruentTrials.length 
+    : 0;
+  
+  // Step 6: Calculate IES scores
+  const iesCongruent = calculateIES(medianCongruent, congruentErrorRate);
+  const iesIncongruent = calculateIES(medianIncongruent, incongruentErrorRate);
+  
+  // Step 7: Calculate IQR (variability)
+  const congruentIQR = calculateIQR(congruentRTs);
+  const incongruentIQR = calculateIQR(incongruentRTs);
+  
+  // Step 8: Calculate player metrics
+  const totalCorrect = validTrials.filter(t => t.isCorrect).length;
+  const accuracy = validTrials.length > 0 ? (totalCorrect / validTrials.length) * 100 : 0;
+  const bestStreak = calculateBestStreak(validTrials);
+  
+  // Step 9: Calculate interference costs
+  const interferenceCostRaw = medianIncongruent - medianCongruent;
+  const interferenceCostIES = iesIncongruent - iesCongruent;
+  
+  return {
+    sessionInfo: {
+      totalTrials: rawTrials.length,
+      validTrials: validTrials.length,
+      filteredOut: rawTrials.length - validTrials.length,
+      timestamp: new Date().toISOString()
+    },
+    playerMetrics: {
+      accuracy: Math.round(accuracy * 10) / 10, // One decimal
+      medianRT: Math.round(overallMedian),
+      bestStreak: bestStreak
+    },
+    coachMetrics: {
+      congruent: {
+        medianRT: Math.round(medianCongruent),
+        errorRate: Math.round(congruentErrorRate * 1000) / 1000, // 3 decimals
+        ies: Math.round(iesCongruent),
+        validTrials: congruentTrials.length
+      },
+      incongruent: {
+        medianRT: Math.round(medianIncongruent),
+        errorRate: Math.round(incongruentErrorRate * 1000) / 1000,
+        ies: Math.round(iesIncongruent),
+        validTrials: incongruentTrials.length
+      },
+      variability: {
+        congruentIQR: Math.round(congruentIQR),
+        incongruentIQR: Math.round(incongruentIQR)
+      },
+      interferenceCost: {
+        rawMs: Math.round(interferenceCostRaw),
+        iesDiff: Math.round(interferenceCostIES)
+      }
+    },
+    rawTrials: rawTrials // Keep raw data for detailed analysis
+  };
+}
 const COLOR_MAP: Record<ColorType, string> = {
   RED: "CZERWONY",
   BLUE: "NIEBIESKI",
@@ -80,6 +235,10 @@ export default function FocusGame({
   const [buttonsDisabled, setButtonsDisabled] = useState(true);
   const [manualRMSSD, setManualRMSSD] = useState("");
   const [manualHR, setManualHR] = useState("");
+  const [showCoachReport, setShowCoachReport] = useState(false);
+  const [coachReport, setCoachReport] = useState<any>(null);
+  const [logoClickCount, setLogoClickCount] = useState(0);
+  const [logoClickTimer, setLogoClickTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Generate trial sequence with no consecutive identical stimuli
   const generateTrials = useCallback((): Trial[] => {
@@ -224,30 +383,41 @@ export default function FocusGame({
   };
   const finishGame = (finalResults: TrialResult[]) => {
     setGameState("finished");
-    console.log("=== STROOP TEST RESULTS ===");
-    console.log(JSON.stringify(finalResults, null, 2));
     
-    // Calculate aggregates immediately
-    const correctCount = finalResults.filter(r => r.isCorrect).length;
-    const accuracy = Math.round(correctCount / TOTAL_TRIALS * 100);
+    // Generate comprehensive coach report
+    const report = generateCoachReport(finalResults);
+    setCoachReport(report);
     
-    const congruentResults = finalResults.filter(r => r.type === 'CONGRUENT' && r.isCorrect).map(r => r.reactionTime).sort((a, b) => a - b);
-    const incongruentResults = finalResults.filter(r => r.type === 'INCONGRUENT' && r.isCorrect).map(r => r.reactionTime).sort((a, b) => a - b);
-    const medianCongruent = congruentResults.length > 0 ? Math.round(congruentResults[Math.floor(congruentResults.length / 2)]) : 0;
-    const medianIncongruent = incongruentResults.length > 0 ? Math.round(incongruentResults[Math.floor(incongruentResults.length / 2)]) : 0;
+    // Log to console for debugging/export
+    console.log("=== SIGMA FOCUS - COACH REPORT ===");
+    console.log(JSON.stringify(report, null, 2));
+    
+    // Calculate display metrics (using filtered data)
+    const validTrials = filterTrials(finalResults);
+    const correctCount = validTrials.filter(r => r.isCorrect).length;
+    const accuracy = Math.round(correctCount / validTrials.length * 100);
+    
+    const congruentResults = validTrials.filter(r => r.type === 'CONGRUENT' && r.isCorrect).map(r => r.reactionTime);
+    const incongruentResults = validTrials.filter(r => r.type === 'INCONGRUENT' && r.isCorrect).map(r => r.reactionTime);
+    const medianCongruent = Math.round(calculateMedian(congruentResults));
+    const medianIncongruent = Math.round(calculateMedian(incongruentResults));
     const concentrationCost = medianIncongruent - medianCongruent;
     
     const gameData = {
       // Surowe dane z każdej próby
       trials: finalResults,
       
-      // Agregaty - kluczowe wskaźniki
+      // Agregaty - kluczowe wskaźniki (z filtrowanych danych)
       medianCongruent,
       medianIncongruent,
       concentrationCost,
       accuracy,
       correctCount,
       totalTrials: TOTAL_TRIALS,
+      validTrials: validTrials.length,
+      
+      // Zaawansowane metryki trenera
+      coachReport: report,
       
       // Opcjonalne HRV (uzupełniane później manualnie)
       rMSSD: null,
@@ -329,18 +499,43 @@ export default function FocusGame({
       </div>;
   }
 
+  // Handle logo triple-click to show coach report
+  const handleLogoClick = () => {
+    if (logoClickTimer) {
+      clearTimeout(logoClickTimer);
+    }
+    
+    const newCount = logoClickCount + 1;
+    setLogoClickCount(newCount);
+    
+    if (newCount >= 3) {
+      setShowCoachReport(true);
+      setLogoClickCount(0);
+      setLogoClickTimer(null);
+    } else {
+      const timer = setTimeout(() => {
+        setLogoClickCount(0);
+        setLogoClickTimer(null);
+      }, 500);
+      setLogoClickTimer(timer);
+    }
+  };
+
   // Finished screen
   if (gameState === "finished") {
-    const correctCount = results.filter(r => r.isCorrect).length;
-    const accuracy = Math.round(correctCount / TOTAL_TRIALS * 100);
+    // Use FILTERED data for display (150-1500ms)
+    const validTrials = filterTrials(results);
+    const correctCount = validTrials.filter(r => r.isCorrect).length;
+    const accuracy = Math.round(correctCount / validTrials.length * 100);
 
-    // Calculate median reaction times for congruent and incongruent
-    const congruentResults = results.filter(r => r.type === 'CONGRUENT' && r.isCorrect).map(r => r.reactionTime).sort((a, b) => a - b);
-    const incongruentResults = results.filter(r => r.type === 'INCONGRUENT' && r.isCorrect).map(r => r.reactionTime).sort((a, b) => a - b);
-    const medianCongruent = congruentResults.length > 0 ? Math.round(congruentResults[Math.floor(congruentResults.length / 2)]) : 0;
-    const medianIncongruent = incongruentResults.length > 0 ? Math.round(incongruentResults[Math.floor(incongruentResults.length / 2)]) : 0;
+    // Calculate median reaction times for congruent and incongruent (filtered, correct only)
+    const congruentResults = validTrials.filter(r => r.type === 'CONGRUENT' && r.isCorrect).map(r => r.reactionTime);
+    const incongruentResults = validTrials.filter(r => r.type === 'INCONGRUENT' && r.isCorrect).map(r => r.reactionTime);
+    const medianCongruent = Math.round(calculateMedian(congruentResults));
+    const medianIncongruent = Math.round(calculateMedian(incongruentResults));
     const concentrationCost = medianIncongruent - medianCongruent;
-    const overallMedian = Math.round((medianCongruent + medianIncongruent) / 2);
+    const allCorrectRTs = [...congruentResults, ...incongruentResults];
+    const overallMedian = Math.round(calculateMedian(allCorrectRTs));
 
     // Calculate max for chart scale
     const maxTime = Math.max(medianCongruent, medianIncongruent);
@@ -364,7 +559,13 @@ export default function FocusGame({
       }}>
         <Card className="max-w-4xl w-full border-slate-700 bg-slate-800 animate-scale-in">
           <CardContent className="pt-6 space-y-6">
-            <h2 className="text-2xl font-bold text-white text-center mb-6">Wynik wyzwania Sigma Focus</h2>
+            <h2 
+              className="text-2xl font-bold text-white text-center mb-6 cursor-pointer select-none" 
+              onClick={handleLogoClick}
+              title="Potrójne kliknięcie otwiera raport trenera"
+            >
+              Wynik wyzwania Sigma Focus
+            </h2>
             
             <div className="space-y-4">
               {/* Top Section: Overall Median + Accuracy */}
@@ -377,7 +578,7 @@ export default function FocusGame({
                   </div>
                   <div>
                     <p className="text-3xl font-bold text-green-400">{accuracy}%</p>
-                    <p className="text-xs text-slate-500">Celność ({correctCount}/{TOTAL_TRIALS})</p>
+                    <p className="text-xs text-slate-500">Celność ({correctCount}/{validTrials.length})</p>
                   </div>
                 </div>
               </div>
@@ -524,6 +725,8 @@ export default function FocusGame({
                   accuracy,
                   correctCount,
                   totalTrials: TOTAL_TRIALS,
+                  validTrials: validTrials.length,
+                  coachReport: coachReport,
                   rMSSD: manualRMSSD,
                   HR: manualHR
                 };
@@ -542,6 +745,8 @@ export default function FocusGame({
                   accuracy,
                   correctCount,
                   totalTrials: TOTAL_TRIALS,
+                  validTrials: validTrials.length,
+                  coachReport: coachReport,
                   rMSSD: manualRMSSD,
                   HR: manualHR
                 };
@@ -552,6 +757,61 @@ export default function FocusGame({
             </div>
           </CardContent>
         </Card>
+        
+        {/* Hidden Coach Report Modal */}
+        <Dialog open={showCoachReport} onOpenChange={setShowCoachReport}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-slate-900 text-white border-slate-700">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-primary">Raport Trenera - Sigma Focus</DialogTitle>
+            </DialogHeader>
+            {coachReport && (
+              <div className="space-y-4 font-mono text-xs">
+                <div className="bg-slate-800 p-4 rounded-lg">
+                  <h3 className="font-bold text-green-400 mb-2">Session Info</h3>
+                  <pre className="text-slate-300">{JSON.stringify(coachReport.sessionInfo, null, 2)}</pre>
+                </div>
+                
+                <div className="bg-slate-800 p-4 rounded-lg">
+                  <h3 className="font-bold text-blue-400 mb-2">Player Metrics</h3>
+                  <pre className="text-slate-300">{JSON.stringify(coachReport.playerMetrics, null, 2)}</pre>
+                </div>
+                
+                <div className="bg-slate-800 p-4 rounded-lg">
+                  <h3 className="font-bold text-yellow-400 mb-2">Coach Metrics</h3>
+                  <pre className="text-slate-300">{JSON.stringify(coachReport.coachMetrics, null, 2)}</pre>
+                </div>
+                
+                <div className="bg-slate-800 p-4 rounded-lg">
+                  <h3 className="font-bold text-red-400 mb-2">Interpretacja</h3>
+                  <ul className="text-slate-300 space-y-1 list-disc list-inside">
+                    <li><strong>IES (Inverse Efficiency Score):</strong> Niższy = lepszy (szybkość + dokładność)</li>
+                    <li><strong>Interference Cost (rawMs):</strong> Różnica median RT. Mniejsza = lepsza koncentracja</li>
+                    <li><strong>IES Diff:</strong> Różnica IES między niezgodnymi a zgodnymi. Mniejsza = lepsza efektywność</li>
+                    <li><strong>IQR:</strong> Zmienność czasów reakcji. Mniejsza = bardziej stabilny</li>
+                    <li><strong>Best Streak:</strong> Najdłuższa seria bez błędu</li>
+                  </ul>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => {
+                    const dataStr = JSON.stringify(coachReport, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `sigma-focus-report-${new Date().toISOString()}.json`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  Pobierz Raport (JSON)
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
         </div>
       </div>;
   }
