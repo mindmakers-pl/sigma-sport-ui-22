@@ -1,3 +1,45 @@
+import { allSixSigmaQuestionnaires } from "@/data/sixSigmaQuestionnaires";
+import { scoreSixSigma, QuestionnaireResponse } from "@/utils/sixSigmaScoring";
+
+// Generate realistic Six Sigma responses
+function generateMockSixSigmaResponses(competenceProfile: Record<string, number>) {
+  const fullQuestionnaire = allSixSigmaQuestionnaires[0]; // six_sigma_full
+  const moodQuestionnaire = allSixSigmaQuestionnaires[2]; // six_sigma_mood
+
+  // Generate responses based on competence profile
+  const fullResponses: QuestionnaireResponse[] = fullQuestionnaire.questions.map(q => {
+    const baseScore = competenceProfile[q.competence] || 4;
+    const variance = Math.floor(Math.random() * 2) - 1; // -1, 0, or 1
+    const value = Math.max(1, Math.min(5, baseScore + variance));
+    
+    return {
+      questionId: q.id,
+      value,
+      competence: q.competence,
+      reversed: q.reversed,
+      keyIndicator: q.keyIndicator
+    };
+  });
+
+  const moodResponses: QuestionnaireResponse[] = moodQuestionnaire.questions.map(q => ({
+    questionId: q.id,
+    value: Math.floor(Math.random() * 2) + 4, // 4 or 5 - good mood
+    competence: q.competence,
+    reversed: q.reversed
+  }));
+
+  const results = scoreSixSigma(fullResponses, moodResponses, 5);
+
+  return {
+    selectedQuestionnaires: ['six_sigma_full', 'six_sigma_mood'],
+    responses: {
+      six_sigma_full: fullResponses,
+      six_sigma_mood: moodResponses
+    },
+    results
+  };
+}
+
 // Mock data generator for athlete sessions
 export const generateMockSessions = (athleteId: string, athleteName: string) => {
   const sessions = [
@@ -8,11 +50,14 @@ export const generateMockSessions = (athleteId: string, athleteName: string) => 
       date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
       conditions: 'pracownia',
       results: {
-        kwestionariusz: {
-          confidence: 8,
-          emotionalControl: 7,
-          motivation: 9
-        },
+        questionnaire: generateMockSixSigmaResponses({
+          'Aktywacja': 4,
+          'Kontrola': 4,
+          'Reset': 4,
+          'Fokus': 5,
+          'Pewność': 4,
+          'Determinacja': 5
+        }),
         hrv_baseline: {
           hrv: '65'
         },
@@ -62,11 +107,14 @@ export const generateMockSessions = (athleteId: string, athleteName: string) => 
       date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
       conditions: 'trening',
       results: {
-        kwestionariusz: {
-          confidence: 7,
-          emotionalControl: 6,
-          motivation: 8
-        },
+        questionnaire: generateMockSixSigmaResponses({
+          'Aktywacja': 3,
+          'Kontrola': 3,
+          'Reset': 4,
+          'Fokus': 4,
+          'Pewność': 3,
+          'Determinacja': 4
+        }),
         hrv_baseline: {
           hrv: '62'
         },
@@ -116,11 +164,14 @@ export const generateMockSessions = (athleteId: string, athleteName: string) => 
       date: new Date().toISOString(),
       conditions: 'pracownia',
       results: {
-        kwestionariusz: {
-          confidence: 9,
-          emotionalControl: 8,
-          motivation: 9
-        },
+        questionnaire: generateMockSixSigmaResponses({
+          'Aktywacja': 5,
+          'Kontrola': 4,
+          'Reset': 5,
+          'Fokus': 5,
+          'Pewność': 5,
+          'Determinacja': 5
+        }),
         hrv_baseline: {
           hrv: '70'
         },
