@@ -276,7 +276,7 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
           <div className="max-w-3xl w-full bg-slate-900 rounded-2xl p-12 space-y-8 shadow-2xl">
           <h1 className="text-5xl font-bold text-white text-center mb-6">Sigma Focus</h1>
           
-          <div className="space-y-6 text-slate-200 text-lg leading-relaxed">
+          <div className="space-y-6 text-slate-200 text-lg leading-relaxed text-center">
             <p className="text-xl">
               <span className="font-bold text-white">Twoim zadaniem jest kliknięcie kwadratu w kolorze, którym napisane jest słowo.</span>
             </p>
