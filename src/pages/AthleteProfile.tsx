@@ -21,6 +21,7 @@ import HRVBaselineForm from "@/components/forms/HRVBaselineForm";
 import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
 import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
 import { loadMockSessionsToStorage } from "@/utils/mockSessionData";
+import TrainingsTable from "@/components/TrainingsTable";
 
 const AthleteProfile = () => {
   const { id } = useParams();
@@ -150,7 +151,29 @@ const AthleteProfile = () => {
   const handleTaskComplete = (data: any) => {
     const taskName = currentView.replace('showing_', '').replace('playing_', '').replace('measuring_', '');
     
-    // Update status and results
+    // Check if this is a training session
+    const currentTrainingStr = localStorage.getItem('current_training');
+    if (currentTrainingStr && currentView.startsWith('playing_')) {
+      // This is a training session - save separately
+      const currentTraining = JSON.parse(currentTrainingStr);
+      const trainingRecord = {
+        ...currentTraining,
+        results: data,
+        completedAt: new Date().toISOString()
+      };
+      
+      // Save to trainings list
+      const existingTrainings = JSON.parse(localStorage.getItem('athlete_trainings') || '[]');
+      existingTrainings.push(trainingRecord);
+      localStorage.setItem('athlete_trainings', JSON.stringify(existingTrainings));
+      localStorage.removeItem('current_training');
+      
+      console.log('Trening zapisany:', trainingRecord);
+      setCurrentView('kokpit');
+      return;
+    }
+    
+    // Otherwise, it's a measurement session
     const updatedStatus = { ...taskStatus, [taskName]: 'completed' };
     const updatedResults = { ...sessionResults, [taskName]: data };
     
@@ -847,11 +870,23 @@ const AthleteProfile = () => {
                 <Card className="bg-slate-50 hover:bg-slate-100 border-slate-200 cursor-pointer transition-all">
                   <CardContent className="p-4">
                     <h3 className="font-semibold text-slate-900 mb-2">Sigma Focus</h3>
-                    <p className="text-sm text-slate-600 mb-4">Test koncentracji (Stroop)</p>
+                    <p className="text-sm text-slate-600 mb-4">Trening uwagi selektywnej</p>
                     <Button 
                       size="sm" 
                       className="w-full"
-                      onClick={() => setCurrentView('playing_focus')}
+                      onClick={() => {
+                        const training = {
+                          id: `training_focus_${Date.now()}`,
+                          athlete_id: id,
+                          athlete_name: athlete.name,
+                          game_type: 'focus',
+                          game_name: 'Sigma Focus',
+                          date: new Date().toISOString(),
+                          results: {}
+                        };
+                        localStorage.setItem('current_training', JSON.stringify(training));
+                        setCurrentView('playing_focus');
+                      }}
                     >
                       Zagraj
                     </Button>
@@ -866,6 +901,7 @@ const AthleteProfile = () => {
           <Tabs value={reportTab} onValueChange={setReportTab}>
             <TabsList className="mb-6">
               <TabsTrigger value="historia">Historia sesji</TabsTrigger>
+              <TabsTrigger value="treningi">Treningi</TabsTrigger>
               <TabsTrigger value="postepy">Postępy</TabsTrigger>
               <TabsTrigger value="porownanie">Porównanie</TabsTrigger>
             </TabsList>
@@ -1027,6 +1063,18 @@ const AthleteProfile = () => {
                       </Card>
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Treningi */}
+            <TabsContent value="treningi" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Historia treningów</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TrainingsTable athleteId={id} />
                 </CardContent>
               </Card>
             </TabsContent>
