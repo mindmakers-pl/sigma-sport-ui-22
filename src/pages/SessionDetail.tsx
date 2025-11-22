@@ -210,7 +210,7 @@ export default function SessionDetail() {
 
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-slate-900 mb-2">
-            Raport Sigma Focus (Stroop Test)
+            Raport Sigma Focus
           </h2>
           <p className="text-slate-600">
             {athlete.name} • {new Date(session.date).toLocaleDateString('pl-PL')}
@@ -218,16 +218,15 @@ export default function SessionDetail() {
         </div>
 
         <Tabs defaultValue="player" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="player">Dla Zawodnika</TabsTrigger>
-            <TabsTrigger value="coach">Dla Trenera</TabsTrigger>
-            <TabsTrigger value="export">Eksport Danych</TabsTrigger>
-          </TabsList>
-
-          {/* Player View - Simple metrics */}
-          <TabsContent value="player" className="space-y-6">
+          <div className="flex justify-between items-center mb-6">
+            <TabsList>
+              <TabsTrigger value="player">Dla Zawodnika</TabsTrigger>
+              <TabsTrigger value="coach">Dla Trenera</TabsTrigger>
+              <TabsTrigger value="export">Eksport Danych</TabsTrigger>
+            </TabsList>
+            
             {/* Download and Send buttons */}
-            <div className="flex justify-end gap-2 mb-4">
+            <div className="flex gap-2">
               <Button variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
                 Pobierz
@@ -240,13 +239,16 @@ export default function SessionDetail() {
                 Wyślij
               </Button>
             </div>
+          </div>
 
+          {/* Player View - Simple metrics */}
+          <TabsContent value="player" className="space-y-6">
             {/* Intro explanation */}
             <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
               <CardContent className="pt-6">
-                <h3 className="font-bold text-lg text-slate-900 mb-3">🎯 Co mierzy Test Stroopa?</h3>
+                <h3 className="font-bold text-lg text-slate-900 mb-3">🎯 Z wyzwania Sigma Focus dowiadujesz się:</h3>
                 <p className="text-slate-700 leading-relaxed mb-2">
-                  Test Stroopa sprawdza Twoją <strong>koncentrację</strong> i umiejętność <strong>ignorowania rozpraszaczy</strong>. 
+                  Jak dobra jest Twoja <strong>koncentracja</strong> i umiejętność <strong>ignorowania rozpraszaczy</strong>. 
                   W sporcie ta zdolność przekłada się na precyzję w kluczowych momentach – możesz skupić się na tym, co ważne, 
                   nawet gdy dookoła dzieje się wiele rzeczy (kibice, przeciwnicy, zmęczenie).
                 </p>
