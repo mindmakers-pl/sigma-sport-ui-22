@@ -94,18 +94,29 @@ const ProgressReport = () => {
       </div>
 
       <Tabs defaultValue="dla-zawodnika" className="w-full">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4">
           <TabsList>
             <TabsTrigger value="dla-zawodnika">Dla zawodnika</TabsTrigger>
             <TabsTrigger value="dla-trenera">Dla trenera</TabsTrigger>
+            <TabsTrigger value="eksport">Eksportuj wyniki</TabsTrigger>
           </TabsList>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Eksportuj wszystkie dane
-          </Button>
         </div>
 
         <TabsContent value="dla-zawodnika" className="space-y-6">
+          <div className="flex justify-end gap-2 mb-4">
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Pobierz PDF
+            </Button>
+            <Button variant="outline" size="sm">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m22 2-7 20-4-9-9-4Z" />
+                <path d="M22 2 11 13" />
+              </svg>
+              Wyślij PDF
+            </Button>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle>Twój postęp w {gameName}</CardTitle>
@@ -165,6 +176,20 @@ const ProgressReport = () => {
         </TabsContent>
 
         <TabsContent value="dla-trenera" className="space-y-6">
+          <div className="flex justify-end gap-2 mb-4">
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Pobierz PDF
+            </Button>
+            <Button variant="outline" size="sm">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m22 2-7 20-4-9-9-4Z" />
+                <path d="M22 2 11 13" />
+              </svg>
+              Wyślij PDF
+            </Button>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle>Analiza trendów - widok trenera</CardTitle>
@@ -246,6 +271,86 @@ const ProgressReport = () => {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="eksport" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Eksportuj wyniki postępów</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Pobierz szczegółowe dane z wszystkich wybranych treningów w różnych formatach
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-3 gap-4">
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex-col gap-2"
+                  onClick={() => {
+                    const dataStr = JSON.stringify(trainings, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `postepy-${gameType}-${new Date().toISOString()}.json`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  <Download className="h-6 w-6" />
+                  <span>Pobierz JSON</span>
+                  <span className="text-xs text-muted-foreground">Pełne dane wszystkich treningów</span>
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex-col gap-2"
+                  onClick={() => {
+                    const headers = ['Data', 'Mediana RT (ms)', 'Łatwe RT (ms)', 'Trudne RT (ms)', 'Trafność (%)', 'Koszt koncentracji (ms)', 'IQR (ms)'];
+                    const csvContent = [
+                      headers.join(','),
+                      ...trendData.map((row: any) => 
+                        [row.date, row.medianRT || row.easyRT, row.easyRT, row.hardRT, row.accuracy, row.concentrationCost, row.iqr].join(',')
+                      )
+                    ].join('\n');
+                    
+                    const blob = new Blob([csvContent], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `postepy-${gameType}-${new Date().toISOString()}.csv`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  <Download className="h-6 w-6" />
+                  <span>Pobierz CSV</span>
+                  <span className="text-xs text-muted-foreground">Dane trendów (Excel)</span>
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex-col gap-2" 
+                  disabled
+                >
+                  <Download className="h-6 w-6" />
+                  <span>Pobierz PDF</span>
+                  <span className="text-xs text-muted-foreground">Kompletny raport</span>
+                </Button>
+              </div>
+
+              <div className="mt-6 p-4 bg-muted rounded-lg">
+                <h4 className="font-semibold mb-2">
+                  Informacje o danych:
+                </h4>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li><strong>JSON:</strong> Zawiera wszystkie surowe dane z {trainings.length} wybranych treningów</li>
+                  <li><strong>CSV:</strong> Tabela z metrykami trendów dla każdego treningu</li>
+                  <li><strong>PDF (wkrótce):</strong> Kompletny raport z wykresami i szczegółową analizą postępów</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
