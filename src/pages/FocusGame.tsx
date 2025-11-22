@@ -235,10 +235,7 @@ export default function FocusGame({
   const [buttonsDisabled, setButtonsDisabled] = useState(true);
   const [manualRMSSD, setManualRMSSD] = useState("");
   const [manualHR, setManualHR] = useState("");
-  const [showCoachReport, setShowCoachReport] = useState(false);
   const [coachReport, setCoachReport] = useState<any>(null);
-  const [logoClickCount, setLogoClickCount] = useState(0);
-  const [logoClickTimer, setLogoClickTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Generate trial sequence with no consecutive identical stimuli
   const generateTrials = useCallback((): Trial[] => {
@@ -499,28 +496,6 @@ export default function FocusGame({
       </div>;
   }
 
-  // Handle logo triple-click to show coach report
-  const handleLogoClick = () => {
-    if (logoClickTimer) {
-      clearTimeout(logoClickTimer);
-    }
-    
-    const newCount = logoClickCount + 1;
-    setLogoClickCount(newCount);
-    
-    if (newCount >= 3) {
-      setShowCoachReport(true);
-      setLogoClickCount(0);
-      setLogoClickTimer(null);
-    } else {
-      const timer = setTimeout(() => {
-        setLogoClickCount(0);
-        setLogoClickTimer(null);
-      }, 500);
-      setLogoClickTimer(timer);
-    }
-  };
-
   // Finished screen
   if (gameState === "finished") {
     // Use FILTERED data for display (150-1500ms)
@@ -560,9 +535,7 @@ export default function FocusGame({
         <Card className="max-w-4xl w-full border-slate-700 bg-slate-800 animate-scale-in">
           <CardContent className="pt-6 space-y-6">
             <h2 
-              className="text-2xl font-bold text-white text-center mb-6 cursor-pointer select-none" 
-              onClick={handleLogoClick}
-              title="Potrójne kliknięcie otwiera raport trenera"
+              className="text-2xl font-bold text-white text-center mb-6"
             >
               Wynik wyzwania Sigma Focus
             </h2>
@@ -758,60 +731,6 @@ export default function FocusGame({
           </CardContent>
         </Card>
         
-        {/* Hidden Coach Report Modal */}
-        <Dialog open={showCoachReport} onOpenChange={setShowCoachReport}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-slate-900 text-white border-slate-700">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-primary">Raport Trenera - Sigma Focus</DialogTitle>
-            </DialogHeader>
-            {coachReport && (
-              <div className="space-y-4 font-mono text-xs">
-                <div className="bg-slate-800 p-4 rounded-lg">
-                  <h3 className="font-bold text-green-400 mb-2">Session Info</h3>
-                  <pre className="text-slate-300">{JSON.stringify(coachReport.sessionInfo, null, 2)}</pre>
-                </div>
-                
-                <div className="bg-slate-800 p-4 rounded-lg">
-                  <h3 className="font-bold text-blue-400 mb-2">Player Metrics</h3>
-                  <pre className="text-slate-300">{JSON.stringify(coachReport.playerMetrics, null, 2)}</pre>
-                </div>
-                
-                <div className="bg-slate-800 p-4 rounded-lg">
-                  <h3 className="font-bold text-yellow-400 mb-2">Coach Metrics</h3>
-                  <pre className="text-slate-300">{JSON.stringify(coachReport.coachMetrics, null, 2)}</pre>
-                </div>
-                
-                <div className="bg-slate-800 p-4 rounded-lg">
-                  <h3 className="font-bold text-red-400 mb-2">Interpretacja</h3>
-                  <ul className="text-slate-300 space-y-1 list-disc list-inside">
-                    <li><strong>IES (Inverse Efficiency Score):</strong> Niższy = lepszy (szybkość + dokładność)</li>
-                    <li><strong>Interference Cost (rawMs):</strong> Różnica median RT. Mniejsza = lepsza koncentracja</li>
-                    <li><strong>IES Diff:</strong> Różnica IES między niezgodnymi a zgodnymi. Mniejsza = lepsza efektywność</li>
-                    <li><strong>IQR:</strong> Zmienność czasów reakcji. Mniejsza = bardziej stabilny</li>
-                    <li><strong>Best Streak:</strong> Najdłuższa seria bez błędu</li>
-                  </ul>
-                </div>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => {
-                    const dataStr = JSON.stringify(coachReport, null, 2);
-                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                    const url = URL.createObjectURL(dataBlob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `sigma-focus-report-${new Date().toISOString()}.json`;
-                    link.click();
-                    URL.revokeObjectURL(url);
-                  }}
-                >
-                  Pobierz Raport (JSON)
-                </Button>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
         </div>
       </div>;
   }
