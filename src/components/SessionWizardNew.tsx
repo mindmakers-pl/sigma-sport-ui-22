@@ -40,8 +40,8 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
     setSessionResults(updatedResults);
     console.log('Zapisano dane dla kroku:', stepName, data);
 
-    // Always return to session view (tab dodaj-pomiar) after completing any step
-    onClose();
+    // Show completion message then return to selection
+    setCurrentStep('complete');
   };
 
   const handleReturnToSelection = () => {
@@ -130,28 +130,36 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
 
       case 'complete':
         return (
-          <div className="flex items-center justify-center h-full p-4">
+          <div className="min-h-screen bg-background flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
               <CardContent className="pt-6 space-y-6">
                 <div className="text-center">
                   <h2 className="text-3xl font-bold mb-4">
-                    Sesja zakończona!
+                    Zapisane!
                   </h2>
                   <p className="text-muted-foreground text-lg mb-6">
-                    Wszystkie zadania zostały ukończone pomyślnie.
+                    Twoje wyniki zostały zapisane.
                   </p>
                   <div className="text-sm text-muted-foreground mb-8">
-                    <p>Ukończone kroki: {Object.keys(sessionResults).length}</p>
+                    <p>Możesz kontynuować sesję i wybrać kolejne wyzwanie.</p>
                   </div>
                 </div>
 
-                <Button 
-                  onClick={handleFinalSave}
-                  className="w-full"
-                  size="lg"
-                >
-                  Zakończ i Zapisz
-                </Button>
+                <div className="flex gap-3">
+                  <Button 
+                    variant="outline"
+                    onClick={handleFinalSave}
+                    className="flex-1"
+                  >
+                    Zakończ Sesję
+                  </Button>
+                  <Button 
+                    onClick={onClose}
+                    className="flex-1"
+                  >
+                    Wybierz Kolejne
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -163,7 +171,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
   };
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full min-h-screen bg-background">
       {renderCurrentStep()}
     </div>
   );
