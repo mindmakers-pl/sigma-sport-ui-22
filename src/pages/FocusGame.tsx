@@ -248,7 +248,7 @@ export default function FocusGame({
         minHeight: 'calc(100vh - 80px)'
       }}>
           <div className="max-w-3xl w-full bg-slate-900 rounded-2xl p-12 space-y-8 shadow-2xl">
-          <h1 className="text-5xl font-bold text-white text-center mb-6">Sigma Focus</h1>
+          <h1 className="text-5xl font-bold text-white text-center mb-6">Wyzwanie Sigma Focus</h1>
           
           <div className="space-y-6 text-slate-200 leading-relaxed text-center animate-fade-in">
             <p className="text-lg">
