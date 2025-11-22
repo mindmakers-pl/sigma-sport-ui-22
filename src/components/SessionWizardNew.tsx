@@ -38,9 +38,10 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
       [stepName]: data
     };
     setSessionResults(updatedResults);
+    console.log('Zapisano dane dla kroku:', stepName, data);
 
-    // Return to questionnaire selection after completing a step
-    setCurrentStep('questionnaire-select');
+    // Always return to session view (tab dodaj-pomiar) after completing any step
+    onClose();
   };
 
   const handleReturnToSelection = () => {

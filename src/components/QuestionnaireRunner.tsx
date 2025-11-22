@@ -120,9 +120,14 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
                 <p className="text-green-500 text-sm text-center">✓ Zapisaliśmy Twoje odpowiedzi</p>
               </div>
 
-              <Button onClick={handleFinish} className="w-full" size="lg">
-                Następne Wyzwanie
-              </Button>
+              <div className="flex gap-3 pt-4">
+                <Button variant="outline" onClick={onCancel} className="flex-1">
+                  Zakończ
+                </Button>
+                <Button onClick={handleFinish} className="flex-1">
+                  Następne Wyzwanie
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -133,7 +138,7 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
   if (showIntro) {
     return (
       <div className="min-h-screen bg-background p-4">
-        <div className="absolute top-4 left-4">
+        <div className="absolute top-4 left-4 z-10">
           <Button
             variant="ghost"
             size="sm"
@@ -145,7 +150,7 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
           </Button>
         </div>
 
-        <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
+        <div className="flex items-center justify-center min-h-screen">
           <Card className="w-full max-w-md">
             <CardContent className="pt-6 space-y-6">
               <div>
@@ -176,7 +181,7 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
 
   return (
     <div className="min-h-screen bg-background p-4">
-      <div className="absolute top-4 left-4">
+      <div className="absolute top-4 left-4 z-10">
         <Button
           variant="ghost"
           size="sm"
@@ -188,7 +193,7 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
         </Button>
       </div>
       
-      <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
+      <div className="flex items-center justify-center min-h-screen">
         <Card className="w-full max-w-2xl">
           <CardContent className="pt-6 space-y-6">
             <div className="flex items-center justify-between mb-4">
@@ -213,11 +218,14 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
               <p className="text-lg leading-relaxed">{currentQuestion.text}</p>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs text-muted-foreground mb-2 px-2">
-                <span>Zupełnie nie o mnie</span>
-                <span>Trochę o mnie</span>
-                <span>O mnie!</span>
+            <div className="space-y-4">
+              <div className="text-center text-sm text-muted-foreground mb-3">
+                <p className="mb-1">Jak bardzo to zdanie pasuje do Ciebie?</p>
+                <div className="flex justify-between px-2">
+                  <span>Zupełnie nie o mnie</span>
+                  <span>Trochę o mnie</span>
+                  <span>O mnie!</span>
+                </div>
               </div>
               <div className="grid grid-cols-5 gap-2">
                 {[1, 2, 3, 4, 5].map((value) => (
@@ -226,7 +234,7 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
                     onClick={() => handleAnswer(value)}
                     className={`
                       h-16 rounded-lg border-2 transition-all
-                      hover:scale-105 active:scale-95
+                      hover:scale-105 active:scale-95 flex items-center justify-center
                       ${answers[currentQuestion.id] === value
                         ? 'border-primary bg-primary text-primary-foreground'
                         : 'border-border hover:border-primary/50'
