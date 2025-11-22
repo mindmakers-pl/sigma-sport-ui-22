@@ -22,6 +22,7 @@ import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
 import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
 import { loadMockSessionsToStorage } from "@/utils/mockSessionData";
 import TrainingsTable from "@/components/TrainingsTable";
+import SessionWizardNew from "@/components/SessionWizardNew";
 
 const AthleteProfile = () => {
   const { id } = useParams();
@@ -692,9 +693,9 @@ const AthleteProfile = () => {
                     <Button 
                       size="sm" 
                       className="w-full"
-                      onClick={() => setCurrentView('showing_questionnaire')}
+                      onClick={() => setCurrentView('wizard')}
                     >
-                      {taskStatus.kwestionariusz === 'completed' ? 'Powtórz' : 'Rozpocznij'}
+                      Rozpocznij sesję
                     </Button>
                   </CardContent>
                 </Card>
@@ -1434,15 +1435,25 @@ const AthleteProfile = () => {
         if (!open) setCurrentView('kokpit');
       }}>
         <DialogContent className="w-screen h-screen max-w-none p-0 border-0 bg-slate-900">
-          {/* Przycisk Powrót - zawsze widoczny */}
-          <Button 
-            variant="ghost" 
-            className="absolute top-4 left-4 z-50 text-white hover:bg-slate-800"
-            onClick={() => setCurrentView('kokpit')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Powrót
-          </Button>
+          {currentView === 'wizard' && (
+            <SessionWizardNew
+              athleteId={id || ''}
+              onClose={() => setCurrentView('kokpit')}
+              onSaveSession={handleSaveSession}
+            />
+          )}
+
+          {/* Przycisk Powrót - zawsze widoczny ale nie podczas wizarda */}
+          {currentView !== 'wizard' && (
+            <Button 
+              variant="ghost" 
+              className="absolute top-4 left-4 z-50 text-white hover:bg-slate-800"
+              onClick={() => setCurrentView('kokpit')}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Powrót
+            </Button>
+          )}
 
           {currentView === 'showing_questionnaire' && (
             <Kwestionariusz onComplete={handleTaskComplete} />

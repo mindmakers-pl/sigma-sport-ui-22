@@ -30,6 +30,7 @@ export interface SixSigmaQuestionnaire {
   name: string;
   shortName: string;
   description: string;
+  completionMessage?: string;
   usage: string;
   frequency: string;
   estimatedTime: string;
@@ -374,6 +375,7 @@ export const sixSigmaFull: SixSigmaQuestionnaire = {
   name: 'Six Sigma',
   shortName: 'Pełna Bateria',
   description: 'Cześć! To nie jest klasówka i nikt Cię tu nie ocenia. To narzędzie, które tworzy mapę Twojego sportowego mózgu.\n\nOdpowiadaj tak, jak faktycznie czujesz, a nie tak, jak "wypada". Jeśli zaznaczysz prawdę, dowiemy się, co podkręcić, żebyś wygrywał. Jeśli skłamiesz, oszukasz tylko własny trening.\n\nTo zajmie około 5 minut. Gotowy sprawdzić swoje parametry?',
+  completionMessage: 'Mapa gotowa! Twoje odpowiedzi pomogą nam spersonalizować trening mentalny. Sprawdź swój profil w Sigma Score.',
   usage: '',
   frequency: 'T0 (początek sezonu) + T-Final (koniec sezonu)',
   estimatedTime: '5 minut',

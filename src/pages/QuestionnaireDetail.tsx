@@ -201,8 +201,7 @@ const QuestionnaireDetail = () => {
             </CardHeader>
             <CardContent className="space-y-6 p-8">
               <p className="text-muted-foreground text-lg">
-                Dziękujemy za wypełnienie kwestionariusza <strong className="text-foreground">{questionnaire.name}</strong>. 
-                Twoje odpowiedzi zostały zapisane i pomogą w śledzeniu Twojego rozwoju.
+                {questionnaire.completionMessage || `Dziękujemy za wypełnienie kwestionariusza ${questionnaire.name}. Twoje odpowiedzi zostały zapisane i pomogą w śledzeniu Twojego rozwoju.`}
               </p>
 
               <div className="bg-primary/5 rounded-lg p-6 border border-primary/20">
