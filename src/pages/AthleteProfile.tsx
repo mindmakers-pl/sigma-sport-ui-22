@@ -451,8 +451,8 @@ const AthleteProfile = () => {
         <div className="flex items-center justify-between mb-4">
             <TabsList className="bg-white border border-slate-200">
               <TabsTrigger value="informacje">Informacje o zawodniku</TabsTrigger>
-              <TabsTrigger value="dodaj-pomiar">Dodaj pomiar</TabsTrigger>
               <TabsTrigger value="trening">Trening</TabsTrigger>
+              <TabsTrigger value="dodaj-pomiar">Dodaj pomiar</TabsTrigger>
               <TabsTrigger value="raporty">Raporty</TabsTrigger>
             </TabsList>
           {activeTab === "informacje" && (
@@ -901,9 +901,8 @@ const AthleteProfile = () => {
           <Tabs value={reportTab} onValueChange={setReportTab}>
             <TabsList className="mb-6">
               <TabsTrigger value="historia">Historia sesji</TabsTrigger>
-              <TabsTrigger value="treningi">Treningi</TabsTrigger>
-              <TabsTrigger value="postepy">Postępy</TabsTrigger>
-              <TabsTrigger value="porownanie">Porównanie</TabsTrigger>
+              <TabsTrigger value="sigma-score">Sigma Score</TabsTrigger>
+              <TabsTrigger value="treningi">Raporty treningowe</TabsTrigger>
             </TabsList>
 
             {/* Historia sesji */}
@@ -1067,135 +1066,8 @@ const AthleteProfile = () => {
               </Card>
             </TabsContent>
 
-            {/* Treningi */}
-            <TabsContent value="treningi" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Historia treningów</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <TrainingsTable athleteId={id} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Postępy */}
-            <TabsContent value="postepy" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Progres HRV Baseline</CardTitle>
-                  <p className="text-sm text-muted-foreground">Wyższe wartości = lepsza regeneracja</p>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={[
-                      { date: '23.02', value: 60 },
-                      { date: '01.03', value: 62 },
-                      { date: '08.03', value: 65 },
-                      { date: '15.03', value: 68 }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis domain={[50, 80]} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-green-800">
-                      <strong>Trend wzrostowy (+13%)</strong> - Świetna regeneracja! Zawodniczka systematycznie poprawia parametry HRV.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Progres Sigma Scan</CardTitle>
-                  <p className="text-sm text-muted-foreground">Niższe wartości = szybsza reakcja</p>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={[
-                      { date: '23.02', value: 9.8 },
-                      { date: '01.03', value: 9.1 },
-                      { date: '08.03', value: 8.5 },
-                      { date: '15.03', value: 8.2 }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis domain={[7, 11]} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-green-800">
-                      <strong>Postęp -16%</strong> - Znacząca poprawa czasu reakcji wizualnej!
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Progres Sigma Control</CardTitle>
-                  <p className="text-sm text-muted-foreground">Niższe wartości = lepsza kontrola</p>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={[
-                      { date: '23.02', value: 8 },
-                      { date: '01.03', value: 7 },
-                      { date: '08.03', value: 6 },
-                      { date: '15.03', value: 5 }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis domain={[0, 12]} />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="hsl(var(--primary))" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-green-800">
-                      <strong>Poprawa -37.5%</strong> - Wyraźny postęp w kontroli emocji i koncentracji!
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Progres Sigma Focus</CardTitle>
-                  <p className="text-sm text-muted-foreground">Wyższe wartości = lepsza koncentracja</p>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={[
-                      { date: '23.02', value: 62 },
-                      { date: '01.03', value: 65 },
-                      { date: '08.03', value: 68 },
-                      { date: '15.03', value: 72 }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis domain={[50, 80]} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-green-800">
-                      <strong>Wzrost +16%</strong> - Znacząca poprawa zdolności koncentracji!
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Porównanie */}
-            <TabsContent value="porownanie" className="space-y-6">
+            {/* Sigma Score */}
+            <TabsContent value="sigma-score" className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Porównanie pierwszego i ostatniego pomiaru</CardTitle>
@@ -1286,6 +1158,130 @@ const AthleteProfile = () => {
                       <strong>Do rozwoju:</strong> Mobilność - rozważ zwiększenie treningów ruchowych.
                     </p>
                   </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Progres HRV Baseline</CardTitle>
+                  <p className="text-sm text-muted-foreground">Wyższe wartości = lepsza regeneracja</p>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={[
+                      { date: '23.02', value: 60 },
+                      { date: '01.03', value: 62 },
+                      { date: '08.03', value: 65 },
+                      { date: '15.03', value: 68 }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      <strong>Trend wzrostowy (+13%)</strong> - Świetna regeneracja! Zawodniczka systematycznie poprawia parametry HRV.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Progres Sigma Scan</CardTitle>
+                  <p className="text-sm text-muted-foreground">Niższe wartości = szybsza reakcja</p>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={[
+                      { date: '23.02', value: 9.8 },
+                      { date: '01.03', value: 9.1 },
+                      { date: '08.03', value: 8.5 },
+                      { date: '15.03', value: 8.2 }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      <strong>Postęp -16%</strong> - Znacząca poprawa czasu reakcji wizualnej!
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Progres Sigma Control</CardTitle>
+                  <p className="text-sm text-muted-foreground">Niższe wartości = lepsza kontrola</p>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={[
+                      { date: '23.02', value: 8 },
+                      { date: '01.03', value: 7 },
+                      { date: '08.03', value: 6 },
+                      { date: '15.03', value: 5 }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="value" fill="hsl(var(--primary))" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      <strong>Poprawa -37.5%</strong> - Wyraźny postęp w kontroli emocji i koncentracji!
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Progres Sigma Focus</CardTitle>
+                  <p className="text-sm text-muted-foreground">Wyższe wartości = lepsza koncentracja</p>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={[
+                      { date: '23.02', value: 62 },
+                      { date: '01.03', value: 65 },
+                      { date: '08.03', value: 68 },
+                      { date: '15.03', value: 72 }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      <strong>Wzrost +16%</strong> - Znacząca poprawa zdolności koncentracji!
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Treningi */}
+            <TabsContent value="treningi" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Historia treningów</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TrainingsTable athleteId={id} />
                 </CardContent>
               </Card>
             </TabsContent>
