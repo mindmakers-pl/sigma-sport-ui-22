@@ -59,6 +59,8 @@ const ProgressReport = () => {
         session: `T${index + 1}`,
         date: new Date(t.completedAt).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' }),
         medianRT: Math.round(coachReport.overall?.medianRT || 0),
+        easyRT: Math.round(coachReport.coachMetrics?.congruent?.medianRT || 0),
+        hardRT: Math.round(coachReport.coachMetrics?.incongruent?.medianRT || 0),
         accuracy: Math.round((coachReport.overall?.accuracy || 0) * 100),
         concentrationCost: Math.round(t.results.concentrationCost || 0),
         iqr: Math.round(coachReport.overall?.iqr || 0)
@@ -67,6 +69,8 @@ const ProgressReport = () => {
 
     metrics = {
       medianRT: { label: 'Mediana czasu reakcji', unit: 'ms', description: 'Średni czas reakcji - niższe wartości oznaczają szybsze przetwarzanie informacji' },
+      easyRT: { label: 'Łatwe próby (bez konfliktu)', unit: 'ms', description: 'Czas reakcji na próby łatwe - gdy kolor pasował do słowa' },
+      hardRT: { label: 'Trudne próby (z konfliktem)', unit: 'ms', description: 'Czas reakcji na próby trudne - gdy kolor i słowo się różniły' },
       accuracy: { label: 'Trafność', unit: '%', description: 'Procent poprawnych odpowiedzi - wyższe wartości oznaczają lepszą precyzję' },
       concentrationCost: { label: 'Koszt koncentracji', unit: 'ms', description: 'Różnica między próbami trudnymi a łatwymi - niższe wartości oznaczają lepszą odporność na dystrakcję' },
       iqr: { label: 'Zmienność (IQR)', unit: 'ms', description: 'Stabilność czasów reakcji - niższe wartości oznaczają bardziej spójne wyniki' }
@@ -78,7 +82,7 @@ const ProgressReport = () => {
       <Button 
         variant="ghost" 
         className="mb-4"
-        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)}
+        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=treningi`)}
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Powrót
@@ -108,17 +112,19 @@ const ProgressReport = () => {
             </CardHeader>
             <CardContent className="space-y-8">
               <div>
-                <h3 className="font-semibold mb-4">Czas reakcji</h3>
+                <h3 className="font-semibold mb-4">Czas reakcji - łatwe vs trudne</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {metrics.medianRT.description}
+                  Porównanie szybkości reakcji na próby łatwe (bez konfliktu) i trudne (z konfliktem)
                 </p>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={trendData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
+                    <XAxis dataKey="date" angle={-45} textAnchor="end" height={60} />
                     <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="medianRT" stroke="hsl(var(--primary))" strokeWidth={2} name={metrics.medianRT.label} />
+                    <Tooltip formatter={(value: number) => `${Math.round(value)} ms`} />
+                    <Legend />
+                    <Line type="monotone" dataKey="easyRT" stroke="hsl(var(--chart-2))" strokeWidth={2} name={metrics.easyRT.label} />
+                    <Line type="monotone" dataKey="hardRT" stroke="hsl(var(--chart-3))" strokeWidth={2} name={metrics.hardRT.label} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -131,9 +137,9 @@ const ProgressReport = () => {
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={trendData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip />
+                    <XAxis dataKey="date" angle={-45} textAnchor="end" height={60} />
+                    <YAxis />
+                    <Tooltip formatter={(value: number) => `${Math.round(value)}%`} />
                     <Line type="monotone" dataKey="accuracy" stroke="hsl(var(--chart-2))" strokeWidth={2} name={metrics.accuracy.label} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -147,9 +153,9 @@ const ProgressReport = () => {
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={trendData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
+                    <XAxis dataKey="date" angle={-45} textAnchor="end" height={60} />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip formatter={(value: number) => `${Math.round(value)} ms`} />
                     <Line type="monotone" dataKey="concentrationCost" stroke="hsl(var(--chart-3))" strokeWidth={2} name={metrics.concentrationCost.label} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -169,15 +175,19 @@ const ProgressReport = () => {
                 <ResponsiveContainer width="100%" height={400}>
                   <LineChart data={trendData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
+                    <XAxis dataKey="date" angle={-45} textAnchor="end" height={80} />
                     <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" domain={[0, 100]} />
-                    <Tooltip />
+                    <YAxis yAxisId="right" orientation="right" />
+                    <Tooltip formatter={(value: number, name: string) => {
+                      if (name.includes('%')) return `${Math.round(value)}%`;
+                      return `${Math.round(value)} ms`;
+                    }} />
                     <Legend />
-                    <Line yAxisId="left" type="monotone" dataKey="medianRT" stroke="hsl(var(--primary))" strokeWidth={2} name="Mediana RT (ms)" />
-                    <Line yAxisId="left" type="monotone" dataKey="concentrationCost" stroke="hsl(var(--chart-3))" strokeWidth={2} name="Koszt koncentracji (ms)" />
-                    <Line yAxisId="right" type="monotone" dataKey="accuracy" stroke="hsl(var(--chart-2))" strokeWidth={2} name="Trafność (%)" />
-                    <Line yAxisId="left" type="monotone" dataKey="iqr" stroke="hsl(var(--chart-4))" strokeWidth={2} name="IQR (ms)" />
+                    <Line yAxisId="left" type="monotone" dataKey="easyRT" stroke="hsl(var(--chart-2))" strokeWidth={2} name="Łatwe RT (ms)" />
+                    <Line yAxisId="left" type="monotone" dataKey="hardRT" stroke="hsl(var(--chart-3))" strokeWidth={2} name="Trudne RT (ms)" />
+                    <Line yAxisId="left" type="monotone" dataKey="concentrationCost" stroke="hsl(var(--chart-4))" strokeWidth={2} name="Koszt koncentracji (ms)" />
+                    <Line yAxisId="right" type="monotone" dataKey="accuracy" stroke="hsl(var(--primary))" strokeWidth={2} name="Trafność (%)" />
+                    <Line yAxisId="left" type="monotone" dataKey="iqr" stroke="hsl(var(--chart-5))" strokeWidth={2} name="IQR (ms)" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
