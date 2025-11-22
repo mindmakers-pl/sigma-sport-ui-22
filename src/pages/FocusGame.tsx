@@ -344,40 +344,41 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
         <Card className="max-w-4xl w-full border-slate-700 bg-slate-800 animate-scale-in">
           <CardContent className="pt-6 space-y-6">
-            <h2 className="text-3xl font-bold text-white text-center">Wynik wyzwania Sigma Focus</h2>
+            <h2 className="text-2xl font-bold text-white text-center mb-6">Wynik wyzwania Sigma Focus</h2>
             
             <div className="space-y-4">
               {/* Top Section: Overall Median + Accuracy */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-700/50 p-4 rounded-lg">
-                  <p className="text-slate-400 text-sm mb-2">Twój czas reakcji (mediana)</p>
-                  <p className="text-4xl font-bold text-primary mb-1">{overallMedian} ms</p>
-                  <p className="text-xs text-slate-500">dla wszystkich poprawnych trafień</p>
-                </div>
-                <div className="bg-slate-700/50 p-4 rounded-lg">
-                  <p className="text-slate-400 text-sm mb-2">Celność</p>
-                  <p className="text-4xl font-bold text-green-500 mb-1">{accuracy}%</p>
-                  <p className="text-xs text-slate-500">Poprawne: {correctCount} / {TOTAL_TRIALS}</p>
+              <div className="bg-slate-700/50 p-4 rounded-lg">
+                <p className="text-slate-400 text-sm mb-2">Twój czas reakcji (mediana)</p>
+                <div className="grid grid-cols-2 gap-4 mb-2">
+                  <div>
+                    <p className="text-3xl font-bold text-primary">{overallMedian} ms</p>
+                    <p className="text-xs text-slate-500">dla wszystkich poprawnych trafień</p>
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold text-green-400">{accuracy}%</p>
+                    <p className="text-xs text-slate-500">Celność ({correctCount}/{TOTAL_TRIALS})</p>
+                  </div>
                 </div>
               </div>
 
-              {/* Middle Section: Comparison */}
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Czas reakcji w zależności od trudności</h3>
+              {/* Middle Section: Comparison with title on card */}
+              <div className="bg-slate-700/50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-white mb-4">Czas reakcji w zależności od trudności</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {/* Bar Chart */}
-                  <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
+                  <div className="space-y-4">
                     <p className="text-slate-300 text-sm font-medium">Typ trafienia:</p>
                     
                     {/* ŁATWY Bar */}
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-green-400 font-semibold">ŁATWY</span>
-                        <span className="text-white font-bold">{medianCongruent} ms</span>
+                        <span className="text-slate-300 font-semibold">ŁATWY</span>
+                        <span className="text-slate-200 font-bold">{medianCongruent} ms</span>
                       </div>
                       <div className="w-full bg-slate-800 rounded-full h-6 overflow-hidden">
                         <div 
-                          className="bg-green-500 h-full rounded-full transition-all duration-500"
+                          className="bg-green-600 h-full rounded-full transition-all duration-500"
                           style={{ width: `${(medianCongruent / chartScale) * 100}%` }}
                         />
                       </div>
@@ -387,12 +388,12 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
                     {/* TRUDNE Bar */}
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-red-400 font-semibold">TRUDNE</span>
-                        <span className="text-white font-bold">{medianIncongruent} ms</span>
+                        <span className="text-slate-300 font-semibold">TRUDNE</span>
+                        <span className="text-slate-200 font-bold">{medianIncongruent} ms</span>
                       </div>
                       <div className="w-full bg-slate-800 rounded-full h-6 overflow-hidden">
                         <div 
-                          className="bg-red-500 h-full rounded-full transition-all duration-500"
+                          className="bg-red-600 h-full rounded-full transition-all duration-500"
                           style={{ width: `${(medianIncongruent / chartScale) * 100}%` }}
                         />
                       </div>
@@ -401,9 +402,9 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
                   </div>
 
                   {/* Difference Card */}
-                  <div className="bg-slate-700/50 p-4 rounded-lg flex flex-col justify-center">
+                  <div className="flex flex-col justify-center pl-4 border-l border-slate-600">
                     <p className="text-slate-400 text-sm mb-2">Różnica</p>
-                    <p className="text-4xl font-bold text-yellow-400 mb-2">+{concentrationCost} ms</p>
+                    <p className="text-3xl font-bold text-yellow-400 mb-2">+{concentrationCost} ms</p>
                     <p className="text-xs text-slate-400 leading-relaxed">
                       Im mniejsza, tym lepiej ignorujesz zakłócacze.
                     </p>
