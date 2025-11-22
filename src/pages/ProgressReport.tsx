@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,20 +9,30 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 const ProgressReport = () => {
   const { athleteId, gameType } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const selectedIds = searchParams.get('ids')?.split(',') || [];
   const [trainings, setTrainings] = useState<any[]>([]);
   const [gameName, setGameName] = useState('');
 
   useEffect(() => {
     const allTrainings = JSON.parse(localStorage.getItem('athlete_trainings') || '[]');
-    const filtered = allTrainings
-      .filter((t: any) => t.athlete_id === athleteId && t.game_type === gameType)
-      .sort((a: any, b: any) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime());
+    let filtered = allTrainings
+      .filter((t: any) => t.athlete_id === athleteId && t.game_type === gameType);
+    
+    // If specific IDs are selected, filter to only those
+    if (selectedIds.length > 0) {
+      filtered = filtered.filter((t: any) => selectedIds.includes(t.id));
+    }
+    
+    // Sort by date
+    filtered.sort((a: any, b: any) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime());
+    
     setTrainings(filtered);
     
     if (filtered.length > 0) {
       setGameName(filtered[0].game_name);
     }
-  }, [athleteId, gameType]);
+  }, [athleteId, gameType, selectedIds]);
 
   if (trainings.length === 0) {
     return (
@@ -68,7 +78,7 @@ const ProgressReport = () => {
       <Button 
         variant="ghost" 
         className="mb-4"
-        onClick={() => navigate(-1)}
+        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)}
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Powrót
