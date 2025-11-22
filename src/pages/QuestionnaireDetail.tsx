@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, ArrowRight, RotateCcw, Sparkles, HelpCircle } from "lucide-react";
+import { ArrowLeft, RotateCcw } from "lucide-react";
 import BackButton from "@/components/BackButton";
 import { allSixSigmaQuestionnaires, SixSigmaQuestionnaire } from "@/data/sixSigmaQuestionnaires";
 
@@ -90,6 +90,15 @@ const QuestionnaireDetail = () => {
       ...prev,
       [currentQuestionData.questionId]: value
     }));
+    
+    // Auto-advance to next question
+    setTimeout(() => {
+      if (currentQuestionIndex < totalQuestions - 1) {
+        setCurrentQuestionIndex(prev => prev + 1);
+      } else {
+        setIsCompleted(true);
+      }
+    }, 300); // Small delay for visual feedback
   };
   const handleNext = () => {
     if (currentQuestionIndex < totalQuestions - 1) {
@@ -106,58 +115,39 @@ const QuestionnaireDetail = () => {
   if (!isStarted) {
     return <div className="min-h-screen bg-background p-6">
         <BackButton />
-        <div className="max-w-4xl mx-auto mt-8">
+        <div className="max-w-3xl mx-auto mt-8">
           <Card className="border-border overflow-hidden">
-            <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle className="text-3xl text-foreground">{questionnaire.name}</CardTitle>
+            <CardHeader className="bg-gradient-to-br from-primary/10 to-background p-8">
+              <CardTitle className="text-3xl text-foreground mb-6">{questionnaire.name}</CardTitle>
+              
+              <div className="space-y-4 text-base text-foreground leading-relaxed">
+                <p>{questionnaire.description}</p>
+                <p className="text-muted-foreground">{questionnaire.usage}</p>
               </div>
-              <p className="text-muted-foreground text-lg">{questionnaire.shortName}</p>
-            </div>
+            </CardHeader>
             
             <CardContent className="space-y-6 p-8">
-              <div className="bg-muted/30 rounded-lg p-6 border border-border">
-                <h3 className="font-semibold mb-3 text-foreground flex items-center gap-2">
-                  <HelpCircle className="h-5 w-5 text-primary" />
-                  O czym jest ten kwestionariusz?
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">{questionnaire.description}</p>
-              </div>
-              
-              <div className="bg-muted/30 rounded-lg p-6 border border-border">
-                <h3 className="font-semibold mb-3 text-foreground">Jak go używać?</h3>
-                <p className="text-muted-foreground mb-4">{questionnaire.usage}</p>
-                <div className="grid md:grid-cols-3 gap-4 text-sm">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-muted-foreground">Liczba pytań</span>
-                    <span className="font-semibold text-foreground text-lg">{totalQuestions}</span>
+              <div className="grid grid-cols-3 gap-6 text-center">
+                <div>
+                  <div className="text-3xl font-bold text-primary mb-1">{totalQuestions}</div>
+                  <div className="text-sm text-muted-foreground">pytań</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-primary mb-1">{questionnaire.estimatedTime}</div>
+                  <div className="text-sm text-muted-foreground">czas</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-primary mb-1">
+                    {questionnaire.id === 'six_sigma_full' ? '2x' : questionnaire.id === 'six_sigma_lite' ? '1x/mc' : ''}
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-muted-foreground">Szacowany czas</span>
-                    <span className="font-semibold text-foreground text-lg">{questionnaire.estimatedTime}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-muted-foreground">Częstotliwość</span>
-                    <span className="font-semibold text-foreground text-lg">{questionnaire.frequency}</span>
+                  <div className="text-sm text-muted-foreground">
+                    {questionnaire.id === 'six_sigma_full' ? 'w sezonie' : questionnaire.id === 'six_sigma_lite' ? 'miesięcznie' : 'przy pomiarze'}
                   </div>
                 </div>
               </div>
 
-              <div className="bg-primary/5 rounded-lg p-6 border border-primary/20">
-                <h3 className="font-semibold mb-3 text-foreground">Jak odpowiadać?</h3>
-                <div className="space-y-3 text-sm text-muted-foreground">
-                  <p>📝 Przeczytaj każde pytanie uważnie.</p>
-                  <p>💭 Pomyśl, jak zwykle się czujesz lub zachowujesz – nie jak chciałbyś/chciałabyś.</p>
-                  <p>✅ Wybierz odpowiedź od <strong className="text-foreground">{questionnaire.scaleLabels.min}</strong> do <strong className="text-foreground">{questionnaire.scaleLabels.max}</strong>.</p>
-                  <p>⏱️ Nie zastanawiaj się zbyt długo – pierwsza myśl jest najlepsza!</p>
-                </div>
-              </div>
-
-              <Button onClick={() => setIsStarted(true)} size="lg" className="w-full text-lg py-6">
-                Zacznij odpowiadać
+              <Button onClick={() => setIsStarted(true)} size="lg" className="w-full text-xl py-7 font-bold">
+                GO!
               </Button>
             </CardContent>
           </Card>
@@ -213,28 +203,52 @@ const QuestionnaireDetail = () => {
       </div>;
   }
 
-  // Render scale option tiles (child-friendly, large clickable areas)
+  // Render scale option tiles with color coding
   const renderScaleOptions = () => {
     const scaleValues = Array.from({
       length: questionnaire.scale
     }, (_, i) => i + 1);
-    return <div className="grid grid-cols-5 gap-3">
-        {scaleValues.map(value => {
-        const isSelected = answers[currentQuestionData.questionId] === value;
-        const isMin = value === 1;
-        const isMax = value === questionnaire.scale;
-        return <button key={value} onClick={() => handleAnswer(value)} className={`
-                relative flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all
-                ${isSelected ? 'border-primary bg-primary/10 shadow-lg scale-105' : 'border-border bg-background hover:border-primary/50 hover:bg-muted/30'}
-              `}>
-              <span className={`text-3xl font-bold mb-2 ${isSelected ? 'text-primary' : 'text-foreground'}`}>
-                {value}
-              </span>
-              {(isMin || isMax) && <span className="text-xs text-center text-muted-foreground leading-tight">
-                  {isMin ? questionnaire.scaleLabels.min : questionnaire.scaleLabels.max}
-                </span>}
-            </button>;
-      })}
+    
+    // Color intensity based on value (1=lightest, 5=strongest)
+    const getColorClasses = (value: number, isSelected: boolean) => {
+      if (isSelected) {
+        return 'border-primary bg-primary shadow-lg scale-105';
+      }
+      
+      // Progressive color intensity: 1 (lightest) to 5 (strongest)
+      const intensities = [
+        'bg-red-100 border-red-200 hover:border-red-300', // 1
+        'bg-red-200 border-red-300 hover:border-red-400', // 2
+        'bg-orange-300 border-orange-400 hover:border-orange-500', // 3
+        'bg-green-400 border-green-500 hover:border-green-600', // 4
+        'bg-green-500 border-green-600 hover:border-green-700', // 5
+      ];
+      return intensities[value - 1];
+    };
+    
+    return <div className="space-y-4">
+        <div className="grid grid-cols-5 gap-3">
+          {scaleValues.map(value => {
+          const isSelected = answers[currentQuestionData.questionId] === value;
+          const isMin = value === 1;
+          const isMax = value === questionnaire.scale;
+          const isMid = value === 3;
+          return <button key={value} onClick={() => handleAnswer(value)} className={`
+                  relative flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all
+                  ${getColorClasses(value, isSelected)}
+                `}>
+                <span className={`text-3xl font-bold ${isSelected ? 'text-background' : 'text-foreground'}`}>
+                  {value}
+                </span>
+              </button>;
+        })}
+        </div>
+        
+        <div className="flex justify-between text-sm text-muted-foreground px-1">
+          <span className="text-left max-w-[30%]">{questionnaire.scaleLabels.min}</span>
+          <span className="text-center">To trochę o mnie</span>
+          <span className="text-right max-w-[30%]">{questionnaire.scaleLabels.max}</span>
+        </div>
       </div>;
   };
   return <div className="min-h-screen bg-background p-4 md:p-6">
@@ -270,24 +284,20 @@ const QuestionnaireDetail = () => {
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Wybierz odpowiedź, która najlepiej do Ciebie pasuje:
-                </p>
-              </div>
-              
+            <div className="space-y-6">
               {renderScaleOptions()}
             </div>
 
-            <div className="flex gap-4 pt-4">
-              <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0} className="flex-1" size="lg">
+            <div className="pt-4">
+              <Button 
+                variant="outline" 
+                onClick={handlePrevious} 
+                disabled={currentQuestionIndex === 0} 
+                className="w-full" 
+                size="lg"
+              >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Cofnij
-              </Button>
-              <Button onClick={handleNext} disabled={!answers[currentQuestionData.questionId]} className="flex-1" size="lg">
-                {currentQuestionIndex === totalQuestions - 1 ? "Zakończ" : "Dalej"}
-                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
           </CardContent>

@@ -713,7 +713,7 @@ export const questionnaires = [
     id: "six_sigma_full",
     name: "Six Sigma",
     description: "Kompleksowa ocena 6 kluczowych kompetencji psychologicznych. Przeprowadzaj na początku i końcu sezonu.",
-    duration: "8-10 min",
+    duration: "5 min",
     category: "Kompetencje Psychologiczne",
     frequency: "2x w sezonie (T0 + T-Final)"
   },
@@ -721,7 +721,7 @@ export const questionnaires = [
     id: "six_sigma_lite",
     name: "Six Sigma Lite",
     description: "Szybka sonda monitorująca postępy. Key Indicators do śledzenia trendów.",
-    duration: "2-3 min",
+    duration: "90 sek",
     category: "Kompetencje Psychologiczne",
     frequency: "Co 4 tygodnie (po każdym Sprincie)"
   },
@@ -729,7 +729,7 @@ export const questionnaires = [
     id: "six_sigma_mood",
     name: "Six Sigma Mood",
     description: "Pytania kontekstowe o stan fizyczny, emocjonalny i środowiskowy. Zawsze towarzyszą pomiarom.",
-    duration: "1-2 min",
+    duration: "1 min",
     category: "Kompetencje Psychologiczne",
     frequency: "Przy każdym pomiarze"
   }
