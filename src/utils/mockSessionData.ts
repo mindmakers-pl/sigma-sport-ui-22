@@ -116,6 +116,77 @@ export const generateMockSessions = (athleteId: string, athleteName: string) => 
       date: new Date().toISOString(),
       conditions: 'pracownia',
       results: {
+        six_sigma: {
+          version: "6x6+6",
+          questionnaireName: "Six Sigma",
+          completionDate: new Date().toISOString(),
+          completionTimeSeconds: 420,
+          competencyScores: [
+            { 
+              competency: 'activation', 
+              name: 'Aktywacja',
+              rawScore: 22, 
+              maxScore: 30, 
+              normalizedScore: 0.73,
+              interpretation: 'Dobry'
+            },
+            { 
+              competency: 'control', 
+              name: 'Kontrola',
+              rawScore: 18, 
+              maxScore: 30, 
+              normalizedScore: 0.60,
+              interpretation: 'Średni'
+            },
+            { 
+              competency: 'reset', 
+              name: 'Reset',
+              rawScore: 25, 
+              maxScore: 30, 
+              normalizedScore: 0.83,
+              interpretation: 'Wysoki'
+            },
+            { 
+              competency: 'focus', 
+              name: 'Focus',
+              rawScore: 27, 
+              maxScore: 30, 
+              normalizedScore: 0.90,
+              interpretation: 'Wysoki'
+            },
+            { 
+              competency: 'confidence', 
+              name: 'Pewność Siebie',
+              rawScore: 20, 
+              maxScore: 30, 
+              normalizedScore: 0.67,
+              interpretation: 'Dobry'
+            },
+            { 
+              competency: 'determination', 
+              name: 'Determinacja',
+              rawScore: 24, 
+              maxScore: 30, 
+              normalizedScore: 0.80,
+              interpretation: 'Dobry'
+            }
+          ],
+          modifierScores: [
+            { modifier: 'sleep', name: 'Sen', rawScore: 4, maxScore: 5, normalizedScore: 0.80, impact: 'positive' },
+            { modifier: 'stress', name: 'Stres', rawScore: 3, maxScore: 5, normalizedScore: 0.60, impact: 'neutral' },
+            { modifier: 'health', name: 'Zdrowie', rawScore: 5, maxScore: 5, normalizedScore: 1.0, impact: 'positive' },
+            { modifier: 'social', name: 'Wsparcie Społeczne', rawScore: 4, maxScore: 5, normalizedScore: 0.80, impact: 'positive' },
+            { modifier: 'nutrition', name: 'Odżywianie', rawScore: 3, maxScore: 5, normalizedScore: 0.60, impact: 'neutral' },
+            { modifier: 'flow', name: 'Radość z Gry', rawScore: 5, maxScore: 5, normalizedScore: 1.0, impact: 'positive' }
+          ],
+          overallScore: 0.76,
+          validation: {
+            isStraightLining: false,
+            hasReverseInconsistency: false,
+            isValid: true,
+            warnings: []
+          }
+        },
         kwestionariusz: {
           confidence: 9,
           emotionalControl: 8,
