@@ -954,10 +954,16 @@ const AthleteProfile = () => {
                               </Badge>
                             </div>
                             <Badge variant="secondary">
-                              {Object.values(session.taskStatus).filter(s => s === 'completed').length}/7 testów
+                              {Object.values(session.taskStatus).filter(s => s === 'completed').length}/{Object.keys(session.taskStatus).length} testów
                             </Badge>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {session.results.six_sigma && (
+                              <div>
+                                <span className="text-xs text-slate-600 block mb-1">Six Sigma</span>
+                                <span className="font-semibold text-lg">{Math.round(session.results.six_sigma.overallScore * 100)}%</span>
+                              </div>
+                            )}
                             {session.results.hrv_baseline && (
                               <div>
                                 <span className="text-xs text-slate-600 block mb-1">HRV Baseline</span>
