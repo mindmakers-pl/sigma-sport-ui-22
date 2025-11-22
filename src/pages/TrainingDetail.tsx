@@ -235,7 +235,7 @@ export default function TrainingDetail() {
                     <span className="text-lg text-amber-600">ms</span>
                   </div>
                   <p className="text-sm text-amber-800">
-                    💡 Im mniejsza różnica, tym lepiej radzisz sobie z rozpraszaczami!
+                    Im mniejsza różnica, tym lepiej radzisz sobie z rozpraszaczami!
                   </p>
                 </div>
               </div>
@@ -295,7 +295,7 @@ export default function TrainingDetail() {
                 <p className="text-slate-500">Brak danych do wyświetlenia krzywej.</p>
               )}
               <p className="text-sm text-slate-600 mt-4">
-                📊 <strong>Co to znaczy?</strong> Jeśli linia jest w miarę płaska, Twoja koncentracja była stabilna. 
+                <strong>Co to znaczy?</strong> Jeśli linia jest w miarę płaska, Twoja koncentracja była stabilna. 
                 Duże skoki mogą oznaczać moment zmęczenia lub trudności z utrzymaniem uwagi.
               </p>
             </CardContent>

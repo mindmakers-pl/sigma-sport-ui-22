@@ -1177,7 +1177,7 @@ const ClubDetail = () => {
                     {exercise.coachingTips && exercise.coachingTips.length > 0 && (
                       <Card className="border-blue-200 bg-blue-50/50">
                         <CardHeader>
-                          <CardTitle className="text-lg">💡 Wskazówki dla trenera</CardTitle>
+                          <CardTitle className="text-lg">Wskazówki dla trenera</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-3">
@@ -1226,7 +1226,7 @@ const ClubDetail = () => {
                     {exercise.metrics && exercise.metrics.length > 0 && (
                       <Card>
                         <CardHeader>
-                          <CardTitle className="text-lg">📊 Metryki do śledzenia</CardTitle>
+                          <CardTitle className="text-lg">Metryki do śledzenia</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="flex flex-wrap gap-2">
