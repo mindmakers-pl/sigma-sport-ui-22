@@ -682,7 +682,7 @@ const Athletes = () => {
                   <Button 
                     variant="default" 
                     size="sm"
-                    onClick={() => navigate(`/zawodnicy/${athlete.id}?addMeasurement=true`)}
+                    onClick={() => navigate(`/zawodnicy/${athlete.id}?tab=dodaj-pomiar`)}
                   >
                     Dodaj pomiar
                   </Button>
