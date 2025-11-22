@@ -248,7 +248,7 @@ export default function SessionDetail() {
               <CardContent className="pt-6">
                 <h3 className="font-bold text-lg text-slate-900 mb-3">Sigma Score: Focus   </h3>
                 <p className="text-slate-700 leading-relaxed mb-2">
-                  W wyzwaniu Sigma Focus, dowiadujesz się, jak dobra jest Twoja koncentracja i umiejętność ignorowania rozpraszaczy. W sporcie ta zdolność przekłada się na precyzję w kluczowych momentach – możesz skupić się na tym, co ważne, nawet gdy dookoła dzieje się wiele rzeczy (kibice, przeciwnicy, zmęczenie). <strong>koncentracja</strong> i umiejętność <strong>ignorowania rozpraszaczy</strong>. 
+                  W wyzwaniu Sigma Focus, dowiadujesz się, jak dobra jest Twoja koncentracja i umiejętność ignorowania rozpraszaczy. W sporcie ta zdolność przekłada się na precyzję w kluczowych momentach – możesz skupić się na tym, co ważne, nawet gdy dookoła dzieje się wiele rzeczy (kibice, przeciwnicy, zmęczenie).   <strong>koncentracja</strong> i umiejętność <strong>ignorowania rozpraszaczy</strong>. 
                   W sporcie ta zdolność przekłada się na precyzję w kluczowych momentach – możesz skupić się na tym, co ważne, 
                   nawet gdy dookoła dzieje się wiele rzeczy (kibice, przeciwnicy, zmęczenie).
                 </p>
