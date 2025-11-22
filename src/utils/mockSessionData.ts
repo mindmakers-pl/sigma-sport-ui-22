@@ -293,14 +293,71 @@ export const generateMockSessions = (athleteId: string, athleteName: string) => 
 
 export const loadMockSessionsToStorage = (athleteId: string, athleteName: string) => {
   const existingSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-  const athleteSessions = existingSessions.filter((s: any) => s.athlete_id === athleteId);
+  let updated = false;
+
+  // Patch existing sessions for this athlete to ensure Six Sigma is attached to the Nov 22 session
+  const patchedSessions = existingSessions.map((s: any) => {
+    if (s.athlete_id === athleteId && s.results && s.results.focus && !s.results.six_sigma) {
+      // Attach the same Six Sigma block as in generateMockSessions for the focus session
+      const nov22 = s.date ? new Date(s.date) : new Date('2025-11-22T14:30:00');
+      const sixSigmaBlock = {
+        version: "6x6+6",
+        questionnaireName: "Six Sigma",
+        completionDate: nov22.toISOString(),
+        completionTimeSeconds: 420,
+        competencyScores: [
+          { competency: 'activation', name: 'Aktywacja', rawScore: 22, maxScore: 30, normalizedScore: 0.73, interpretation: 'Dobry' },
+          { competency: 'control', name: 'Kontrola', rawScore: 18, maxScore: 30, normalizedScore: 0.60, interpretation: 'Średni' },
+          { competency: 'reset', name: 'Reset', rawScore: 25, maxScore: 30, normalizedScore: 0.83, interpretation: 'Wysoki' },
+          { competency: 'focus', name: 'Focus', rawScore: 27, maxScore: 30, normalizedScore: 0.90, interpretation: 'Wysoki' },
+          { competency: 'confidence', name: 'Pewność Siebie', rawScore: 20, maxScore: 30, normalizedScore: 0.67, interpretation: 'Dobry' },
+          { competency: 'determination', name: 'Determinacja', rawScore: 24, maxScore: 30, normalizedScore: 0.80, interpretation: 'Dobry' }
+        ],
+        modifierScores: [
+          { modifier: 'sleep', name: 'Sen', rawScore: 4, maxScore: 5, normalizedScore: 0.80, impact: 'positive' },
+          { modifier: 'stress', name: 'Stres', rawScore: 3, maxScore: 5, normalizedScore: 0.60, impact: 'neutral' },
+          { modifier: 'health', name: 'Zdrowie', rawScore: 5, maxScore: 5, normalizedScore: 1.0, impact: 'positive' },
+          { modifier: 'social', name: 'Wsparcie Społeczne', rawScore: 4, maxScore: 5, normalizedScore: 0.80, impact: 'positive' },
+          { modifier: 'nutrition', name: 'Odżywianie', rawScore: 3, maxScore: 5, normalizedScore: 0.60, impact: 'neutral' },
+          { modifier: 'flow', name: 'Radość z Gry', rawScore: 5, maxScore: 5, normalizedScore: 1.0, impact: 'positive' }
+        ],
+        overallScore: 0.76,
+        validation: {
+          isStraightLining: false,
+          hasReverseInconsistency: false,
+          isValid: true,
+          warnings: []
+        }
+      };
+
+      updated = true;
+      return {
+        ...s,
+        results: {
+          ...s.results,
+          six_sigma: sixSigmaBlock,
+        },
+        taskStatus: {
+          ...s.taskStatus,
+          six_sigma: 'completed',
+        },
+      };
+    }
+    return s;
+  });
+
+  const athleteSessions = patchedSessions.filter((s: any) => s.athlete_id === athleteId);
   
   // Only add mock data if no sessions exist for this athlete
   if (athleteSessions.length === 0) {
     const mockSessions = generateMockSessions(athleteId, athleteName);
-    const allSessions = [...existingSessions, ...mockSessions];
+    const allSessions = [...patchedSessions, ...mockSessions];
     localStorage.setItem('athlete_sessions', JSON.stringify(allSessions));
     return mockSessions;
+  }
+
+  if (updated) {
+    localStorage.setItem('athlete_sessions', JSON.stringify(patchedSessions));
   }
   
   return athleteSessions;
