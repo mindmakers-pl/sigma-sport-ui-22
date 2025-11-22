@@ -53,6 +53,7 @@ const Athletes = () => {
   const [newAthlete, setNewAthlete] = useState({
     firstName: "",
     lastName: "",
+    gender: "",
     email: "",
     phone: "",
     club: "",
@@ -60,7 +61,8 @@ const Athletes = () => {
     discipline: "",
     birthDate: undefined as Date | undefined,
     notes: "",
-    parentName: "",
+    parentFirstName: "",
+    parentLastName: "",
     parentPhone: "",
     parentEmail: "",
   });
@@ -202,6 +204,9 @@ const Athletes = () => {
     const athleteToAdd = {
       id: newId,
       name: fullName,
+      firstName: newAthlete.firstName,
+      lastName: newAthlete.lastName,
+      gender: newAthlete.gender,
       club: newAthlete.club,
       coach: newAthlete.coach,
       discipline: newAthlete.discipline,
@@ -211,7 +216,8 @@ const Athletes = () => {
       email: newAthlete.email,
       phone: newAthlete.phone,
       notes: newAthlete.notes,
-      parentName: newAthlete.parentName,
+      parentFirstName: newAthlete.parentFirstName,
+      parentLastName: newAthlete.parentLastName,
       parentPhone: newAthlete.parentPhone,
       parentEmail: newAthlete.parentEmail,
       createdAt: new Date().toISOString(),
@@ -250,6 +256,7 @@ const Athletes = () => {
     setNewAthlete({
       firstName: "",
       lastName: "",
+      gender: "",
       email: "",
       phone: "",
       club: "",
@@ -257,7 +264,8 @@ const Athletes = () => {
       discipline: "",
       birthDate: undefined,
       notes: "",
-      parentName: "",
+      parentFirstName: "",
+      parentLastName: "",
       parentPhone: "",
       parentEmail: "",
     });
@@ -386,11 +394,32 @@ const Athletes = () => {
                   </div>
                 </div>
 
-                <div>
-                  <DisciplineSelector
-                    value={newAthlete.discipline}
-                    onChange={(value) => setNewAthlete({ ...newAthlete, discipline: value })}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <DisciplineSelector
+                      value={newAthlete.discipline}
+                      onChange={(value) => setNewAthlete({ ...newAthlete, discipline: value })}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="gender" className="text-slate-900 font-semibold">
+                      Płeć
+                    </Label>
+                    <Select
+                      value={newAthlete.gender}
+                      onValueChange={(value) => setNewAthlete({ ...newAthlete, gender: value })}
+                    >
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Wybierz płeć" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Mężczyzna</SelectItem>
+                        <SelectItem value="female">Kobieta</SelectItem>
+                        <SelectItem value="other">Inna</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div>
@@ -440,22 +469,37 @@ const Athletes = () => {
                 </div>
 
                 <div className="border-t border-slate-200 pt-4 space-y-4">
-                  <h3 className="text-slate-900 font-semibold">Dane kontaktowe (opcjonalne)</h3>
+                  <h3 className="text-slate-900 font-semibold">Dane kontaktowe rodzica/opiekuna (opcjonalne)</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="parentName" className="text-slate-900 font-semibold">
-                        Imię i nazwisko rodzica
+                      <Label htmlFor="parentFirstName" className="text-slate-900 font-semibold">
+                        Imię rodzica
                       </Label>
                       <Input
-                        id="parentName"
-                        value={newAthlete.parentName}
-                        onChange={(e) => setNewAthlete({ ...newAthlete, parentName: e.target.value })}
-                        placeholder="Jan Kowalski"
+                        id="parentFirstName"
+                        value={newAthlete.parentFirstName}
+                        onChange={(e) => setNewAthlete({ ...newAthlete, parentFirstName: e.target.value })}
+                        placeholder="Jan"
                         className="mt-2"
                       />
                     </div>
-
+                    
+                    <div>
+                      <Label htmlFor="parentLastName" className="text-slate-900 font-semibold">
+                        Nazwisko rodzica
+                      </Label>
+                      <Input
+                        id="parentLastName"
+                        value={newAthlete.parentLastName}
+                        onChange={(e) => setNewAthlete({ ...newAthlete, parentLastName: e.target.value })}
+                        placeholder="Kowalski"
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="parentPhone" className="text-slate-900 font-semibold">
                         Telefon rodzica

@@ -14,8 +14,15 @@ const HRVBaselineForm = ({ onComplete, onGoToCockpit }: HRVBaselineFormProps) =>
 
   const handleSave = () => {
     if (hrvValue.trim()) {
-      console.log('Zapisuję dane HRV Baseline:', { hrvValue });
-      onComplete({ hrv: hrvValue });
+      const baselineData = {
+        hrv_max: hrvValue,
+        device: 'polar_h10',
+        protocol: '3min_resting_baseline',
+        breathing_instruction: 'resonant_breathing_recommended',
+        timestamp: new Date().toISOString()
+      };
+      console.log('Zapisuję dane HRV Baseline:', baselineData);
+      onComplete(baselineData);
     }
   };
 

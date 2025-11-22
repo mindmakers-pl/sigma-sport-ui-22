@@ -8,6 +8,8 @@ import { CheckCircle2 } from "lucide-react";
 interface KwestionariuszProps {
   onComplete: (data: any) => void;
   onGoToCockpit?: () => void;
+  measurementContext?: 'individual' | 'group';
+  onContextChange?: (context: 'individual' | 'group') => void;
 }
 
 const questions = [
@@ -28,9 +30,10 @@ const questions = [
   }
 ];
 
-const Kwestionariusz = ({ onComplete, onGoToCockpit }: KwestionariuszProps) => {
+const Kwestionariusz = ({ onComplete, onGoToCockpit, measurementContext = 'individual', onContextChange }: KwestionariuszProps) => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [context, setContext] = useState<'individual' | 'group'>(measurementContext);
 
   const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
@@ -40,8 +43,21 @@ const Kwestionariusz = ({ onComplete, onGoToCockpit }: KwestionariuszProps) => {
 
   const handleSubmit = () => {
     setIsSubmitted(true);
-    console.log('Odpowiedzi:', answers);
-    onComplete(answers);
+    const dataToSubmit = {
+      ...answers,
+      measurement_context: context,
+      device: 'polar_h10', // Hardcoded device
+      timestamp: new Date().toISOString()
+    };
+    console.log('Odpowiedzi:', dataToSubmit);
+    onComplete(dataToSubmit);
+  };
+  
+  const handleContextChange = (newContext: 'individual' | 'group') => {
+    setContext(newContext);
+    if (onContextChange) {
+      onContextChange(newContext);
+    }
   };
 
   if (isSubmitted) {
@@ -55,6 +71,29 @@ const Kwestionariusz = ({ onComplete, onGoToCockpit }: KwestionariuszProps) => {
           <div className="text-center">
             <h2 className="text-2xl font-bold text-white mb-2">Kwestionariusz Przedtreningowy</h2>
             <p className="text-slate-300 text-sm">Odpowiedz na poniższe pytania</p>
+          </div>
+          
+          <div className="space-y-3 border-t border-slate-600 pt-4">
+            <Label className="text-slate-200 font-medium">
+              Kontekst pomiaru
+            </Label>
+            <RadioGroup
+              value={context}
+              onValueChange={(value) => handleContextChange(value as 'individual' | 'group')}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="individual" id="context-individual" className="border-slate-500" />
+                <Label htmlFor="context-individual" className="text-slate-300 cursor-pointer">
+                  Pomiar indywidualny (gabinet/laboratorium)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="group" id="context-group" className="border-slate-500" />
+                <Label htmlFor="context-group" className="text-slate-300 cursor-pointer">
+                  Pomiar grupowy (podczas treningu w klubie)
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
           <div className="space-y-6">
