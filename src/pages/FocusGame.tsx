@@ -252,7 +252,7 @@ export default function FocusGame({
           
           <div className="space-y-6 text-slate-200 text-lg leading-relaxed text-center">
             <p className="text-lg text-center">
-              <span className="text-white font-normal text-lg text-center">Twoim zadaniem jest kliknięcie kwadratu w kolorze, którym napisane jest słowo. Zrób to jak najszybciej.                         </span>
+              <span className="text-white font-normal text-lg text-center">                       </span>
             </p>
             
             <p className="font-semibold text-red-400 text-lg">
