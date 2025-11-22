@@ -22,20 +22,18 @@ const getQuestionnaireById = (id: string): SixSigmaQuestionnaire | null => {
       return null;
   }
 };
-
 const QuestionnaireDetail = () => {
-  const { id } = useParams();
+  const {
+    id
+  } = useParams();
   const navigate = useNavigate();
   const [isStarted, setIsStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [isCompleted, setIsCompleted] = useState(false);
-
   const questionnaire = getQuestionnaireById(id || '');
-
   if (!questionnaire) {
-    return (
-      <div className="min-h-screen bg-background p-6">
+    return <div className="min-h-screen bg-background p-6">
         <BackButton />
         <div className="flex items-center justify-center h-[80vh]">
           <Card className="max-w-md border-border">
@@ -52,12 +50,15 @@ const QuestionnaireDetail = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Build flat question list for progress tracking
-  const allQuestions: Array<{ questionId: string; question: any; competencyName: string }> = [];
+  const allQuestions: Array<{
+    questionId: string;
+    question: any;
+    competencyName: string;
+  }> = [];
   questionnaire.competencies.forEach(comp => {
     comp.questions.forEach(q => {
       allQuestions.push({
@@ -73,20 +74,23 @@ const QuestionnaireDetail = () => {
     questionnaire.modifiers.forEach(mod => {
       allQuestions.push({
         questionId: mod.id,
-        question: { text: mod.question, type: 'direct' },
+        question: {
+          text: mod.question,
+          type: 'direct'
+        },
         competencyName: 'Kontekst'
       });
     });
   }
-
   const totalQuestions = allQuestions.length;
   const currentQuestionData = allQuestions[currentQuestionIndex];
-  const progress = ((Object.keys(answers).length) / totalQuestions) * 100;
-
+  const progress = Object.keys(answers).length / totalQuestions * 100;
   const handleAnswer = (value: number) => {
-    setAnswers(prev => ({ ...prev, [currentQuestionData.questionId]: value }));
+    setAnswers(prev => ({
+      ...prev,
+      [currentQuestionData.questionId]: value
+    }));
   };
-
   const handleNext = () => {
     if (currentQuestionIndex < totalQuestions - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -94,16 +98,13 @@ const QuestionnaireDetail = () => {
       setIsCompleted(true);
     }
   };
-
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(prev => prev - 1);
     }
   };
-
   if (!isStarted) {
-    return (
-      <div className="min-h-screen bg-background p-6">
+    return <div className="min-h-screen bg-background p-6">
         <BackButton />
         <div className="max-w-4xl mx-auto mt-8">
           <Card className="border-border overflow-hidden">
@@ -155,29 +156,22 @@ const QuestionnaireDetail = () => {
                 </div>
               </div>
 
-              <Button 
-                onClick={() => setIsStarted(true)}
-                size="lg"
-                className="w-full text-lg py-6"
-              >
+              <Button onClick={() => setIsStarted(true)} size="lg" className="w-full text-lg py-6">
                 Zacznij odpowiadać
               </Button>
             </CardContent>
           </Card>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (isCompleted) {
-    return (
-      <div className="min-h-screen bg-background p-6">
+    return <div className="min-h-screen bg-background p-6">
         <BackButton />
         <div className="max-w-4xl mx-auto mt-8">
           <Card className="border-border">
             <CardHeader className="bg-gradient-to-br from-primary/10 to-background">
               <CardTitle className="text-3xl text-foreground flex items-center gap-3">
-                ✨ Świetna robota!
+                Świetna robota!
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 p-8">
@@ -200,73 +194,50 @@ const QuestionnaireDetail = () => {
               </div>
 
               <div className="flex gap-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsStarted(false);
-                    setCurrentQuestionIndex(0);
-                    setAnswers({});
-                    setIsCompleted(false);
-                  }}
-                  className="flex-1"
-                >
+                <Button variant="outline" onClick={() => {
+                setIsStarted(false);
+                setCurrentQuestionIndex(0);
+                setAnswers({});
+                setIsCompleted(false);
+              }} className="flex-1">
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Wypełnij ponownie
                 </Button>
-                <Button
-                  onClick={() => navigate('/biblioteka')}
-                  className="flex-1"
-                >
+                <Button onClick={() => navigate('/biblioteka')} className="flex-1">
                   Powrót do biblioteki
                 </Button>
               </div>
             </CardContent>
           </Card>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Render scale option tiles (child-friendly, large clickable areas)
   const renderScaleOptions = () => {
-    const scaleValues = Array.from({ length: questionnaire.scale }, (_, i) => i + 1);
-    
-    return (
-      <div className="grid grid-cols-5 gap-3">
-        {scaleValues.map((value) => {
-          const isSelected = answers[currentQuestionData.questionId] === value;
-          const isMin = value === 1;
-          const isMax = value === questionnaire.scale;
-          
-          return (
-            <button
-              key={value}
-              onClick={() => handleAnswer(value)}
-              className={`
+    const scaleValues = Array.from({
+      length: questionnaire.scale
+    }, (_, i) => i + 1);
+    return <div className="grid grid-cols-5 gap-3">
+        {scaleValues.map(value => {
+        const isSelected = answers[currentQuestionData.questionId] === value;
+        const isMin = value === 1;
+        const isMax = value === questionnaire.scale;
+        return <button key={value} onClick={() => handleAnswer(value)} className={`
                 relative flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all
-                ${isSelected 
-                  ? 'border-primary bg-primary/10 shadow-lg scale-105' 
-                  : 'border-border bg-background hover:border-primary/50 hover:bg-muted/30'
-                }
-              `}
-            >
+                ${isSelected ? 'border-primary bg-primary/10 shadow-lg scale-105' : 'border-border bg-background hover:border-primary/50 hover:bg-muted/30'}
+              `}>
               <span className={`text-3xl font-bold mb-2 ${isSelected ? 'text-primary' : 'text-foreground'}`}>
                 {value}
               </span>
-              {(isMin || isMax) && (
-                <span className="text-xs text-center text-muted-foreground leading-tight">
+              {(isMin || isMax) && <span className="text-xs text-center text-muted-foreground leading-tight">
                   {isMin ? questionnaire.scaleLabels.min : questionnaire.scaleLabels.max}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    );
+                </span>}
+            </button>;
+      })}
+      </div>;
   };
-
-  return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
+  return <div className="min-h-screen bg-background p-4 md:p-6">
       <BackButton />
       <div className="max-w-4xl mx-auto mt-8">
         <Card className="border-border">
@@ -310,22 +281,11 @@ const QuestionnaireDetail = () => {
             </div>
 
             <div className="flex gap-4 pt-4">
-              <Button
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={currentQuestionIndex === 0}
-                className="flex-1"
-                size="lg"
-              >
+              <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0} className="flex-1" size="lg">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Cofnij
               </Button>
-              <Button
-                onClick={handleNext}
-                disabled={!answers[currentQuestionData.questionId]}
-                className="flex-1"
-                size="lg"
-              >
+              <Button onClick={handleNext} disabled={!answers[currentQuestionData.questionId]} className="flex-1" size="lg">
                 {currentQuestionIndex === totalQuestions - 1 ? "Zakończ" : "Dalej"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -333,8 +293,6 @@ const QuestionnaireDetail = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default QuestionnaireDetail;
