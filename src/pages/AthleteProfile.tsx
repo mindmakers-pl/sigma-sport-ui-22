@@ -890,9 +890,59 @@ const AthleteProfile = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[
+                    {savedSessions.length > 0 ? savedSessions.map((session) => (
+                      <Card key={session.id} className="border-slate-200 hover:border-primary/50 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/zawodnicy/${id}/sesja/${session.id}?task=overview`)}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <p className="font-semibold text-slate-900">
+                                {new Date(session.date).toLocaleDateString('pl-PL', { 
+                                  weekday: 'long', 
+                                  year: 'numeric', 
+                                  month: 'long', 
+                                  day: 'numeric' 
+                                })}
+                              </p>
+                              <Badge variant="outline" className="mt-1">
+                                {session.conditions}
+                              </Badge>
+                            </div>
+                            <Badge variant="secondary">
+                              {Object.values(session.taskStatus).filter(s => s === 'completed').length}/7 testów
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {session.results.hrv_baseline && (
+                              <div>
+                                <span className="text-xs text-slate-600 block mb-1">HRV Baseline</span>
+                                <span className="font-semibold text-lg">{session.results.hrv_baseline.hrv}</span>
+                              </div>
+                            )}
+                            {session.results.scan && (
+                              <div>
+                                <span className="text-xs text-slate-600 block mb-1">Sigma Scan</span>
+                                <span className="font-semibold text-lg">{session.results.scan.avgReactionTime}ms</span>
+                              </div>
+                            )}
+                            {session.results.control && (
+                              <div>
+                                <span className="text-xs text-slate-600 block mb-1">Sigma Control</span>
+                                <span className="font-semibold text-lg">{session.results.control.errors}</span>
+                              </div>
+                            )}
+                            {session.results.focus && (
+                              <div>
+                                <span className="text-xs text-slate-600 block mb-1">Sigma Focus</span>
+                                <span className="font-semibold text-lg">{Math.round(session.results.focus.accuracy)}%</span>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )) : [
                       {
-                        id: 1,
+                        id: "mock-1",
                         date: "2024-03-15",
                         conditions: "trening",
                         hrv: 68,
@@ -934,7 +984,8 @@ const AthleteProfile = () => {
                     ].filter(session => 
                       conditionsFilter === 'wszystkie' || session.conditions === conditionsFilter
                     ).map((session) => (
-                      <Card key={session.id} className="border-slate-200 hover:border-primary/50 transition-colors cursor-pointer">
+                      <Card key={session.id} className="border-slate-200 hover:border-primary/50 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/zawodnicy/${id}/sesja/${session.id}?task=overview`)}>
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start mb-4">
                             <div>
