@@ -47,7 +47,7 @@ const AthleteProfile = () => {
 
   const [sessionResults, setSessionResults] = useState<Record<string, any>>({});
   const [savedSessions, setSavedSessions] = useState<any[]>([]);
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [reportTab, setReportTab] = useState('historia');
   const [conditionsFilter, setConditionsFilter] = useState('wszystkie');
   const [benchmarkGroup, setBenchmarkGroup] = useState('wszyscy');
@@ -149,35 +149,66 @@ const AthleteProfile = () => {
 
   const handleTaskComplete = (data: any) => {
     const taskName = currentView.replace('showing_', '').replace('playing_', '').replace('measuring_', '');
-    setTaskStatus(prev => ({ ...prev, [taskName]: 'completed' }));
-    setSessionResults(prev => ({ ...prev, [taskName]: data }));
+    
+    // Update status and results
+    const updatedStatus = { ...taskStatus, [taskName]: 'completed' };
+    const updatedResults = { ...sessionResults, [taskName]: data };
+    
+    setTaskStatus(updatedStatus);
+    setSessionResults(updatedResults);
     console.log(`Wynik z ${taskName}:`, data);
-    setCurrentView('kokpit');
-  };
-
-  const handleSaveSession = () => {
+    
+    // Auto-save to localStorage after each task
+    const sessionId = currentSessionId || `session_${Date.now()}`;
+    if (!currentSessionId) {
+      setCurrentSessionId(sessionId);
+    }
+    
     const sessionData = {
-      id: `session_${Date.now()}`,
+      id: sessionId,
       athlete_id: id,
       athlete_name: athlete?.name || 'Unknown',
       date: new Date().toISOString(),
       conditions: measurementConditions,
-      results: sessionResults,
-      taskStatus: taskStatus
+      results: updatedResults,
+      taskStatus: updatedStatus,
+      inProgress: true // Sesja w trakcie
     };
 
-    // Save to localStorage
+    // Save or update session
     const existingSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-    const updatedSessions = [...existingSessions, sessionData];
-    localStorage.setItem('athlete_sessions', JSON.stringify(updatedSessions));
+    const sessionIndex = existingSessions.findIndex((s: any) => s.id === sessionId);
+    
+    if (sessionIndex !== -1) {
+      existingSessions[sessionIndex] = sessionData;
+    } else {
+      existingSessions.push(sessionData);
+    }
+    
+    localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
+    setSavedSessions(existingSessions.filter((s: any) => s.athlete_id === id));
+    
+    setCurrentView('kokpit');
+  };
 
-    // Update local state
-    setSavedSessions(updatedSessions.filter((s: any) => s.athlete_id === id));
+  const handleSaveSession = () => {
+    if (!currentSessionId) return;
+    
+    // Finalize session (remove "inProgress" flag)
+    const existingSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
+    const sessionIndex = existingSessions.findIndex((s: any) => s.id === currentSessionId);
+    
+    if (sessionIndex !== -1) {
+      existingSessions[sessionIndex].inProgress = false;
+      localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
+      setSavedSessions(existingSessions.filter((s: any) => s.athlete_id === id));
+    }
 
     // Navigate to reports
     setSearchParams({ tab: 'raporty' });
     
     // Reset session
+    setCurrentSessionId(null);
     setSessionResults({});
     setTaskStatus({
       kwestionariusz: 'pending',
