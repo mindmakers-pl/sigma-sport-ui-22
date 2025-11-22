@@ -92,19 +92,19 @@ const ProgressReport = () => {
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)} className="cursor-pointer">
+            <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty&subtab=treningi`)} className="cursor-pointer">
               Profil zawodnika
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)} className="cursor-pointer">
+            <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty&subtab=treningi`)} className="cursor-pointer">
               Raporty treningowe
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Raport postępów - {gameName}</BreadcrumbPage>
+            <BreadcrumbPage>Raport postępów</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
