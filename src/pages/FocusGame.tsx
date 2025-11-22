@@ -524,7 +524,7 @@ export default function FocusGame({
       isCorrect: result.isCorrect
     }));
     return <div className="min-h-screen bg-slate-950 p-4">
-        {!onComplete && <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}>
+        {onGoToCockpit && <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4" onClick={onGoToCockpit}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Powrót
           </Button>}
@@ -690,24 +690,14 @@ export default function FocusGame({
 
             <div className="flex gap-3">
               <Button size="lg" variant="outline" className="flex-1" onClick={() => {
-                const gameData = {
-                  trials: results,
-                  medianCongruent,
-                  medianIncongruent,
-                  concentrationCost,
-                  accuracy,
-                  correctCount,
-                  totalTrials: TOTAL_TRIALS,
-                  validTrials: validTrials.length,
-                  coachReport: coachReport,
-                  rMSSD: manualRMSSD,
-                  HR: manualHR
-                };
-                if (onGoToCockpit) onGoToCockpit();
-                if (onComplete) onComplete(gameData);else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                if (onGoToCockpit) {
+                  onGoToCockpit();
+                } else {
+                  navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                }
               }}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Powrót
+                Zakończ
               </Button>
               <Button size="lg" className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => {
                 const gameData = {
@@ -723,7 +713,11 @@ export default function FocusGame({
                   rMSSD: manualRMSSD,
                   HR: manualHR
                 };
-                if (onComplete) onComplete(gameData);else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                if (onComplete) {
+                  onComplete(gameData);
+                } else {
+                  navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                }
               }}>
                 Następne Wyzwanie
               </Button>
