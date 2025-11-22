@@ -32,7 +32,7 @@ const AthleteProfile = () => {
   const [sessionB, setSessionB] = useState("ewaluacja-m7");
   
   const [currentView, setCurrentView] = useState('kokpit');
-  const [measurementConditions, setMeasurementConditions] = useState('trening');
+  const [measurementConditions, setMeasurementConditions] = useState('gabinet');
   const [selectedChallengeType, setSelectedChallengeType] = useState('');
   
   const [taskStatus, setTaskStatus] = useState({
@@ -395,11 +395,12 @@ const AthleteProfile = () => {
 
       <Tabs value={activeTab} onValueChange={(value) => setSearchParams({ tab: value })} className="w-full">
         <div className="flex items-center justify-between mb-4">
-          <TabsList className="bg-white border border-slate-200">
-            <TabsTrigger value="informacje">Informacje o zawodniku</TabsTrigger>
-            <TabsTrigger value="dodaj-pomiar">Dodaj pomiar</TabsTrigger>
-            <TabsTrigger value="raporty">Raporty</TabsTrigger>
-          </TabsList>
+            <TabsList className="bg-white border border-slate-200">
+              <TabsTrigger value="informacje">Informacje o zawodniku</TabsTrigger>
+              <TabsTrigger value="dodaj-pomiar">Dodaj pomiar</TabsTrigger>
+              <TabsTrigger value="trening">Trening</TabsTrigger>
+              <TabsTrigger value="raporty">Raporty</TabsTrigger>
+            </TabsList>
           {activeTab === "informacje" && (
             <Button variant="outline" onClick={handleEditProfile}>
               Edytuj profil
@@ -609,16 +610,12 @@ const AthleteProfile = () => {
                 <Label className="text-slate-900 font-semibold mb-3 block">Warunki pomiaru</Label>
                 <RadioGroup value={measurementConditions} onValueChange={setMeasurementConditions}>
                   <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="gabinet" id="gabinet" />
+                    <Label htmlFor="gabinet" className="text-slate-700 font-normal cursor-pointer">Gabinet (w ciszy)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value="trening" id="trening" />
-                    <Label htmlFor="trening" className="text-slate-700 font-normal cursor-pointer">Po treningu</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="zawody" id="zawody" />
-                    <Label htmlFor="zawody" className="text-slate-700 font-normal cursor-pointer">Po zawodach</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="baseline" id="baseline" />
-                    <Label htmlFor="baseline" className="text-slate-700 font-normal cursor-pointer">Pomiar bazowy (przed sezonem)</Label>
+                    <Label htmlFor="trening" className="text-slate-700 font-normal cursor-pointer">Trening (z dystraktorami)</Label>
                   </div>
                 </RadioGroup>
               </div>
@@ -777,6 +774,63 @@ const AthleteProfile = () => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="trening" className="mt-6">
+          <Card className="bg-white border-slate-200">
+            <CardHeader>
+              <CardTitle className="text-slate-900">Trening</CardTitle>
+              <p className="text-sm text-slate-600 mt-1">Graj w wybrane wyzwania w trybie treningowym</p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Scan */}
+                <Card className="bg-slate-50 hover:bg-slate-100 border-slate-200 cursor-pointer transition-all">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-slate-900 mb-2">Sigma Scan</h3>
+                    <p className="text-sm text-slate-600 mb-4">Test skanowania wzrokowego</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => setCurrentView('playing_scan')}
+                    >
+                      Zagraj
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Control */}
+                <Card className="bg-slate-50 hover:bg-slate-100 border-slate-200 cursor-pointer transition-all">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-slate-900 mb-2">Sigma Control</h3>
+                    <p className="text-sm text-slate-600 mb-4">Test kontroli impulsów</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => setCurrentView('playing_control')}
+                    >
+                      Zagraj
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Focus */}
+                <Card className="bg-slate-50 hover:bg-slate-100 border-slate-200 cursor-pointer transition-all">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-slate-900 mb-2">Sigma Focus</h3>
+                    <p className="text-sm text-slate-600 mb-4">Test koncentracji (Stroop)</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => setCurrentView('playing_focus')}
+                    >
+                      Zagraj
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="raporty" className="mt-6">
           <Tabs value={reportTab} onValueChange={setReportTab}>
             <TabsList className="mb-6">
@@ -797,9 +851,8 @@ const AthleteProfile = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-white z-50">
                         <SelectItem value="wszystkie">Wszystkie warunki</SelectItem>
-                        <SelectItem value="trening">Trening</SelectItem>
-                        <SelectItem value="mecz">Mecz</SelectItem>
-                        <SelectItem value="baseline">Baseline</SelectItem>
+                        <SelectItem value="gabinet">Gabinet (w ciszy)</SelectItem>
+                        <SelectItem value="trening">Trening (z dystraktorami)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
