@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface FocusGameProps {
   onComplete?: (data: any) => void;
@@ -318,89 +319,175 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
     const incongruentResults = results.filter(r => r.type === 'INCONGRUENT' && r.isCorrect).map(r => r.reactionTime).sort((a, b) => a - b);
     
     const medianCongruent = congruentResults.length > 0 
-      ? congruentResults[Math.floor(congruentResults.length / 2)]
+      ? Math.round(congruentResults[Math.floor(congruentResults.length / 2)])
       : 0;
     const medianIncongruent = incongruentResults.length > 0
-      ? incongruentResults[Math.floor(incongruentResults.length / 2)]
+      ? Math.round(incongruentResults[Math.floor(incongruentResults.length / 2)])
       : 0;
     
     const concentrationCost = medianIncongruent - medianCongruent;
+    const overallMedian = Math.round((medianCongruent + medianIncongruent) / 2);
 
     // Calculate max for chart scale
     const maxTime = Math.max(medianCongruent, medianIncongruent);
     const chartScale = maxTime > 0 ? maxTime * 1.2 : 1000;
 
+    // Prepare data for trend chart
+    const trendData = results.map((result, index) => ({
+      trial: index + 1,
+      reactionTime: Math.round(result.reactionTime),
+      type: result.type,
+      isCorrect: result.isCorrect
+    }));
+
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-2xl w-full border-slate-700 bg-slate-800 animate-scale-in">
-          <CardContent className="pt-6 text-center space-y-6">
-            <h2 className="text-3xl font-bold text-white">Wynik wyzwania Sigma Focus</h2>
+        <Card className="max-w-4xl w-full border-slate-700 bg-slate-800 animate-scale-in">
+          <CardContent className="pt-6 space-y-6">
+            <h2 className="text-3xl font-bold text-white text-center">Wynik wyzwania Sigma Focus</h2>
             
-            <div className="space-y-4 py-4">
-              {/* Median Reaction Time */}
-              <div className="bg-slate-700/50 p-4 rounded-lg">
-                <p className="text-slate-400 text-sm mb-1">Twój Czas Reakcji (Mediana)</p>
-                <p className="text-3xl font-bold text-primary">
-                  {Math.round((medianCongruent + medianIncongruent) / 2)} ms
-                </p>
-              </div>
-
-              {/* Bar Chart Comparison */}
-              <div className="bg-slate-700/50 p-6 rounded-lg space-y-4">
-                <p className="text-slate-400 text-sm mb-4">Porównanie trudności</p>
-                
-                <div className="space-y-4">
-                  {/* Congruent Bar */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-green-400 font-semibold">ŁATWE</span>
-                      <span className="text-white font-bold">{medianCongruent} ms</span>
-                    </div>
-                    <div className="w-full bg-slate-800 rounded-full h-8 overflow-hidden">
-                      <div 
-                        className="bg-green-500 h-full rounded-full transition-all duration-500"
-                        style={{ width: `${(medianCongruent / chartScale) * 100}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-slate-500">Bez konfliktu</p>
-                  </div>
-
-                  {/* Incongruent Bar */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-red-400 font-semibold">TRUDNE</span>
-                      <span className="text-white font-bold">{medianIncongruent} ms</span>
-                    </div>
-                    <div className="w-full bg-slate-800 rounded-full h-8 overflow-hidden">
-                      <div 
-                        className="bg-red-500 h-full rounded-full transition-all duration-500"
-                        style={{ width: `${(medianIncongruent / chartScale) * 100}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-slate-500">Z konfliktem</p>
-                  </div>
+            <div className="space-y-4">
+              {/* Top Section: Overall Median + Accuracy */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-2">Twój czas reakcji (mediana)</p>
+                  <p className="text-4xl font-bold text-primary mb-1">{overallMedian} ms</p>
+                  <p className="text-xs text-slate-500">dla wszystkich poprawnych trafień</p>
                 </div>
-
-                {/* Concentration Cost */}
-                <div className="mt-4 pt-4 border-t border-slate-600">
-                  <p className="text-slate-400 text-sm mb-1">Koszt Koncentracji</p>
-                  <p className="text-2xl font-bold text-yellow-400">+{concentrationCost} ms</p>
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-2">Celność</p>
+                  <p className="text-4xl font-bold text-green-500 mb-1">{accuracy}%</p>
+                  <p className="text-xs text-slate-500">Poprawne: {correctCount} / {TOTAL_TRIALS}</p>
                 </div>
               </div>
 
-              {/* Accuracy */}
+              {/* Middle Section: Comparison */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-3">Czas reakcji w zależności od trudności</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Bar Chart */}
+                  <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
+                    <p className="text-slate-300 text-sm font-medium">Typ trafienia:</p>
+                    
+                    {/* ŁATWY Bar */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-green-400 font-semibold">ŁATWY</span>
+                        <span className="text-white font-bold">{medianCongruent} ms</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-6 overflow-hidden">
+                        <div 
+                          className="bg-green-500 h-full rounded-full transition-all duration-500"
+                          style={{ width: `${(medianCongruent / chartScale) * 100}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500">kolor jak tekst</p>
+                    </div>
+
+                    {/* TRUDNE Bar */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-red-400 font-semibold">TRUDNE</span>
+                        <span className="text-white font-bold">{medianIncongruent} ms</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-6 overflow-hidden">
+                        <div 
+                          className="bg-red-500 h-full rounded-full transition-all duration-500"
+                          style={{ width: `${(medianIncongruent / chartScale) * 100}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500">zmyłki</p>
+                    </div>
+                  </div>
+
+                  {/* Difference Card */}
+                  <div className="bg-slate-700/50 p-4 rounded-lg flex flex-col justify-center">
+                    <p className="text-slate-400 text-sm mb-2">Różnica</p>
+                    <p className="text-4xl font-bold text-yellow-400 mb-2">+{concentrationCost} ms</p>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Im mniejsza, tym lepiej ignorujesz zakłócacze.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Trend Chart - Krzywa koncentracji */}
               <div className="bg-slate-700/50 p-4 rounded-lg">
-                <p className="text-slate-400 text-sm mb-1">Celność</p>
-                <p className="text-3xl font-bold text-green-500">{accuracy}%</p>
-                <p className="text-xs text-slate-500 mt-1">
-                  Poprawne: {correctCount} / {TOTAL_TRIALS}
-                </p>
+                <h3 className="text-lg font-semibold text-white mb-4">Krzywa koncentracji</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                      <XAxis 
+                        dataKey="trial" 
+                        stroke="#94a3b8"
+                        label={{ value: 'Numer próby', position: 'insideBottom', offset: -5, fill: '#94a3b8' }}
+                      />
+                      <YAxis 
+                        stroke="#94a3b8"
+                        label={{ value: 'Czas reakcji (ms)', angle: -90, position: 'insideLeft', fill: '#94a3b8' }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px' }}
+                        labelStyle={{ color: '#e2e8f0' }}
+                        itemStyle={{ color: '#e2e8f0' }}
+                        formatter={(value: any, name: any, props: any) => {
+                          const type = props.payload.type === 'CONGRUENT' ? 'ŁATWY' : 'TRUDNE';
+                          const correct = props.payload.isCorrect ? '✓' : '✗';
+                          return [`${value} ms (${type}) ${correct}`, 'Czas reakcji'];
+                        }}
+                      />
+                      <Legend 
+                        wrapperStyle={{ paddingTop: '10px' }}
+                        formatter={(value) => <span style={{ color: '#e2e8f0' }}>{value}</span>}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="reactionTime" 
+                        stroke="#3b82f6" 
+                        strokeWidth={2}
+                        dot={(props: any) => {
+                          const { cx, cy, payload } = props;
+                          const color = payload.type === 'CONGRUENT' ? '#22c55e' : '#ef4444';
+                          const size = payload.isCorrect ? 4 : 6;
+                          const opacity = payload.isCorrect ? 0.6 : 1;
+                          return (
+                            <circle 
+                              cx={cx} 
+                              cy={cy} 
+                              r={size} 
+                              fill={color} 
+                              opacity={opacity}
+                              stroke={payload.isCorrect ? 'none' : '#fbbf24'}
+                              strokeWidth={payload.isCorrect ? 0 : 2}
+                            />
+                          );
+                        }}
+                        name="Czas reakcji"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-3 flex gap-4 justify-center text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span className="text-slate-400">Łatwy (zgodny)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <span className="text-slate-400">Trudny (niezgodny)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full border-2 border-yellow-400"></div>
+                    <span className="text-slate-400">Błąd</span>
+                  </div>
+                </div>
               </div>
 
               {/* HRV Input Fields */}
               <div className="bg-slate-700/50 p-4 rounded-lg space-y-3">
                 <p className="text-slate-400 text-sm mb-3">Powiązany pomiar HRV (opcjonalnie)</p>
-                <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-3">
                   <Input
                     type="number"
                     value={manualRMSSD}
