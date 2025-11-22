@@ -285,7 +285,7 @@ export default function FocusGame({
             </div>
             
             <p className="text-center text-lg">
-              Test składa się z <span className="font-bold text-white">80 prób</span>.
+              Wyzwanie składa się z <span className="font-bold text-white">80 prób</span>.
             </p>
 
             <p className="text-center text-lg text-yellow-400 font-semibold">
