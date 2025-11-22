@@ -15,6 +15,15 @@ interface GridItem {
   isTarget: boolean;
 }
 
+interface TrialResult {
+  trialNumber: number;
+  reactionTime: number;
+  targetPosition: number; // 0-99, pozycja celu na gridzie
+  clickedPosition: number; // 0-99, kliknięte pole
+  isCorrect: boolean; // czy kliknięto cel
+  timestamp: number;
+}
+
 const MAX_TRIALS = 10;
 
 interface ScanGameProps {
@@ -28,9 +37,10 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
   const { athleteId } = useParams();
   const [gameState, setGameState] = useState<GameState>("ready");
   const [currentTrial, setCurrentTrial] = useState<number>(1);
-  const [resultsList, setResultsList] = useState<number[]>([]);
+  const [resultsList, setResultsList] = useState<TrialResult[]>([]);
   const [errorCount, setErrorCount] = useState<number>(0);
   const [grid, setGrid] = useState<GridItem[]>([]);
+  const [targetPosition, setTargetPosition] = useState<number>(0);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [manualHRV, setManualHRV] = useState<string>("");
 
@@ -65,6 +75,7 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
     };
 
     setGrid(newGrid);
+    setTargetPosition(targetIndex);
     setGameState("playing");
     setStartTime(Date.now());
   };
@@ -77,14 +88,23 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
     setupTrial();
   };
 
-  const handleClick = (isTarget: boolean) => {
+  const handleClick = (clickedIndex: number, isTarget: boolean) => {
     if (gameState !== "playing" || startTime === null) return;
+
+    const reactionTime = Date.now() - startTime;
+    const trialResult: TrialResult = {
+      trialNumber: currentTrial,
+      reactionTime,
+      targetPosition,
+      clickedPosition: clickedIndex,
+      isCorrect: isTarget,
+      timestamp: Date.now()
+    };
+
+    setResultsList(prev => [...prev, trialResult]);
 
     if (isTarget) {
       // Kliknięto cel (Zielone Koło)
-      const reactionTime = Date.now() - startTime;
-      setResultsList(prev => [...prev, reactionTime]);
-      
       const nextTrial = currentTrial + 1;
       setCurrentTrial(nextTrial);
       
@@ -100,7 +120,7 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
         }, transitionTime);
       }
     } else {
-      // Kliknięto dystraktor
+      // Kliknięto dystraktor (błąd)
       setErrorCount(prev => prev + 1);
     }
   };
@@ -136,9 +156,16 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
   const calculateStats = () => {
     if (resultsList.length === 0) return { average: 0, median: 0, accuracy: 0 };
 
-    const average = Math.round(resultsList.reduce((a, b) => a + b, 0) / resultsList.length);
+    // Pobierz tylko czasy reakcji z poprawnych prób (isCorrect: true)
+    const reactionTimes = resultsList
+      .filter(trial => trial.isCorrect)
+      .map(trial => trial.reactionTime);
+
+    if (reactionTimes.length === 0) return { average: 0, median: 0, accuracy: 0 };
+
+    const average = Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length);
     
-    const sorted = [...resultsList].sort((a, b) => a - b);
+    const sorted = [...reactionTimes].sort((a, b) => a - b);
     const median = sorted.length % 2 === 0
       ? Math.round((sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2)
       : sorted[Math.floor(sorted.length / 2)];
@@ -208,7 +235,7 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
               {grid.map((item, index) => (
                 <button
                   key={index}
-                  onClick={() => handleClick(item.isTarget)}
+                  onClick={() => handleClick(index, item.isTarget)}
                   className="aspect-square hover:scale-110 transition-transform duration-150 flex items-center justify-center"
                 >
                   <div className={getShapeClass(item)} />
@@ -279,12 +306,18 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
                   className="flex-1"
                   onClick={() => {
                     const gameData = {
+                      // Surowe dane z każdej próby
+                      trials: resultsList,
+                      
+                      // Agregaty
                       average: calculateStats().average,
                       median: calculateStats().median,
                       accuracy: calculateStats().accuracy,
                       errors: errorCount,
-                      results: resultsList,
-                      hrv: manualHRV
+                      totalTrials: MAX_TRIALS,
+                      
+                      // HRV
+                      hrv: manualHRV ? parseFloat(manualHRV) : null
                     };
                     if (onGoToCockpit) onGoToCockpit();
                     if (onComplete) onComplete(gameData);
@@ -299,12 +332,18 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
                   className="flex-1 bg-green-600 hover:bg-green-700"
                   onClick={() => {
                     const gameData = {
+                      // Surowe dane z każdej próby
+                      trials: resultsList,
+                      
+                      // Agregaty
                       average: calculateStats().average,
                       median: calculateStats().median,
                       accuracy: calculateStats().accuracy,
                       errors: errorCount,
-                      results: resultsList,
-                      hrv: manualHRV
+                      totalTrials: MAX_TRIALS,
+                      
+                      // HRV
+                      hrv: manualHRV ? parseFloat(manualHRV) : null
                     };
                     if (onComplete) onComplete(gameData);
                     else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
