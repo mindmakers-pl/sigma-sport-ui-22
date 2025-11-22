@@ -191,11 +191,11 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
 
   return (
     <div className="min-h-screen bg-slate-900 p-4">
-      {!onComplete && (
+      {onGoToCockpit && (
         <Button 
           variant="ghost" 
           className="text-white hover:bg-slate-800 mb-4"
-          onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
+          onClick={onGoToCockpit}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Powrót
@@ -305,27 +305,15 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
                   variant="outline"
                   className="flex-1"
                   onClick={() => {
-                    const gameData = {
-                      // Surowe dane z każdej próby
-                      trials: resultsList,
-                      
-                      // Agregaty
-                      average: calculateStats().average,
-                      median: calculateStats().median,
-                      accuracy: calculateStats().accuracy,
-                      errors: errorCount,
-                      totalTrials: MAX_TRIALS,
-                      
-                      // HRV
-                      hrv: manualHRV ? parseFloat(manualHRV) : null
-                    };
-                    if (onGoToCockpit) onGoToCockpit();
-                    if (onComplete) onComplete(gameData);
-                    else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                    if (onGoToCockpit) {
+                      onGoToCockpit();
+                    } else {
+                      navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                    }
                   }}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Powrót
+                  Zakończ
                 </Button>
                 <Button 
                   size="lg" 
@@ -345,8 +333,11 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
                       // HRV
                       hrv: manualHRV ? parseFloat(manualHRV) : null
                     };
-                    if (onComplete) onComplete(gameData);
-                    else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                    if (onComplete) {
+                      onComplete(gameData);
+                    } else {
+                      navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                    }
                   }}
                   disabled={!manualHRV.trim()}
                 >

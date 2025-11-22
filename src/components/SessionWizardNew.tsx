@@ -39,14 +39,13 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
     };
     setSessionResults(updatedResults);
 
-    // Move to next step
-    if (currentStep === 'questionnaires') setCurrentStep('scan');
-    else if (currentStep === 'scan') setCurrentStep('control');
-    else if (currentStep === 'control') setCurrentStep('focus');
-    else if (currentStep === 'focus') setCurrentStep('move');
-    else if (currentStep === 'move') setCurrentStep('hrv_training');
-    else if (currentStep === 'hrv_training') setCurrentStep('hrv_baseline');
-    else if (currentStep === 'hrv_baseline') setCurrentStep('complete');
+    // Return to questionnaire selection after completing a step
+    setCurrentStep('questionnaire-select');
+  };
+
+  const handleReturnToSelection = () => {
+    // Save progress and return to selection screen
+    setCurrentStep('questionnaire-select');
   };
 
   const handleQuestionnaireSelection = (questionnaireIds: string[]) => {
@@ -83,7 +82,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
         return (
           <ScanGame 
             onComplete={(data) => handleStepComplete('scan', data)}
-            onGoToCockpit={onClose}
+            onGoToCockpit={handleReturnToSelection}
           />
         );
 
@@ -91,7 +90,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
         return (
           <ControlGame 
             onComplete={(data) => handleStepComplete('control', data)}
-            onGoToCockpit={onClose}
+            onGoToCockpit={handleReturnToSelection}
           />
         );
 
@@ -99,7 +98,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
         return (
           <FocusGame 
             onComplete={(data) => handleStepComplete('focus', data)}
-            onGoToCockpit={onClose}
+            onGoToCockpit={handleReturnToSelection}
           />
         );
 
@@ -108,7 +107,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
           <SigmaMoveForm 
             challengeType="time"
             onComplete={(data) => handleStepComplete('move', data)}
-            onGoToCockpit={onClose}
+            onGoToCockpit={handleReturnToSelection}
           />
         );
 
@@ -116,7 +115,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
         return (
           <HRVTrainingForm 
             onComplete={(data) => handleStepComplete('hrv_training', data)}
-            onGoToCockpit={onClose}
+            onGoToCockpit={handleReturnToSelection}
           />
         );
 
@@ -124,7 +123,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
         return (
           <HRVBaselineForm 
             onComplete={(data) => handleStepComplete('hrv_baseline', data)}
-            onGoToCockpit={onClose}
+            onGoToCockpit={handleReturnToSelection}
           />
         );
 
