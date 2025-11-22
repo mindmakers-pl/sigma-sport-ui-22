@@ -129,36 +129,36 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
         setPhaseState("stimulus");
         setButtonsDisabled(false);
         setStimulusStartTime(Date.now());
-
-        // Auto-advance after max stimulus time if no response
-        setTimeout(() => {
-          if (phaseState === "stimulus") {
-            handleTimeout();
-          }
-        }, STIMULUS_MAX_TIME);
       }, isiDuration);
     }, FIXATION_TIME);
-  }, [phaseState]);
+  }, []);
 
-  const handleTimeout = () => {
-    // Record as incorrect with max time
-    const currentTrial = trials[currentTrialIndex];
-    const result: TrialResult = {
-      trialId: currentTrial.trialId,
-      type: currentTrial.type,
-      stimulusWord: currentTrial.stimulusWord,
-      stimulusColor: currentTrial.stimulusColor,
-      userAction: "TIMEOUT",
-      isCorrect: false,
-      reactionTime: STIMULUS_MAX_TIME,
-      timestamp: Date.now()
-    };
+  useEffect(() => {
+    if (phaseState !== "stimulus" || buttonsDisabled) return;
+    
+    const timeoutId = setTimeout(() => {
+      // Record as incorrect with max time
+      const currentTrial = trials[currentTrialIndex];
+      const result: TrialResult = {
+        trialId: currentTrial.trialId,
+        type: currentTrial.type,
+        stimulusWord: currentTrial.stimulusWord,
+        stimulusColor: currentTrial.stimulusColor,
+        userAction: "TIMEOUT",
+        isCorrect: false,
+        reactionTime: STIMULUS_MAX_TIME,
+        timestamp: Date.now()
+      };
 
-    const newResults = [...results, result];
-    setResults(newResults);
+      const newResults = [...results, result];
+      setResults(newResults);
+      setButtonsDisabled(true);
 
-    advanceToNextTrial(newResults);
-  };
+      advanceToNextTrial(newResults);
+    }, STIMULUS_MAX_TIME);
+
+    return () => clearTimeout(timeoutId);
+  }, [phaseState, buttonsDisabled, currentTrialIndex, trials, results]);
 
   const handleColorClick = (clickedColor: ColorType) => {
     if (buttonsDisabled || phaseState !== "stimulus") return;
@@ -180,6 +180,9 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
 
     const newResults = [...results, result];
     setResults(newResults);
+    
+    // Disable buttons immediately after response
+    setButtonsDisabled(true);
 
     advanceToNextTrial(newResults);
   };
@@ -329,13 +332,13 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
           <button
             onClick={() => handleColorClick('RED')}
             disabled={buttonsDisabled}
-            className="aspect-square w-40 bg-red-500 rounded-2xl hover:bg-red-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="aspect-square w-40 bg-red-500 rounded-2xl hover:bg-red-600 active:scale-95 transition-all disabled:cursor-not-allowed"
             aria-label="Red"
           />
           <button
             onClick={() => handleColorClick('GREEN')}
             disabled={buttonsDisabled}
-            className="aspect-square w-40 bg-green-500 rounded-2xl hover:bg-green-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="aspect-square w-40 bg-green-500 rounded-2xl hover:bg-green-600 active:scale-95 transition-all disabled:cursor-not-allowed"
             aria-label="Green"
           />
         </div>
@@ -360,13 +363,13 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
           <button
             onClick={() => handleColorClick('BLUE')}
             disabled={buttonsDisabled}
-            className="aspect-square w-40 bg-blue-500 rounded-2xl hover:bg-blue-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="aspect-square w-40 bg-blue-500 rounded-2xl hover:bg-blue-600 active:scale-95 transition-all disabled:cursor-not-allowed"
             aria-label="Blue"
           />
           <button
             onClick={() => handleColorClick('YELLOW')}
             disabled={buttonsDisabled}
-            className="aspect-square w-40 bg-yellow-400 rounded-2xl hover:bg-yellow-500 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="aspect-square w-40 bg-yellow-400 rounded-2xl hover:bg-yellow-500 active:scale-95 transition-all disabled:cursor-not-allowed"
             aria-label="Yellow"
           />
         </div>
