@@ -6,16 +6,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-
 export default function SessionDetail() {
-  const { athleteId, sessionId } = useParams();
+  const {
+    athleteId,
+    sessionId
+  } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const taskView = searchParams.get("task") || "overview";
-  
   const [session, setSession] = useState<any>(null);
   const [athlete, setAthlete] = useState<any>(null);
-
   useEffect(() => {
     // Load session data
     const sessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
@@ -27,22 +27,17 @@ export default function SessionDetail() {
     const foundAthlete = athletes.find((a: any) => a.id === parseInt(athleteId || "0"));
     setAthlete(foundAthlete);
   }, [athleteId, sessionId]);
-
   if (!session || !athlete) {
-    return (
-      <div className="p-8">
+    return <div className="p-8">
         <p>Ładowanie...</p>
-      </div>
-    );
+      </div>;
   }
-
-  const completedTasks = Object.entries(session.taskStatus)
-    .filter(([_, status]) => status === 'completed')
-    .map(([task]) => task);
-
+  const completedTasks = Object.entries(session.taskStatus).filter(([_, status]) => status === 'completed').map(([task]) => task);
   const handleExportJSON = () => {
     const dataStr = JSON.stringify(session, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const dataBlob = new Blob([dataStr], {
+      type: 'application/json'
+    });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
@@ -50,18 +45,15 @@ export default function SessionDetail() {
     link.click();
     URL.revokeObjectURL(url);
   };
-
   const handleExportCSV = () => {
     // Basic CSV export for focus game trials
     if (session.results.focus?.coachReport?.rawTrials) {
       const trials = session.results.focus.coachReport.rawTrials;
       const headers = ['trialId', 'type', 'stimulusWord', 'stimulusColor', 'userAction', 'isCorrect', 'reactionTime', 'timestamp'];
-      const csvContent = [
-        headers.join(','),
-        ...trials.map((t: any) => headers.map(h => t[h]).join(','))
-      ].join('\n');
-      
-      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const csvContent = [headers.join(','), ...trials.map((t: any) => headers.map(h => t[h]).join(','))].join('\n');
+      const blob = new Blob([csvContent], {
+        type: 'text/csv'
+      });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -73,13 +65,8 @@ export default function SessionDetail() {
 
   // Overview screen
   if (taskView === "overview") {
-    return (
-      <div className="p-8 max-w-6xl mx-auto">
-        <Button 
-          variant="ghost" 
-          className="mb-4"
-          onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)}
-        >
+    return <div className="p-8 max-w-6xl mx-auto">
+        <Button variant="ghost" className="mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Powrót do historii
         </Button>
@@ -90,13 +77,13 @@ export default function SessionDetail() {
           </h2>
           <p className="text-slate-600">
             {athlete.name} • {new Date(session.date).toLocaleDateString('pl-PL', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
           </p>
           <Badge variant="outline" className="mt-2">
             {session.conditions}
@@ -144,33 +131,26 @@ export default function SessionDetail() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {completedTasks.map((task) => {
-                const taskNames: Record<string, string> = {
-                  kwestionariusz: "Kwestionariusz",
-                  hrv_baseline: "HRV Baseline",
-                  scan: "Sigma Scan",
-                  control: "Sigma Control",
-                  focus: "Sigma Focus",
-                  sigma_move: "Sigma Move",
-                  hrv_training: "HRV Training"
-                };
-
-                const taskIcons: Record<string, string> = {
-                  focus: "🎯",
-                  scan: "👁️",
-                  control: "🎮",
-                  kwestionariusz: "📋",
-                  hrv_baseline: "❤️",
-                  sigma_move: "🏃",
-                  hrv_training: "🧘"
-                };
-
-                return (
-                  <Card
-                    key={task}
-                    className="border-slate-200 hover:border-primary/50 transition-colors cursor-pointer bg-slate-50 hover:bg-slate-100"
-                    onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=${task}`)}
-                  >
+              {completedTasks.map(task => {
+              const taskNames: Record<string, string> = {
+                kwestionariusz: "Kwestionariusz",
+                hrv_baseline: "HRV Baseline",
+                scan: "Sigma Scan",
+                control: "Sigma Control",
+                focus: "Sigma Focus",
+                sigma_move: "Sigma Move",
+                hrv_training: "HRV Training"
+              };
+              const taskIcons: Record<string, string> = {
+                focus: "🎯",
+                scan: "👁️",
+                control: "🎮",
+                kwestionariusz: "📋",
+                hrv_baseline: "❤️",
+                sigma_move: "🏃",
+                hrv_training: "🧘"
+              };
+              return <Card key={task} className="border-slate-200 hover:border-primary/50 transition-colors cursor-pointer bg-slate-50 hover:bg-slate-100" onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=${task}`)}>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="text-3xl">{taskIcons[task]}</div>
@@ -184,62 +164,45 @@ export default function SessionDetail() {
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
-                );
-              })}
+                  </Card>;
+            })}
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>;
   }
 
   // Sigma Focus detailed view
   if (taskView === "focus" && session.results.focus) {
     const focusData = session.results.focus;
     const coachReport = focusData.coachReport;
-
     if (!coachReport) {
-      return (
-        <div className="p-8">
+      return <div className="p-8">
           <p>Brak danych coach report dla tego testu.</p>
-        </div>
-      );
+        </div>;
     }
 
     // Prepare chart data for difficulty comparison
-    const difficultyChartData = [
-      {
-        name: "ŁATWE\n(Bez konfliktu)",
-        medianRT: coachReport.coachMetrics.congruent.medianRT,
-        label: "Congruent"
-      },
-      {
-        name: "TRUDNE\n(Z konfliktem)",
-        medianRT: coachReport.coachMetrics.incongruent.medianRT,
-        label: "Incongruent"
-      }
-    ];
+    const difficultyChartData = [{
+      name: "ŁATWE\n(Bez konfliktu)",
+      medianRT: coachReport.coachMetrics.congruent.medianRT,
+      label: "Congruent"
+    }, {
+      name: "TRUDNE\n(Z konfliktem)",
+      medianRT: coachReport.coachMetrics.incongruent.medianRT,
+      label: "Incongruent"
+    }];
 
     // Prepare trial-by-trial chart data (showing errors)
     const rawTrials = coachReport.rawTrials || focusData.trials || [];
-    const trialChartData = rawTrials.length > 0
-      ? rawTrials.slice(0, 80).map((trial: any, idx: number) => ({
-          trial: trial.trialId || idx + 1,
-          rt: trial.reactionTime,
-          isError: !trial.isCorrect
-        }))
-      : [];
-    
+    const trialChartData = rawTrials.length > 0 ? rawTrials.slice(0, 80).map((trial: any, idx: number) => ({
+      trial: trial.trialId || idx + 1,
+      rt: trial.reactionTime,
+      isError: !trial.isCorrect
+    })) : [];
     console.log('Trial chart data:', trialChartData.length, 'trials');
-
-    return (
-      <div className="p-8 max-w-6xl mx-auto">
-        <Button 
-          variant="ghost" 
-          className="mb-4"
-          onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=overview`)}
-        >
+    return <div className="p-8 max-w-6xl mx-auto">
+        <Button variant="ghost" className="mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=overview`)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Powrót do podsumowania
         </Button>
@@ -270,8 +233,8 @@ export default function SessionDetail() {
               </Button>
               <Button variant="outline" size="sm">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m22 2-7 20-4-9-9-4Z"/>
-                  <path d="M22 2 11 13"/>
+                  <path d="m22 2-7 20-4-9-9-4Z" />
+                  <path d="M22 2 11 13" />
                 </svg>
                 Wyślij
               </Button>
@@ -323,20 +286,20 @@ export default function SessionDetail() {
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={difficultyChartData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="name" 
-                        tick={{ fontSize: 12 }}
-                        interval={0}
-                      />
-                      <YAxis 
-                        label={{ value: 'Czas reakcji (ms)', angle: -90, position: 'insideLeft' }}
-                      />
+                      <XAxis dataKey="name" tick={{
+                      fontSize: 12
+                    }} interval={0} />
+                      <YAxis label={{
+                      value: 'Czas reakcji (ms)',
+                      angle: -90,
+                      position: 'insideLeft'
+                    }} />
                       <Tooltip />
-                      <Bar 
-                        dataKey="medianRT" 
-                        fill="hsl(var(--primary))"
-                        label={{ position: 'top', fill: 'hsl(var(--primary))', fontWeight: 'bold' }}
-                      />
+                      <Bar dataKey="medianRT" fill="hsl(var(--primary))" label={{
+                      position: 'top',
+                      fill: 'hsl(var(--primary))',
+                      fontWeight: 'bold'
+                    }} />
                     </BarChart>
                   </ResponsiveContainer>
                   
@@ -364,51 +327,37 @@ export default function SessionDetail() {
                 </p>
               </CardHeader>
               <CardContent>
-                {trialChartData && trialChartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={400}>
+                {trialChartData && trialChartData.length > 0 ? <ResponsiveContainer width="100%" height={400}>
                     <LineChart data={trialChartData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="trial" 
-                        label={{ value: 'Numer próby', position: 'insideBottom', offset: -5 }}
-                      />
-                      <YAxis 
-                        label={{ value: 'Czas reakcji (ms)', angle: -90, position: 'insideLeft' }}
-                      />
-                      <Tooltip 
-                        formatter={(value: any, name: string) => {
-                          if (name === 'rt') return [`${value} ms`, 'Czas reakcji'];
-                          return [value, name];
-                        }}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="rt" 
-                        stroke="hsl(var(--primary))" 
-                        strokeWidth={2}
-                        dot={(props: any) => {
-                          const { cx, cy, payload } = props;
-                          if (!cx || !cy) return null;
-                          if (payload.isError) {
-                            return (
-                              <circle 
-                                cx={cx} 
-                                cy={cy} 
-                                r={5} 
-                                fill="red" 
-                                stroke="darkred" 
-                                strokeWidth={2}
-                              />
-                            );
-                          }
-                          return <circle cx={cx} cy={cy} r={2} fill="hsl(var(--primary))" />;
-                        }}
-                      />
+                      <XAxis dataKey="trial" label={{
+                    value: 'Numer próby',
+                    position: 'insideBottom',
+                    offset: -5
+                  }} />
+                      <YAxis label={{
+                    value: 'Czas reakcji (ms)',
+                    angle: -90,
+                    position: 'insideLeft'
+                  }} />
+                      <Tooltip formatter={(value: any, name: string) => {
+                    if (name === 'rt') return [`${value} ms`, 'Czas reakcji'];
+                    return [value, name];
+                  }} />
+                      <Line type="monotone" dataKey="rt" stroke="hsl(var(--primary))" strokeWidth={2} dot={(props: any) => {
+                    const {
+                      cx,
+                      cy,
+                      payload
+                    } = props;
+                    if (!cx || !cy) return null;
+                    if (payload.isError) {
+                      return <circle cx={cx} cy={cy} r={5} fill="red" stroke="darkred" strokeWidth={2} />;
+                    }
+                    return <circle cx={cx} cy={cy} r={2} fill="hsl(var(--primary))" />;
+                  }} />
                     </LineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <p className="text-slate-500">Brak danych do wyświetlenia krzywej.</p>
-                )}
+                  </ResponsiveContainer> : <p className="text-slate-500">Brak danych do wyświetlenia krzywej.</p>}
                 <p className="text-sm text-slate-600 mt-4">
                   📊 <strong>Co to znaczy?</strong> Jeśli linia jest w miarę płaska, Twoja koncentracja była stabilna. 
                   Duże skoki mogą oznaczać moment zmęczenia lub trudności z utrzymaniem uwagi.
@@ -599,8 +548,7 @@ export default function SessionDetail() {
             </Card>
 
             {/* HRV Metrics */}
-            {(focusData.rMSSD || focusData.HR) && (
-              <Card>
+            {(focusData.rMSSD || focusData.HR) && <Card>
                 <CardHeader>
                   <CardTitle>Pomiar HRV (Zmienność Rytmu Serca)</CardTitle>
                   <p className="text-sm text-slate-600">
@@ -609,36 +557,31 @@ export default function SessionDetail() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-6 mb-4">
-                    {focusData.HR && (
-                      <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                    {focusData.HR && <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
                         <p className="text-sm text-slate-600 mb-1">Średnie HR (Heart Rate)</p>
                         <p className="text-3xl font-bold text-red-700">
                           {focusData.HR} <span className="text-lg font-normal">bpm</span>
                         </p>
                         <p className="text-xs text-slate-600 mt-2">Średnia częstość akcji serca</p>
-                      </div>
-                    )}
-                    {focusData.rMSSD && (
-                      <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                      </div>}
+                    {focusData.rMSSD && <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                         <p className="text-sm text-slate-600 mb-1">rMSSD</p>
                         <p className="text-3xl font-bold text-blue-700">
                           {focusData.rMSSD} <span className="text-lg font-normal">ms</span>
                         </p>
                         <p className="text-xs text-slate-600 mt-2">Root Mean Square of Successive Differences</p>
-                      </div>
-                    )}
+                      </div>}
                   </div>
                   <div className="p-4 bg-slate-50 rounded-lg">
                     <h4 className="font-semibold text-slate-900 mb-2">📊 Interpretacja HRV:</h4>
                     <ul className="text-sm text-slate-700 space-y-1">
                       <li><strong>HR (Heart Rate):</strong> Średnia częstość akcji serca podczas testu. Wzrost może wskazywać na mobilizację lub stres.</li>
                       <li><strong>rMSSD:</strong> Kluczowy wskaźnik HRV z domeny czasowej. Wyższe wartości = większa zmienność = lepszy stan regeneracji i gotowości.</li>
-                      <li><strong>Polar H10:</strong> Jeden z najdokładniejszych sensorów do pomiaru HRV, rekomendowany w badaniach naukowych.</li>
+                      
                     </ul>
                   </div>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
           </TabsContent>
 
           {/* Export View */}
@@ -652,31 +595,19 @@ export default function SessionDetail() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-3 gap-4">
-                  <Button 
-                    variant="outline" 
-                    className="h-24 flex-col gap-2"
-                    onClick={handleExportJSON}
-                  >
+                  <Button variant="outline" className="h-24 flex-col gap-2" onClick={handleExportJSON}>
                     <Download className="h-6 w-6" />
                     <span>Pobierz JSON</span>
                     <span className="text-xs text-slate-500">Pełne dane sesji</span>
                   </Button>
                   
-                  <Button 
-                    variant="outline" 
-                    className="h-24 flex-col gap-2"
-                    onClick={handleExportCSV}
-                  >
+                  <Button variant="outline" className="h-24 flex-col gap-2" onClick={handleExportCSV}>
                     <Download className="h-6 w-6" />
                     <span>Pobierz CSV</span>
                     <span className="text-xs text-slate-500">Dane prób (Excel)</span>
                   </Button>
                   
-                  <Button 
-                    variant="outline" 
-                    className="h-24 flex-col gap-2"
-                    disabled
-                  >
+                  <Button variant="outline" className="h-24 flex-col gap-2" disabled>
                     <Download className="h-6 w-6" />
                     <span>Pobierz PDF</span>
                     <span className="text-xs text-slate-500">Wkrótce</span>
@@ -697,22 +628,15 @@ export default function SessionDetail() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    );
+      </div>;
   }
 
   // Fallback for other tasks
-  return (
-    <div className="p-8">
-      <Button 
-        variant="ghost" 
-        className="mb-4"
-        onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=overview`)}
-      >
+  return <div className="p-8">
+      <Button variant="ghost" className="mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=overview`)}>
         <ArrowLeft className="h-4 w-4 mr-2" />
         Powrót do podsumowania
       </Button>
       <p>Szczegółowy widok dla tego testu nie jest jeszcze dostępny.</p>
-    </div>
-  );
+    </div>;
 }
