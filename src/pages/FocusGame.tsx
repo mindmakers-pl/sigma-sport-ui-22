@@ -226,8 +226,36 @@ export default function FocusGame({
     setGameState("finished");
     console.log("=== STROOP TEST RESULTS ===");
     console.log(JSON.stringify(finalResults, null, 2));
+    
+    // Calculate aggregates immediately
+    const correctCount = finalResults.filter(r => r.isCorrect).length;
+    const accuracy = Math.round(correctCount / TOTAL_TRIALS * 100);
+    
+    const congruentResults = finalResults.filter(r => r.type === 'CONGRUENT' && r.isCorrect).map(r => r.reactionTime).sort((a, b) => a - b);
+    const incongruentResults = finalResults.filter(r => r.type === 'INCONGRUENT' && r.isCorrect).map(r => r.reactionTime).sort((a, b) => a - b);
+    const medianCongruent = congruentResults.length > 0 ? Math.round(congruentResults[Math.floor(congruentResults.length / 2)]) : 0;
+    const medianIncongruent = incongruentResults.length > 0 ? Math.round(incongruentResults[Math.floor(incongruentResults.length / 2)]) : 0;
+    const concentrationCost = medianIncongruent - medianCongruent;
+    
+    const gameData = {
+      // Surowe dane z każdej próby
+      trials: finalResults,
+      
+      // Agregaty - kluczowe wskaźniki
+      medianCongruent,
+      medianIncongruent,
+      concentrationCost,
+      accuracy,
+      correctCount,
+      totalTrials: TOTAL_TRIALS,
+      
+      // Opcjonalne HRV (uzupełniane później manualnie)
+      rMSSD: null,
+      HR: null
+    };
+    
     if (onComplete) {
-      onComplete(finalResults);
+      onComplete(gameData);
     }
   };
   useEffect(() => {
@@ -489,12 +517,13 @@ export default function FocusGame({
             <div className="flex gap-3">
               <Button size="lg" variant="outline" className="flex-1" onClick={() => {
                 const gameData = {
+                  trials: results,
                   medianCongruent,
                   medianIncongruent,
                   concentrationCost,
                   accuracy,
                   correctCount,
-                  results,
+                  totalTrials: TOTAL_TRIALS,
                   rMSSD: manualRMSSD,
                   HR: manualHR
                 };
@@ -506,12 +535,13 @@ export default function FocusGame({
               </Button>
               <Button size="lg" className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => {
                 const gameData = {
+                  trials: results,
                   medianCongruent,
                   medianIncongruent,
                   concentrationCost,
                   accuracy,
                   correctCount,
-                  results,
+                  totalTrials: TOTAL_TRIALS,
                   rMSSD: manualRMSSD,
                   HR: manualHR
                 };
