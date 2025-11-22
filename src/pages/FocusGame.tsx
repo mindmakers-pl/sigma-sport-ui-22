@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ArrowLeft } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface FocusGameProps {
@@ -54,6 +56,9 @@ const COLOR_CLASSES: Record<ColorType, string> = {
 };
 
 export default function FocusGame({ onComplete, onGoToCockpit, mode = "training" }: FocusGameProps) {
+  const navigate = useNavigate();
+  const { athleteId } = useParams();
+  
   // Mock results for demonstration
   const mockResults: TrialResult[] = Array.from({ length: 80 }, (_, i) => ({
     trialId: i + 1,
@@ -66,7 +71,7 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
     timestamp: Date.now() + i * 3000
   }));
 
-  const [gameState, setGameState] = useState<"ready" | "playing" | "finished">("finished");
+  const [gameState, setGameState] = useState<"ready" | "playing" | "finished">("ready");
   const [phaseState, setPhaseState] = useState<"fixation" | "isi" | "stimulus">("fixation");
   const [trials, setTrials] = useState<Trial[]>([]);
   const [currentTrialIndex, setCurrentTrialIndex] = useState(0);
@@ -255,8 +260,20 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
   // Ready screen
   if (gameState === "ready") {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <div className="max-w-3xl w-full bg-slate-900 rounded-2xl p-12 space-y-8 shadow-2xl">
+      <div className="min-h-screen bg-slate-950 p-4">
+        {!onComplete && (
+          <Button 
+            variant="ghost" 
+            className="text-white hover:bg-slate-800 mb-4"
+            onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Powrót
+          </Button>
+        )}
+        
+        <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
+          <div className="max-w-3xl w-full bg-slate-900 rounded-2xl p-12 space-y-8 shadow-2xl">
           <h1 className="text-5xl font-bold text-white text-center mb-6">Sigma Focus</h1>
           
           <div className="space-y-6 text-slate-200 text-lg leading-relaxed">
@@ -305,6 +322,7 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
             START
           </Button>
         </div>
+        </div>
       </div>
     );
   }
@@ -341,7 +359,19 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
     }));
 
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-950 p-4">
+        {!onComplete && (
+          <Button 
+            variant="ghost" 
+            className="text-white hover:bg-slate-800 mb-4"
+            onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Powrót
+          </Button>
+        )}
+        
+        <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
         <Card className="max-w-4xl w-full border-slate-700 bg-slate-800 animate-scale-in">
           <CardContent className="pt-6 space-y-6">
             <h2 className="text-2xl font-bold text-white text-center mb-6">Wynik wyzwania Sigma Focus</h2>
@@ -534,8 +564,10 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
                   };
                   if (onGoToCockpit) onGoToCockpit();
                   if (onComplete) onComplete(gameData);
+                  else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
                 }}
               >
+                <ArrowLeft className="h-4 w-4 mr-2" />
                 Powrót
               </Button>
               <Button 
@@ -553,6 +585,7 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
                     HR: manualHR
                   };
                   if (onComplete) onComplete(gameData);
+                  else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
                 }}
               >
                 Następne Wyzwanie
@@ -560,6 +593,7 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     );
   }
