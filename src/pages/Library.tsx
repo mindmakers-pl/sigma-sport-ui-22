@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Brain, Zap, Target, FileText, ClipboardList, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BackButton from "@/components/BackButton";
+import { questionnaires } from "@/data/libraryData";
 
 const Library = () => {
   const navigate = useNavigate();
@@ -159,53 +160,7 @@ const Library = () => {
     },
   ];
 
-  const questionnaires = [
-    {
-      id: 1,
-      name: "MTQ48",
-      fullName: "Mental Toughness Questionnaire 48",
-      description: "Kompleksowe narzędzie mierzące odporność psychiczną w 4 wymiarach: Wyzwanie, Zaangażowanie, Kontrola, Pewność siebie",
-      items: 48,
-      duration: "10-15 min",
-      scales: ["Wyzwanie", "Zaangażowanie", "Kontrola emocjonalna", "Kontrola życiowa", "Pewność w relacjach", "Pewność w umiejętnościach"],
-    },
-    {
-      id: 2,
-      name: "SAS-2",
-      fullName: "Sport Anxiety Scale - 2",
-      description: "Kwestionariusz mierzący lęk w sporcie w trzech wymiarach",
-      items: 15,
-      duration: "5-8 min",
-      scales: ["Lęk somatyczny", "Zmartwienie", "Zaburzenia koncentracji"],
-    },
-    {
-      id: 3,
-      name: "CSAI-2R",
-      fullName: "Competitive State Anxiety Inventory - 2 Revised",
-      description: "Narzędzie do pomiaru lęku przedstartowego i pewności siebie",
-      items: 17,
-      duration: "5-7 min",
-      scales: ["Lęk poznawczy", "Lęk somatyczny", "Pewność siebie"],
-    },
-    {
-      id: 4,
-      name: "TOPS",
-      fullName: "Test of Performance Strategies",
-      description: "Kwestionariusz oceniający strategie psychologiczne stosowane w treningu i zawodach",
-      items: 64,
-      duration: "15-20 min",
-      scales: ["Automatyzm", "Kontrola emocjonalna", "Wyznaczanie celów", "Imagery", "Aktywacja", "Relaks", "Samoocena", "Self-talk"],
-    },
-    {
-      id: 5,
-      name: "POMS",
-      fullName: "Profile of Mood States",
-      description: "Profil nastroju - narzędzie do szybkiej oceny stanu emocjonalnego zawodnika",
-      items: 30,
-      duration: "5-10 min",
-      scales: ["Napięcie", "Depresja", "Złość", "Wigor", "Zmęczenie", "Dezorientacja"],
-    },
-  ];
+  // Questionnaires are now imported from libraryData.ts
 
   const filteredExercises = exercises.filter((ex) => {
     const matchesModule = exerciseModule === "wszystkie" || ex.module === exerciseModule;
@@ -357,28 +312,16 @@ const Library = () => {
                       </div>
                       <div>
                         <CardTitle className="text-xl">{questionnaire.name}</CardTitle>
-                        <p className="text-sm text-slate-600 mt-1">{questionnaire.fullName}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{questionnaire.category}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <Badge variant="outline">{questionnaire.items} pozycji</Badge>
-                      <p className="text-sm text-slate-600 mt-1">{questionnaire.duration}</p>
+                      <Badge variant="outline">{questionnaire.duration}</Badge>
+                      <p className="text-sm text-muted-foreground mt-1">{questionnaire.frequency}</p>
                     </div>
                   </div>
                   <CardDescription className="mt-4 text-base">{questionnaire.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <p className="text-sm font-medium text-slate-700">Skale pomiarowe:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {questionnaire.scales.map((scale, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {scale}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
               </Card>
             ))}
           </div>
