@@ -96,7 +96,7 @@ export default function TrainingDetail() {
       <Button 
         variant="ghost" 
         className="mb-4"
-        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=treningi`)}
+        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)}
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Powrót
