@@ -222,13 +222,16 @@ export default function SessionDetail() {
     ];
 
     // Prepare trial-by-trial chart data (showing errors)
-    const trialChartData = coachReport.rawTrials && coachReport.rawTrials.length > 0
-      ? coachReport.rawTrials.slice(0, 80).map((trial: any, idx: number) => ({
-          trial: idx + 1,
+    const rawTrials = coachReport.rawTrials || focusData.trials || [];
+    const trialChartData = rawTrials.length > 0
+      ? rawTrials.slice(0, 80).map((trial: any, idx: number) => ({
+          trial: trial.trialId || idx + 1,
           rt: trial.reactionTime,
           isError: !trial.isCorrect
         }))
       : [];
+    
+    console.log('Trial chart data:', trialChartData.length, 'trials');
 
     return (
       <div className="p-8 max-w-6xl mx-auto">
@@ -413,33 +416,6 @@ export default function SessionDetail() {
               </CardContent>
             </Card>
 
-            {(focusData.rMSSD || focusData.HR) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Powiązany Pomiar HRV</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    {focusData.rMSSD && (
-                      <div className="bg-slate-50 p-4 rounded-lg">
-                        <p className="text-sm text-slate-600 mb-1">Średnie rMSSD</p>
-                        <p className="text-2xl font-bold text-slate-900">
-                          {focusData.rMSSD} <span className="text-base font-normal">ms</span>
-                        </p>
-                      </div>
-                    )}
-                    {focusData.HR && (
-                      <div className="bg-slate-50 p-4 rounded-lg">
-                        <p className="text-sm text-slate-600 mb-1">Średnie HR</p>
-                        <p className="text-2xl font-bold text-slate-900">
-                          {focusData.HR} <span className="text-base font-normal">bpm</span>
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
 
           {/* Coach View - Advanced metrics */}
@@ -472,12 +448,42 @@ export default function SessionDetail() {
               </CardContent>
             </Card>
 
+            {/* Overall Metrics First */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Ogólne Wyniki</CardTitle>
+                <p className="text-sm text-slate-600">Wszystkie próby razem</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-1">Mediana czasu reakcji</p>
+                    <p className="text-3xl font-bold text-slate-900">
+                      {coachReport.playerMetrics.medianRT} <span className="text-lg font-normal">ms</span>
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-1">Celność</p>
+                    <p className="text-3xl font-bold text-slate-900">
+                      {coachReport.playerMetrics.accuracy}%
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-1">Poprawne odpowiedzi</p>
+                    <p className="text-3xl font-bold text-slate-900">
+                      {focusData.correctCount}/{focusData.totalTrials}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Congruent Metrics */}
+              {/* Easy Trials */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-green-700">Próby Zgodne (Congruent)</CardTitle>
-                  <p className="text-sm text-slate-600">Łatwe - bez konfliktu</p>
+                  <CardTitle className="text-green-700">Próby Łatwe</CardTitle>
+                  <p className="text-sm text-slate-600">Bez konfliktu (kolor = słowo)</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -493,7 +499,7 @@ export default function SessionDetail() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-600">IES (Inverse Efficiency Score)</p>
+                    <p className="text-sm text-slate-600">IES</p>
                     <p className="text-2xl font-bold text-slate-900">
                       {coachReport.coachMetrics.congruent.ies}
                     </p>
@@ -514,11 +520,11 @@ export default function SessionDetail() {
                 </CardContent>
               </Card>
 
-              {/* Incongruent Metrics */}
+              {/* Difficult Trials */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-red-700">Próby Niezgodne (Incongruent)</CardTitle>
-                  <p className="text-sm text-slate-600">Trudne - z konfliktem</p>
+                  <CardTitle className="text-red-700">Próby Trudne</CardTitle>
+                  <p className="text-sm text-slate-600">Z konfliktem (kolor ≠ słowo)</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -534,7 +540,7 @@ export default function SessionDetail() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-600">IES (Inverse Efficiency Score)</p>
+                    <p className="text-sm text-slate-600">IES</p>
                     <p className="text-2xl font-bold text-slate-900">
                       {coachReport.coachMetrics.incongruent.ies}
                     </p>
@@ -560,7 +566,7 @@ export default function SessionDetail() {
               <CardHeader>
                 <CardTitle>Koszt Interferencji</CardTitle>
                 <p className="text-sm text-slate-600">
-                  Różnice między próbami niezgodnymi a zgodnymi
+                  Różnice między próbami trudnymi a łatwymi
                 </p>
               </CardHeader>
               <CardContent>
@@ -591,6 +597,48 @@ export default function SessionDetail() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* HRV Metrics */}
+            {(focusData.rMSSD || focusData.HR) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pomiar HRV (Zmienność Rytmu Serca)</CardTitle>
+                  <p className="text-sm text-slate-600">
+                    Monitorowanie odpowiedzi autonomicznego układu nerwowego podczas testu
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-6 mb-4">
+                    {focusData.HR && (
+                      <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                        <p className="text-sm text-slate-600 mb-1">Średnie HR (Heart Rate)</p>
+                        <p className="text-3xl font-bold text-red-700">
+                          {focusData.HR} <span className="text-lg font-normal">bpm</span>
+                        </p>
+                        <p className="text-xs text-slate-600 mt-2">Średnia częstość akcji serca</p>
+                      </div>
+                    )}
+                    {focusData.rMSSD && (
+                      <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                        <p className="text-sm text-slate-600 mb-1">rMSSD</p>
+                        <p className="text-3xl font-bold text-blue-700">
+                          {focusData.rMSSD} <span className="text-lg font-normal">ms</span>
+                        </p>
+                        <p className="text-xs text-slate-600 mt-2">Root Mean Square of Successive Differences</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-lg">
+                    <h4 className="font-semibold text-slate-900 mb-2">📊 Interpretacja HRV:</h4>
+                    <ul className="text-sm text-slate-700 space-y-1">
+                      <li><strong>HR (Heart Rate):</strong> Średnia częstość akcji serca podczas testu. Wzrost może wskazywać na mobilizację lub stres.</li>
+                      <li><strong>rMSSD:</strong> Kluczowy wskaźnik HRV z domeny czasowej. Wyższe wartości = większa zmienność = lepszy stan regeneracji i gotowości.</li>
+                      <li><strong>Polar H10:</strong> Jeden z najdokładniejszych sensorów do pomiaru HRV, rekomendowany w badaniach naukowych.</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Export View */}
