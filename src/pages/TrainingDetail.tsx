@@ -97,19 +97,19 @@ export default function TrainingDetail() {
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)} className="cursor-pointer">
+            <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty&subtab=treningi`)} className="cursor-pointer">
               Profil zawodnika
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)} className="cursor-pointer">
+            <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty&subtab=treningi`)} className="cursor-pointer">
               Raporty treningowe
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Raport {training.game_name}</BreadcrumbPage>
+            <BreadcrumbPage>Raport szczegółowy</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

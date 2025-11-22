@@ -28,6 +28,7 @@ const AthleteProfile = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "informacje";
+  const activeSubTab = searchParams.get("subtab") || "historia";
   
   const [sessionA, setSessionA] = useState("baseline-m1");
   const [sessionB, setSessionB] = useState("ewaluacja-m7");
@@ -49,7 +50,7 @@ const AthleteProfile = () => {
   const [sessionResults, setSessionResults] = useState<Record<string, any>>({});
   const [savedSessions, setSavedSessions] = useState<any[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [reportTab, setReportTab] = useState('historia');
+  const [reportTab, setReportTab] = useState(activeSubTab);
   const [conditionsFilter, setConditionsFilter] = useState('wszystkie');
   const [benchmarkGroup, setBenchmarkGroup] = useState('wszyscy');
   const [benchmarkDiscipline, setBenchmarkDiscipline] = useState('judo');
@@ -137,6 +138,11 @@ const AthleteProfile = () => {
   };
 
   const athlete = getAthleteData();
+
+  // Sync reportTab with URL subtab parameter
+  useEffect(() => {
+    setReportTab(activeSubTab);
+  }, [activeSubTab]);
 
   // Load sessions on mount
   useEffect(() => {
@@ -898,7 +904,10 @@ const AthleteProfile = () => {
         </TabsContent>
 
         <TabsContent value="raporty" className="mt-6">
-          <Tabs value={reportTab} onValueChange={setReportTab}>
+          <Tabs value={reportTab} onValueChange={(value) => {
+            setReportTab(value);
+            setSearchParams({ tab: 'raporty', subtab: value });
+          }}>
             <TabsList className="mb-6">
               <TabsTrigger value="historia">Historia sesji</TabsTrigger>
               <TabsTrigger value="sigma-score">Sigma Score</TabsTrigger>
