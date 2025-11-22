@@ -6,22 +6,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
 interface FocusGameProps {
   onComplete?: (data: any) => void;
   onGoToCockpit?: () => void;
   mode?: "training" | "measurement";
 }
-
 type ColorType = 'RED' | 'BLUE' | 'GREEN' | 'YELLOW';
-
 interface Trial {
   trialId: number;
   type: 'CONGRUENT' | 'INCONGRUENT';
   stimulusWord: string;
   stimulusColor: ColorType;
 }
-
 interface TrialResult {
   trialId: number;
   type: 'CONGRUENT' | 'INCONGRUENT';
@@ -32,7 +28,6 @@ interface TrialResult {
   reactionTime: number;
   timestamp: number;
 }
-
 const TOTAL_TRIALS = 80;
 const COLORS: ColorType[] = ['RED', 'BLUE', 'GREEN', 'YELLOW'];
 const WORDS = ["CZERWONY", "NIEBIESKI", "ZIELONY", "ŻÓŁTY"];
@@ -40,37 +35,42 @@ const FIXATION_TIME = 500;
 const ISI_MIN = 500;
 const ISI_MAX = 1500;
 const STIMULUS_MAX_TIME = 2000;
-
 const COLOR_MAP: Record<ColorType, string> = {
   RED: "CZERWONY",
   BLUE: "NIEBIESKI",
   GREEN: "ZIELONY",
   YELLOW: "ŻÓŁTY"
 };
-
 const COLOR_CLASSES: Record<ColorType, string> = {
   RED: "text-red-500",
   BLUE: "text-blue-500",
   GREEN: "text-green-500",
   YELLOW: "text-yellow-400"
 };
-
-export default function FocusGame({ onComplete, onGoToCockpit, mode = "training" }: FocusGameProps) {
+export default function FocusGame({
+  onComplete,
+  onGoToCockpit,
+  mode = "training"
+}: FocusGameProps) {
   const navigate = useNavigate();
-  const { athleteId } = useParams();
-  
+  const {
+    athleteId
+  } = useParams();
+
   // Mock results for demonstration
-  const mockResults: TrialResult[] = Array.from({ length: 80 }, (_, i) => ({
+  const mockResults: TrialResult[] = Array.from({
+    length: 80
+  }, (_, i) => ({
     trialId: i + 1,
     type: i % 2 === 0 ? 'CONGRUENT' : 'INCONGRUENT',
     stimulusWord: WORDS[i % 4],
     stimulusColor: COLORS[i % 4],
     userAction: COLORS[i % 4],
-    isCorrect: Math.random() > 0.1, // 90% accuracy
+    isCorrect: Math.random() > 0.1,
+    // 90% accuracy
     reactionTime: i % 2 === 0 ? 450 + Math.random() * 100 : 580 + Math.random() * 150,
     timestamp: Date.now() + i * 3000
   }));
-
   const [gameState, setGameState] = useState<"ready" | "playing" | "finished">("ready");
   const [phaseState, setPhaseState] = useState<"fixation" | "isi" | "stimulus">("fixation");
   const [trials, setTrials] = useState<Trial[]>([]);
@@ -105,7 +105,6 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
       do {
         wrongWord = COLORS[Math.floor(Math.random() * COLORS.length)];
       } while (wrongWord === correctColor);
-      
       generatedTrials.push({
         trialId: congruentCount + i + 1,
         type: 'INCONGRUENT',
@@ -118,10 +117,9 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
     let maxAttempts = 100;
     let validSequence = false;
     let shuffledTrials: Trial[] = [];
-
     while (!validSequence && maxAttempts > 0) {
       shuffledTrials = [...generatedTrials];
-      
+
       // Fisher-Yates shuffle
       for (let i = shuffledTrials.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -138,7 +136,6 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
           break;
         }
       }
-
       maxAttempts--;
     }
 
@@ -148,7 +145,6 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
       trialId: index + 1
     }));
   }, []);
-
   const handleStartGame = () => {
     const newTrials = generateTrials();
     setTrials(newTrials);
@@ -157,17 +153,14 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
     setResults([]);
     startTrial();
   };
-
   const startTrial = useCallback(() => {
     // Phase 1: Fixation cross
     setPhaseState("fixation");
     setButtonsDisabled(true);
-
     setTimeout(() => {
       // Phase 2: ISI (blank screen with disabled buttons)
       setPhaseState("isi");
       const isiDuration = ISI_MIN + Math.random() * (ISI_MAX - ISI_MIN);
-
       setTimeout(() => {
         // Phase 3: Stimulus (word displayed, buttons enabled)
         setPhaseState("stimulus");
@@ -176,10 +169,8 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
       }, isiDuration);
     }, FIXATION_TIME);
   }, []);
-
   useEffect(() => {
     if (phaseState !== "stimulus" || buttonsDisabled) return;
-    
     const timeoutId = setTimeout(() => {
       // Record as incorrect with max time
       const currentTrial = trials[currentTrialIndex];
@@ -193,25 +184,19 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
         reactionTime: STIMULUS_MAX_TIME,
         timestamp: Date.now()
       };
-
       const newResults = [...results, result];
       setResults(newResults);
       setButtonsDisabled(true);
-
       advanceToNextTrial(newResults);
     }, STIMULUS_MAX_TIME);
-
     return () => clearTimeout(timeoutId);
   }, [phaseState, buttonsDisabled, currentTrialIndex, trials, results]);
-
   const handleColorClick = (clickedColor: ColorType, event: React.PointerEvent | React.TouchEvent) => {
     event.preventDefault();
     if (buttonsDisabled || phaseState !== "stimulus") return;
-
     const reactionTime = Date.now() - stimulusStartTime;
     const currentTrial = trials[currentTrialIndex];
     const isCorrect = clickedColor === currentTrial.stimulusColor;
-
     const result: TrialResult = {
       trialId: currentTrial.trialId,
       type: currentTrial.type,
@@ -222,16 +207,13 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
       reactionTime,
       timestamp: Date.now()
     };
-
     const newResults = [...results, result];
     setResults(newResults);
-    
+
     // Disable buttons immediately after response
     setButtonsDisabled(true);
-
     advanceToNextTrial(newResults);
   };
-
   const advanceToNextTrial = (currentResults: TrialResult[]) => {
     if (currentTrialIndex + 1 < TOTAL_TRIALS) {
       setCurrentTrialIndex(currentTrialIndex + 1);
@@ -240,17 +222,14 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
       finishGame(currentResults);
     }
   };
-
   const finishGame = (finalResults: TrialResult[]) => {
     setGameState("finished");
     console.log("=== STROOP TEST RESULTS ===");
     console.log(JSON.stringify(finalResults, null, 2));
-    
     if (onComplete) {
       onComplete(finalResults);
     }
   };
-
   useEffect(() => {
     if (gameState === "playing" && currentTrialIndex === 0 && trials.length > 0) {
       startTrial();
@@ -259,34 +238,29 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
 
   // Ready screen
   if (gameState === "ready") {
-    return (
-      <div className="min-h-screen bg-slate-950 p-4">
-        {!onComplete && (
-          <Button 
-            variant="ghost" 
-            className="text-white hover:bg-slate-800 mb-4"
-            onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
-          >
+    return <div className="min-h-screen bg-slate-950 p-4">
+        {!onComplete && <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Powrót
-          </Button>
-        )}
+          </Button>}
         
-        <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
+        <div className="flex items-center justify-center" style={{
+        minHeight: 'calc(100vh - 80px)'
+      }}>
           <div className="max-w-3xl w-full bg-slate-900 rounded-2xl p-12 space-y-8 shadow-2xl">
           <h1 className="text-5xl font-bold text-white text-center mb-6">Sigma Focus</h1>
           
           <div className="space-y-6 text-slate-200 text-lg leading-relaxed text-center">
-            <p className="text-xl">
-              <span className="font-bold text-white">Twoim zadaniem jest kliknięcie kwadratu w kolorze, którym napisane jest słowo.</span>
+            <p className="text-lg">
+              <span className="font-bold text-white">Twoim zadaniem jest kliknięcie kwadratu w kolorze, którym napisane jest słowo. Zrób to jak najszybciej.                         </span>
             </p>
             
-            <p className="text-xl font-semibold text-red-400">
+            <p className="font-semibold text-red-400 text-lg">
               Ignoruj treść słowa!
             </p>
 
             <div className="bg-slate-800 rounded-xl p-6 space-y-4 border border-slate-700">
-              <p className="font-semibold text-white text-xl">Schemat sterowania:</p>
+              <p className="font-semibold text-sm text-slate-400">Schemat sterowania:</p>
               <div className="grid grid-cols-3 gap-4 items-center">
                 <div className="space-y-2 text-center">
                   <div className="w-16 h-16 bg-red-500 rounded-lg mx-auto"></div>
@@ -305,7 +279,7 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
               </div>
             </div>
             
-            <p className="text-center text-xl">
+            <p className="text-center text-lg">
               Test składa się z <span className="font-bold text-white">80 prób</span>.
             </p>
 
@@ -314,35 +288,24 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
             </p>
           </div>
           
-          <Button 
-            size="lg" 
-            className="w-full text-2xl py-8 mt-8 bg-primary hover:bg-primary/90"
-            onClick={handleStartGame}
-          >
+          <Button size="lg" className="w-full text-2xl py-8 mt-8 bg-primary hover:bg-primary/90" onClick={handleStartGame}>
             START
           </Button>
         </div>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Finished screen
   if (gameState === "finished") {
     const correctCount = results.filter(r => r.isCorrect).length;
-    const accuracy = Math.round((correctCount / TOTAL_TRIALS) * 100);
+    const accuracy = Math.round(correctCount / TOTAL_TRIALS * 100);
 
     // Calculate median reaction times for congruent and incongruent
     const congruentResults = results.filter(r => r.type === 'CONGRUENT' && r.isCorrect).map(r => r.reactionTime).sort((a, b) => a - b);
     const incongruentResults = results.filter(r => r.type === 'INCONGRUENT' && r.isCorrect).map(r => r.reactionTime).sort((a, b) => a - b);
-    
-    const medianCongruent = congruentResults.length > 0 
-      ? Math.round(congruentResults[Math.floor(congruentResults.length / 2)])
-      : 0;
-    const medianIncongruent = incongruentResults.length > 0
-      ? Math.round(incongruentResults[Math.floor(incongruentResults.length / 2)])
-      : 0;
-    
+    const medianCongruent = congruentResults.length > 0 ? Math.round(congruentResults[Math.floor(congruentResults.length / 2)]) : 0;
+    const medianIncongruent = incongruentResults.length > 0 ? Math.round(incongruentResults[Math.floor(incongruentResults.length / 2)]) : 0;
     const concentrationCost = medianIncongruent - medianCongruent;
     const overallMedian = Math.round((medianCongruent + medianIncongruent) / 2);
 
@@ -357,21 +320,15 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
       type: result.type,
       isCorrect: result.isCorrect
     }));
-
-    return (
-      <div className="min-h-screen bg-slate-950 p-4">
-        {!onComplete && (
-          <Button 
-            variant="ghost" 
-            className="text-white hover:bg-slate-800 mb-4"
-            onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}
-          >
+    return <div className="min-h-screen bg-slate-950 p-4">
+        {!onComplete && <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Powrót
-          </Button>
-        )}
+          </Button>}
         
-        <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
+        <div className="flex items-center justify-center" style={{
+        minHeight: 'calc(100vh - 80px)'
+      }}>
         <Card className="max-w-4xl w-full border-slate-700 bg-slate-800 animate-scale-in">
           <CardContent className="pt-6 space-y-6">
             <h2 className="text-2xl font-bold text-white text-center mb-6">Wynik wyzwania Sigma Focus</h2>
@@ -407,10 +364,9 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
                         <span className="text-slate-200 font-bold">{medianCongruent} ms</span>
                       </div>
                       <div className="w-full bg-slate-800 rounded-full h-6 overflow-hidden">
-                        <div 
-                          className="bg-green-600 h-full rounded-full transition-all duration-500"
-                          style={{ width: `${(medianCongruent / chartScale) * 100}%` }}
-                        />
+                        <div className="bg-green-600 h-full rounded-full transition-all duration-500" style={{
+                          width: `${medianCongruent / chartScale * 100}%`
+                        }} />
                       </div>
                       <p className="text-xs text-slate-500">kolor jak tekst</p>
                     </div>
@@ -422,10 +378,9 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
                         <span className="text-slate-200 font-bold">{medianIncongruent} ms</span>
                       </div>
                       <div className="w-full bg-slate-800 rounded-full h-6 overflow-hidden">
-                        <div 
-                          className="bg-red-600 h-full rounded-full transition-all duration-500"
-                          style={{ width: `${(medianIncongruent / chartScale) * 100}%` }}
-                        />
+                        <div className="bg-red-600 h-full rounded-full transition-all duration-500" style={{
+                          width: `${medianIncongruent / chartScale * 100}%`
+                        }} />
                       </div>
                       <p className="text-xs text-slate-500">zmyłki</p>
                     </div>
@@ -449,53 +404,47 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={trendData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                      <XAxis 
-                        dataKey="trial" 
-                        stroke="#94a3b8"
-                        label={{ value: 'Numer próby', position: 'insideBottom', offset: -5, fill: '#94a3b8' }}
-                      />
-                      <YAxis 
-                        stroke="#94a3b8"
-                        label={{ value: 'Czas reakcji (ms)', angle: -90, position: 'insideLeft', fill: '#94a3b8' }}
-                      />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px' }}
-                        labelStyle={{ color: '#e2e8f0' }}
-                        itemStyle={{ color: '#e2e8f0' }}
-                        formatter={(value: any, name: any, props: any) => {
-                          const type = props.payload.type === 'CONGRUENT' ? 'ŁATWY' : 'TRUDNE';
-                          const correct = props.payload.isCorrect ? '✓' : '✗';
-                          return [`${value} ms (${type}) ${correct}`, 'Czas reakcji'];
-                        }}
-                      />
-                      <Legend 
-                        wrapperStyle={{ paddingTop: '10px' }}
-                        formatter={(value) => <span style={{ color: '#e2e8f0' }}>{value}</span>}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="reactionTime" 
-                        stroke="#3b82f6" 
-                        strokeWidth={2}
-                        dot={(props: any) => {
-                          const { cx, cy, payload } = props;
-                          const color = payload.type === 'CONGRUENT' ? '#22c55e' : '#ef4444';
-                          const size = payload.isCorrect ? 4 : 6;
-                          const opacity = payload.isCorrect ? 0.6 : 1;
-                          return (
-                            <circle 
-                              cx={cx} 
-                              cy={cy} 
-                              r={size} 
-                              fill={color} 
-                              opacity={opacity}
-                              stroke={payload.isCorrect ? 'none' : '#fbbf24'}
-                              strokeWidth={payload.isCorrect ? 0 : 2}
-                            />
-                          );
-                        }}
-                        name="Czas reakcji"
-                      />
+                      <XAxis dataKey="trial" stroke="#94a3b8" label={{
+                        value: 'Numer próby',
+                        position: 'insideBottom',
+                        offset: -5,
+                        fill: '#94a3b8'
+                      }} />
+                      <YAxis stroke="#94a3b8" label={{
+                        value: 'Czas reakcji (ms)',
+                        angle: -90,
+                        position: 'insideLeft',
+                        fill: '#94a3b8'
+                      }} />
+                      <Tooltip contentStyle={{
+                        backgroundColor: '#1e293b',
+                        border: '1px solid #475569',
+                        borderRadius: '8px'
+                      }} labelStyle={{
+                        color: '#e2e8f0'
+                      }} itemStyle={{
+                        color: '#e2e8f0'
+                      }} formatter={(value: any, name: any, props: any) => {
+                        const type = props.payload.type === 'CONGRUENT' ? 'ŁATWY' : 'TRUDNE';
+                        const correct = props.payload.isCorrect ? '✓' : '✗';
+                        return [`${value} ms (${type}) ${correct}`, 'Czas reakcji'];
+                      }} />
+                      <Legend wrapperStyle={{
+                        paddingTop: '10px'
+                      }} formatter={value => <span style={{
+                        color: '#e2e8f0'
+                      }}>{value}</span>} />
+                      <Line type="monotone" dataKey="reactionTime" stroke="#3b82f6" strokeWidth={2} dot={(props: any) => {
+                        const {
+                          cx,
+                          cy,
+                          payload
+                        } = props;
+                        const color = payload.type === 'CONGRUENT' ? '#22c55e' : '#ef4444';
+                        const size = payload.isCorrect ? 4 : 6;
+                        const opacity = payload.isCorrect ? 0.6 : 1;
+                        return <circle cx={cx} cy={cy} r={size} fill={color} opacity={opacity} stroke={payload.isCorrect ? 'none' : '#fbbf24'} strokeWidth={payload.isCorrect ? 0 : 2} />;
+                      }} name="Czas reakcji" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -519,20 +468,8 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
               <div className="bg-slate-700/50 p-4 rounded-lg space-y-3">
                 <p className="text-slate-400 text-sm mb-3">Powiązany pomiar HRV (opcjonalnie)</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <Input
-                    type="number"
-                    value={manualRMSSD}
-                    onChange={(e) => setManualRMSSD(e.target.value)}
-                    placeholder="Średnie rMSSD (ms)"
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                  <Input
-                    type="number"
-                    value={manualHR}
-                    onChange={(e) => setManualHR(e.target.value)}
-                    placeholder="Średnie HR (bpm)"
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
+                  <Input type="number" value={manualRMSSD} onChange={e => setManualRMSSD(e.target.value)} placeholder="Średnie rMSSD (ms)" className="bg-slate-700 border-slate-600 text-white" />
+                  <Input type="number" value={manualHR} onChange={e => setManualHR(e.target.value)} placeholder="Średnie HR (bpm)" className="bg-slate-700 border-slate-600 text-white" />
                 </div>
                 <p className="text-xs text-slate-500 mt-2">
                   Wprowadź wartości zmierzone podczas tego wyzwania
@@ -540,79 +477,58 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
               </div>
             </div>
 
-            {mode === "measurement" && (
-              <div className="pt-2 pb-2 border-t border-slate-700">
+            {mode === "measurement" && <div className="pt-2 pb-2 border-t border-slate-700">
                 <p className="text-green-400 text-sm">✓ Zapisaliśmy Twój wynik</p>
-              </div>
-            )}
+              </div>}
 
             <div className="flex gap-3">
-              <Button 
-                size="lg"
-                variant="outline"
-                className="flex-1"
-                onClick={() => {
-                  const gameData = {
-                    medianCongruent,
-                    medianIncongruent,
-                    concentrationCost,
-                    accuracy,
-                    correctCount,
-                    results,
-                    rMSSD: manualRMSSD,
-                    HR: manualHR
-                  };
-                  if (onGoToCockpit) onGoToCockpit();
-                  if (onComplete) onComplete(gameData);
-                  else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-                }}
-              >
+              <Button size="lg" variant="outline" className="flex-1" onClick={() => {
+                const gameData = {
+                  medianCongruent,
+                  medianIncongruent,
+                  concentrationCost,
+                  accuracy,
+                  correctCount,
+                  results,
+                  rMSSD: manualRMSSD,
+                  HR: manualHR
+                };
+                if (onGoToCockpit) onGoToCockpit();
+                if (onComplete) onComplete(gameData);else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+              }}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Powrót
               </Button>
-              <Button 
-                size="lg" 
-                className="flex-1 bg-green-600 hover:bg-green-700"
-                onClick={() => {
-                  const gameData = {
-                    medianCongruent,
-                    medianIncongruent,
-                    concentrationCost,
-                    accuracy,
-                    correctCount,
-                    results,
-                    rMSSD: manualRMSSD,
-                    HR: manualHR
-                  };
-                  if (onComplete) onComplete(gameData);
-                  else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-                }}
-              >
+              <Button size="lg" className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => {
+                const gameData = {
+                  medianCongruent,
+                  medianIncongruent,
+                  concentrationCost,
+                  accuracy,
+                  correctCount,
+                  results,
+                  rMSSD: manualRMSSD,
+                  HR: manualHR
+                };
+                if (onComplete) onComplete(gameData);else navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+              }}>
                 Następne Wyzwanie
               </Button>
             </div>
           </CardContent>
         </Card>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Playing screen - 3 column layout
   const currentTrial = trials[currentTrialIndex];
-  const progress = ((currentTrialIndex + 1) / TOTAL_TRIALS) * 100;
-
-  return (
-    <div className="min-h-screen bg-slate-950 flex flex-col relative">
+  const progress = (currentTrialIndex + 1) / TOTAL_TRIALS * 100;
+  return <div className="min-h-screen bg-slate-950 flex flex-col relative">
       {/* Back button in top-left corner */}
-      {onGoToCockpit && (
-        <button
-          onClick={onGoToCockpit}
-          className="absolute top-4 left-4 text-slate-400 hover:text-white transition-colors z-10"
-        >
+      {onGoToCockpit && <button onClick={onGoToCockpit} className="absolute top-4 left-4 text-slate-400 hover:text-white transition-colors z-10">
           ← Powrót
-        </button>
-      )}
+        </button>}
 
       {/* Very thin progress bar at top */}
       <div className="h-0.5">
@@ -623,55 +539,24 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
       <div className="flex-1 flex flex-row">
         {/* Left Column - Red and Green buttons */}
         <div className="w-1/4 flex flex-col items-center justify-center gap-8 p-8">
-          <button
-            onPointerDown={(e) => handleColorClick('RED', e)}
-            onTouchStart={(e) => handleColorClick('RED', e)}
-            disabled={buttonsDisabled}
-            className="aspect-square w-40 bg-red-500 rounded-2xl hover:bg-red-600 active:scale-95 transition-all disabled:cursor-not-allowed"
-            aria-label="Red"
-          />
-          <button
-            onPointerDown={(e) => handleColorClick('GREEN', e)}
-            onTouchStart={(e) => handleColorClick('GREEN', e)}
-            disabled={buttonsDisabled}
-            className="aspect-square w-40 bg-green-500 rounded-2xl hover:bg-green-600 active:scale-95 transition-all disabled:cursor-not-allowed"
-            aria-label="Green"
-          />
+          <button onPointerDown={e => handleColorClick('RED', e)} onTouchStart={e => handleColorClick('RED', e)} disabled={buttonsDisabled} className="aspect-square w-40 bg-red-500 rounded-2xl hover:bg-red-600 active:scale-95 transition-all disabled:cursor-not-allowed" aria-label="Red" />
+          <button onPointerDown={e => handleColorClick('GREEN', e)} onTouchStart={e => handleColorClick('GREEN', e)} disabled={buttonsDisabled} className="aspect-square w-40 bg-green-500 rounded-2xl hover:bg-green-600 active:scale-95 transition-all disabled:cursor-not-allowed" aria-label="Green" />
         </div>
 
         {/* Center Column - Stimulus area */}
         <div className="w-1/2 flex items-center justify-center">
-          {phaseState === "fixation" && (
-            <div className="text-white text-6xl font-bold">+</div>
-          )}
-          {phaseState === "isi" && (
-            <div className="text-white text-6xl font-bold opacity-0">+</div>
-          )}
-          {phaseState === "stimulus" && currentTrial && (
-            <div className={`text-7xl font-bold ${COLOR_CLASSES[currentTrial.stimulusColor]}`}>
+          {phaseState === "fixation" && <div className="text-white text-6xl font-bold">+</div>}
+          {phaseState === "isi" && <div className="text-white text-6xl font-bold opacity-0">+</div>}
+          {phaseState === "stimulus" && currentTrial && <div className={`text-7xl font-bold ${COLOR_CLASSES[currentTrial.stimulusColor]}`}>
               {currentTrial.stimulusWord}
-            </div>
-          )}
+            </div>}
         </div>
 
         {/* Right Column - Blue and Yellow buttons */}
         <div className="w-1/4 flex flex-col items-center justify-center gap-8 p-8">
-          <button
-            onPointerDown={(e) => handleColorClick('BLUE', e)}
-            onTouchStart={(e) => handleColorClick('BLUE', e)}
-            disabled={buttonsDisabled}
-            className="aspect-square w-40 bg-blue-500 rounded-2xl hover:bg-blue-600 active:scale-95 transition-all disabled:cursor-not-allowed"
-            aria-label="Blue"
-          />
-          <button
-            onPointerDown={(e) => handleColorClick('YELLOW', e)}
-            onTouchStart={(e) => handleColorClick('YELLOW', e)}
-            disabled={buttonsDisabled}
-            className="aspect-square w-40 bg-yellow-400 rounded-2xl hover:bg-yellow-500 active:scale-95 transition-all disabled:cursor-not-allowed"
-            aria-label="Yellow"
-          />
+          <button onPointerDown={e => handleColorClick('BLUE', e)} onTouchStart={e => handleColorClick('BLUE', e)} disabled={buttonsDisabled} className="aspect-square w-40 bg-blue-500 rounded-2xl hover:bg-blue-600 active:scale-95 transition-all disabled:cursor-not-allowed" aria-label="Blue" />
+          <button onPointerDown={e => handleColorClick('YELLOW', e)} onTouchStart={e => handleColorClick('YELLOW', e)} disabled={buttonsDisabled} className="aspect-square w-40 bg-yellow-400 rounded-2xl hover:bg-yellow-500 active:scale-95 transition-all disabled:cursor-not-allowed" aria-label="Yellow" />
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
