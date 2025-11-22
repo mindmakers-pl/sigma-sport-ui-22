@@ -155,6 +155,12 @@ const AthleteProfile = () => {
   // Load sessions on mount
   useEffect(() => {
     if (id) {
+      // Initialize Sigma Sigma if viewing athlete 999 or 2
+      if (id === '999' || id === '2') {
+        const { initializeSigmaSigmaData } = require('@/utils/initializeSigmaSigmaData');
+        initializeSigmaSigmaData();
+      }
+      
       const athleteName = athlete.name || 'Unknown';
       const sessions = loadMockSessionsToStorage(id, athleteName);
       const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
