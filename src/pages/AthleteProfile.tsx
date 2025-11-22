@@ -26,6 +26,7 @@ import QuestionnaireSelector from "@/components/forms/QuestionnaireSelector";
 import SixSigmaQuestionnaire from "@/components/forms/SixSigmaQuestionnaire";
 import { allSixSigmaQuestionnaires } from "@/data/sixSigmaQuestionnaires";
 import { scoreSixSigma, QuestionnaireResponse } from "@/utils/sixSigmaScoring";
+import { initializeSigmaSigmaData } from "@/utils/initializeSigmaSigmaData";
 
 const AthleteProfile = () => {
   const { id } = useParams();
@@ -157,7 +158,6 @@ const AthleteProfile = () => {
     if (id) {
       // Initialize Sigma Sigma if viewing athlete 999 or 2
       if (id === '999' || id === '2') {
-        const { initializeSigmaSigmaData } = require('@/utils/initializeSigmaSigmaData');
         initializeSigmaSigmaData();
       }
       
