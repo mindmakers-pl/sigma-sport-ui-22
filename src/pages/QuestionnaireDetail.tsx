@@ -1,341 +1,225 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, ClipboardList, Clock, Info, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, ArrowRight, RotateCcw, Sparkles, HelpCircle } from "lucide-react";
+import BackButton from "@/components/BackButton";
+import { allSixSigmaQuestionnaires, SixSigmaQuestionnaire } from "@/data/sixSigmaQuestionnaires";
 
-const questionnairesData = {
-  "1": {
-    name: "MTQ48",
-    fullName: "Mental Toughness Questionnaire 48",
-    description: "Kompleksowe narzędzie mierzące odporność psychiczną w 4 wymiarach: Wyzwanie, Zaangażowanie, Kontrola, Pewność siebie",
-    items: 48,
-    duration: "10-15 min",
-    scales: ["Wyzwanie", "Zaangażowanie", "Kontrola emocjonalna", "Kontrola życiowa", "Pewność w relacjach", "Pewność w umiejętnościach"],
-    info: "MTQ48 to złoty standard pomiaru mental toughness w sporcie. Bazuje na modelu 4C (Challenge, Commitment, Control, Confidence). Wysokie wyniki korelują z lepszą wydolnością pod presją, niższym poziomem lęku i wyższą satysfakcją z kariery sportowej.",
-    scaleLabels: ["Całkowicie się nie zgadzam", "Nie zgadzam się", "Neutralnie", "Zgadzam się", "Całkowicie się zgadzam"],
-    questions: [
-      { id: 1, text: "Zazwyczaj odnoszę sukcesy w sytuacjach, które tego wymagają", scale: "Wyzwanie" },
-      { id: 2, text: "Czuję się pewnie w kontaktach z innymi ludźmi", scale: "Pewność w relacjach" },
-      { id: 3, text: "Trudności mnie nie zniechęcają", scale: "Zaangażowanie" },
-      { id: 4, text: "Potrafię zachować spokój w trudnych sytuacjach", scale: "Kontrola emocjonalna" },
-      { id: 5, text: "Potrafię wpływać na to, co mi się przydarza", scale: "Kontrola życiowa" },
-      { id: 6, text: "Wierzę w swoje umiejętności", scale: "Pewność w umiejętnościach" },
-      { id: 7, text: "Często biorę udział w sytuacjach, w których jestem testowany", scale: "Wyzwanie" },
-      { id: 8, text: "Mogę liczyć na siebie w trudnych chwilach", scale: "Pewność w umiejętnościach" },
-      { id: 9, text: "Z łatwością nawiązuję nowe znajomości", scale: "Pewność w relacjach" },
-      { id: 10, text: "Nie rezygnuję łatwo z tego, co zaczynam", scale: "Zaangażowanie" },
-      { id: 11, text: "Zwykle potrafię wpłynąć na innych, aby zrobili to, co chcę", scale: "Kontrola życiowa" },
-      { id: 12, text: "Rzadko się denerwuję", scale: "Kontrola emocjonalna" },
-      { id: 13, text: "Lubię wyzwania", scale: "Wyzwanie" },
-      { id: 14, text: "Dobrze radzę sobie z nieprzewidzianymi sytuacjami", scale: "Kontrola emocjonalna" },
-      { id: 15, text: "Jestem osobą, która dąży do celu", scale: "Zaangażowanie" },
-      { id: 16, text: "Czuję, że mogę kontrolować sytuacje wokół mnie", scale: "Kontrola życiowa" },
-      { id: 17, text: "Zwykle jestem w stanie przekonać kogoś do swojego punktu widzenia", scale: "Pewność w relacjach" },
-      { id: 18, text: "Jestem pewny swoich decyzji", scale: "Pewność w umiejętnościach" },
-      { id: 19, text: "Zmiana nie jest dla mnie problemem", scale: "Wyzwanie" },
-      { id: 20, text: "Kontynuuję pracę nad czymś, nawet gdy inni by zrezygnowali", scale: "Zaangażowanie" }
-    ]
-  },
-  "2": {
-    name: "SAS-2",
-    fullName: "Sport Anxiety Scale - 2",
-    description: "Kwestionariusz mierzący lęk w sporcie w trzech wymiarach",
-    items: 15,
-    duration: "5-8 min",
-    scales: ["Lęk somatyczny", "Zmartwienie", "Zaburzenia koncentracji"],
-    info: "SAS-2 mierzy lęk specyficzny dla kontekstu sportowego. Rozróżnia trzy komponenty: somatyczny (napięcie fizyczne), kognitywny (zmartwienie o wynik) i behawioralny (problemy z koncentracją). Przydatny w diagnostyce lęku przedstartowego.",
-    scaleLabels: ["Wcale", "Trochę", "Umiarkowanie", "Bardzo"],
-    questions: [
-      { id: 1, text: "Czuję napięcie w żołądku przed zawodami", scale: "Lęk somatyczny" },
-      { id: 2, text: "Martwię się, że nie osiągnę swoich celów", scale: "Zmartwienie" },
-      { id: 3, text: "Trudno mi się skupić na zadaniu", scale: "Zaburzenia koncentracji" },
-      { id: 4, text: "Moje ciało jest spięte przed zawodami", scale: "Lęk somatyczny" },
-      { id: 5, text: "Martwię się, że zawiodę innych", scale: "Zmartwienie" },
-      { id: 6, text: "Mój umysł błądzi podczas zawodów", scale: "Zaburzenia koncentracji" },
-      { id: 7, text: "Czuję napięcie mięśni przed startem", scale: "Lęk somatyczny" },
-      { id: 8, text: "Martwię się, że popełnię błędy", scale: "Zmartwienie" },
-      { id: 9, text: "Trudno mi utrzymać uwagę na tym, co robię", scale: "Zaburzenia koncentracji" },
-      { id: 10, text: "Czuję 'motyle w brzuchu' przed zawodami", scale: "Lęk somatyczny" },
-      { id: 11, text: "Martwię się o ocenę mojej wydolności", scale: "Zmartwienie" },
-      { id: 12, text: "Rozpraszam się łatwo", scale: "Zaburzenia koncentracji" },
-      { id: 13, text: "Moje serce bije szybciej przed zawodami", scale: "Lęk somatyczny" },
-      { id: 14, text: "Martwię się, że zawiodę siebie", scale: "Zmartwienie" },
-      { id: 15, text: "Mam trudności z koncentracją na instrukcjach", scale: "Zaburzenia koncentracji" }
-    ]
-  },
-  "3": {
-    name: "CSAI-2R",
-    fullName: "Competitive State Anxiety Inventory - 2 Revised",
-    description: "Narzędzie do pomiaru lęku przedstartowego i pewności siebie",
-    items: 17,
-    duration: "5-7 min",
-    scales: ["Lęk poznawczy", "Lęk somatyczny", "Pewność siebie"],
-    info: "CSAI-2R mierzy stan lęku (nie cechę) - jak zawodnik czuje się TERAZ, przed konkretnym wydarzeniem. Idealny do monitorowania zmian w stanie psychicznym przed zawodami. Należy wypełniać 30-60 minut przed startem.",
-    scaleLabels: ["Wcale", "Nieco", "Umiarkowanie", "Bardzo"],
-    questions: [
-      { id: 1, text: "Martwię się o wynik tego startu", scale: "Lęk poznawczy" },
-      { id: 2, text: "Czuję napięcie w swoim ciele", scale: "Lęk somatyczny" },
-      { id: 3, text: "Czuję się pewnie, że poradzę sobie pod presją", scale: "Pewność siebie" },
-      { id: 4, text: "Mam negatywne myśli o mojej wydolności", scale: "Lęk poznawczy" },
-      { id: 5, text: "Czuję, że moje ciało jest sztywne", scale: "Lęk somatyczny" },
-      { id: 6, text: "Wierzę, że mogę osiągnąć swój cel", scale: "Pewność siebie" },
-      { id: 7, text: "Martwię się, że nie wystąpię dobrze", scale: "Lęk poznawczy" },
-      { id: 8, text: "Mój żołądek jest napięty", scale: "Lęk somatyczny" },
-      { id: 9, text: "Jestem pewny, że wykonam to dobrze", scale: "Pewność siebie" },
-      { id: 10, text: "Przechodzą mi przez głowę myśli o porażce", scale: "Lęk poznawczy" },
-      { id: 11, text: "Czuję napięcie w ramionach i szyi", scale: "Lęk somatyczny" },
-      { id: 12, text: "Czuję się mentalnie zrelaksowany", scale: "Pewność siebie" },
-      { id: 13, text: "Boję się, że nie spełnię oczekiwań", scale: "Lęk poznawczy" },
-      { id: 14, text: "Moje dłonie sąспocone", scale: "Lęk somatyczny" },
-      { id: 15, text: "Jestem pewny, bo wiem, że jestem przygotowany", scale: "Pewność siebie" },
-      { id: 16, text: "Nie mogę przestać myśleć o popełnieniu błędów", scale: "Lęk poznawczy" },
-      { id: 17, text: "Czuję 'motyle' w żołądku", scale: "Lęk somatyczny" }
-    ]
-  },
-  "4": {
-    name: "TOPS",
-    fullName: "Test of Performance Strategies",
-    description: "Kwestionariusz oceniający strategie psychologiczne stosowane w treningu i zawodach",
-    items: 64,
-    duration: "15-20 min",
-    scales: ["Automatyzm", "Kontrola emocjonalna", "Wyznaczanie celów", "Imagery", "Aktywacja", "Relaks", "Samoocena", "Self-talk"],
-    info: "TOPS ocenia 16 strategii mentalnych (8 w treningu, 8 w zawodach). To narzędzie diagnostyczne pokazujące, które techniki psychologiczne zawodnik używa często, a które wymaga rozwinięcia. Idealny punkt wyjścia do planowania treningu mentalnego.",
-    scaleLabels: ["Nigdy", "Rzadko", "Czasami", "Często", "Zawsze"],
-    questions: [
-      { id: 1, text: "[TRENING] Wyznaczam sobie konkretne cele treningowe", scale: "Wyznaczanie celów" },
-      { id: 2, text: "[TRENING] Używam technik relaksacyjnych przed treningiem", scale: "Relaks" },
-      { id: 3, text: "[TRENING] Wizualizuję wykonanie techniki przed jej ćwiczeniem", scale: "Imagery" },
-      { id: 4, text: "[TRENING] Mówię sobie pozytywne rzeczy podczas treningu", scale: "Self-talk" },
-      { id: 5, text: "[TRENING] Kontroluję swój poziom energii", scale: "Aktywacja" },
-      { id: 6, text: "[TRENING] Analizuję swoją wydolność po treningu", scale: "Samoocena" },
-      { id: 7, text: "[TRENING] Wykonuję ruchy automatycznie, bez myślenia", scale: "Automatyzm" },
-      { id: 8, text: "[TRENING] Kontroluję swoje emocje, gdy coś idzie nie tak", scale: "Kontrola emocjonalna" },
-      { id: 9, text: "[ZAWODY] Mam jasny cel na każde zawody", scale: "Wyznaczanie celów" },
-      { id: 10, text: "[ZAWODY] Używam technik oddechowych, aby się zrelaksować", scale: "Relaks" },
-      { id: 11, text: "[ZAWODY] Wyobrażam sobie idealny przebieg zawodów", scale: "Imagery" },
-      { id: 12, text: "[ZAWODY] Motywuję się pozytywnym self-talkiem", scale: "Self-talk" },
-      { id: 13, text: "[ZAWODY] Reguluję swój poziom pobudzenia", scale: "Aktywacja" },
-      { id: 14, text: "[ZAWODY] Oceniam swoją wydolność po każdej akcji", scale: "Samoocena" },
-      { id: 15, text: "[ZAWODY] Działam instynktownie, bez nadmiernego myślenia", scale: "Automatyzm" },
-      { id: 16, text: "[ZAWODY] Utrzymuję kontrolę emocjonalną pod presją", scale: "Kontrola emocjonalna" },
-      { id: 17, text: "[TRENING] Dzielę cele długoterminowe na krótkoterminowe", scale: "Wyznaczanie celów" },
-      { id: 18, text: "[TRENING] Pracuję nad rozluźnieniem napięcia mięśniowego", scale: "Relaks" },
-      { id: 19, text: "[TRENING] Mentalnie ćwiczę nowe umiejętności", scale: "Imagery" },
-      { id: 20, text: "[TRENING] Zastępuję negatywne myśli pozytywnymi", scale: "Self-talk" }
-    ]
-  },
-  "5": {
-    name: "POMS",
-    fullName: "Profile of Mood States",
-    description: "Profil nastroju - narzędzie do szybkiej oceny stanu emocjonalnego zawodnika",
-    items: 30,
-    duration: "5-10 min",
-    scales: ["Napięcie", "Depresja", "Złość", "Wigor", "Zmęczenie", "Dezorientacja"],
-    info: "POMS to szybki 'snapshot' nastroju zawodnika. Idealny profil ('iceberg profile') to niskie wyniki w Napięciu, Depresji, Złości, Zmęczeniu, Dezorientacji + wysoki w Wigorze. Używaj regularnie (np. co tydzień) do monitorowania przeciążenia treningowego.",
-    scaleLabels: ["Wcale", "Trochę", "Umiarkowanie", "Dość", "Bardzo"],
-    questions: [
-      { id: 1, text: "Czuję się napięty", scale: "Napięcie" },
-      { id: 2, text: "Czuję się przygnębiony", scale: "Depresja" },
-      { id: 3, text: "Czuję się rozdrażniony", scale: "Złość" },
-      { id: 4, text: "Czuję się pełen energii", scale: "Wigor" },
-      { id: 5, text: "Czuję się zmęczony", scale: "Zmęczenie" },
-      { id: 6, text: "Czuję się zdezorientowany", scale: "Dezorientacja" },
-      { id: 7, text: "Czuję się niespokojny", scale: "Napięcie" },
-      { id: 8, text: "Czuję się nieszczęśliwy", scale: "Depresja" },
-      { id: 9, text: "Czuję złość", scale: "Złość" },
-      { id: 10, text: "Czuję się pełen życia", scale: "Wigor" },
-      { id: 11, text: "Czuję się wyczerpany", scale: "Zmęczenie" },
-      { id: 12, text: "Czuję się zagubiony", scale: "Dezorientacja" },
-      { id: 13, text: "Czuję się zdenerwowany", scale: "Napięcie" },
-      { id: 14, text: "Czuję się beznadziejnie", scale: "Depresja" },
-      { id: 15, text: "Czuję frustrację", scale: "Złość" },
-      { id: 16, text: "Czuję się aktywny", scale: "Wigor" },
-      { id: 17, text: "Czuję się słaby", scale: "Zmęczenie" },
-      { id: 18, text: "Mam trudności z myśleniem", scale: "Dezorientacja" },
-      { id: 19, text: "Czuję niepokój", scale: "Napięcie" },
-      { id: 20, text: "Czuję smutek", scale: "Depresja" },
-      { id: 21, text: "Czuję zirytowanie", scale: "Złość" },
-      { id: 22, text: "Czuję się pełen wigoru", scale: "Wigor" },
-      { id: 23, text: "Czuję się wyczerpany fizycznie", scale: "Zmęczenie" },
-      { id: 24, text: "Nie mogę się skoncentrować", scale: "Dezorientacja" },
-      { id: 25, text: "Czuję się spięty", scale: "Napięcie" },
-      { id: 26, text: "Czuję się bezwartościowy", scale: "Depresja" },
-      { id: 27, text: "Czuję gniew", scale: "Złość" },
-      { id: 28, text: "Czuję entuzjazm", scale: "Wigor" },
-      { id: 29, text: "Czuję się wyczerpany mentalnie", scale: "Zmęczenie" },
-      { id: 30, text: "Czuję się oszołomiony", scale: "Dezorientacja" }
-    ]
+// Helper function to get questionnaire by ID
+const getQuestionnaireById = (id: string): SixSigmaQuestionnaire | null => {
+  switch (id) {
+    case 'six_sigma_full':
+      return allSixSigmaQuestionnaires.full;
+    case 'six_sigma_lite':
+      return allSixSigmaQuestionnaires.lite;
+    case 'six_sigma_mood':
+      return allSixSigmaQuestionnaires.mood;
+    default:
+      return null;
   }
 };
 
-export default function QuestionnaireDetail() {
+const QuestionnaireDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const questionnaire = questionnairesData[id as keyof typeof questionnairesData];
-
   const [isStarted, setIsStarted] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, number>>({});
   const [isCompleted, setIsCompleted] = useState(false);
+
+  const questionnaire = getQuestionnaireById(id || '');
 
   if (!questionnaire) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Kwestionariusz nie został znaleziony</h1>
-          <Button onClick={() => navigate("/biblioteka")}>
-            Wróć do biblioteki
-          </Button>
+      <div className="min-h-screen bg-background p-6">
+        <BackButton />
+        <div className="flex items-center justify-center h-[80vh]">
+          <Card className="max-w-md border-border">
+            <CardHeader>
+              <CardTitle className="text-foreground">Kwestionariusz nie znaleziony</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Nie można znaleźć wybranego kwestionariusza.
+              </p>
+              <Button onClick={() => navigate('/biblioteka')}>
+                Powrót do biblioteki
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
 
+  // Build flat question list for progress tracking
+  const allQuestions: Array<{ questionId: string; question: any; competencyName: string }> = [];
+  questionnaire.competencies.forEach(comp => {
+    comp.questions.forEach(q => {
+      allQuestions.push({
+        questionId: q.id,
+        question: q,
+        competencyName: comp.name
+      });
+    });
+  });
+
+  // Add modifiers as questions if present
+  if (questionnaire.modifiers) {
+    questionnaire.modifiers.forEach(mod => {
+      allQuestions.push({
+        questionId: mod.id,
+        question: { text: mod.question, type: 'direct' },
+        competencyName: 'Kontekst'
+      });
+    });
+  }
+
+  const totalQuestions = allQuestions.length;
+  const currentQuestionData = allQuestions[currentQuestionIndex];
+  const progress = ((Object.keys(answers).length) / totalQuestions) * 100;
+
   const handleAnswer = (value: number) => {
-    setAnswers({ ...answers, [questionnaire.questions[currentQuestion].id]: value });
+    setAnswers(prev => ({ ...prev, [currentQuestionData.questionId]: value }));
   };
 
   const handleNext = () => {
-    if (currentQuestion < questionnaire.questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
     } else {
       setIsCompleted(true);
-      toast({
-        title: "Kwestionariusz ukończony!",
-        description: "Wyniki zostały zapisane. W pełnej wersji zostaną przeanalizowane i dodane do profilu zawodnika.",
-      });
     }
   };
 
   const handlePrevious = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
     }
   };
 
-  const progress = ((currentQuestion + 1) / questionnaire.questions.length) * 100;
-  const currentAnswer = answers[questionnaire.questions[currentQuestion]?.id];
+  if (!isStarted) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <BackButton />
+        <div className="max-w-4xl mx-auto mt-8">
+          <Card className="border-border overflow-hidden">
+            <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle className="text-3xl text-foreground">{questionnaire.name}</CardTitle>
+              </div>
+              <p className="text-muted-foreground text-lg">{questionnaire.shortName}</p>
+            </div>
+            
+            <CardContent className="space-y-6 p-8">
+              <div className="bg-muted/30 rounded-lg p-6 border border-border">
+                <h3 className="font-semibold mb-3 text-foreground flex items-center gap-2">
+                  <HelpCircle className="h-5 w-5 text-primary" />
+                  O czym jest ten kwestionariusz?
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">{questionnaire.description}</p>
+              </div>
+              
+              <div className="bg-muted/30 rounded-lg p-6 border border-border">
+                <h3 className="font-semibold mb-3 text-foreground">Jak go używać?</h3>
+                <p className="text-muted-foreground mb-4">{questionnaire.usage}</p>
+                <div className="grid md:grid-cols-3 gap-4 text-sm">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-muted-foreground">Liczba pytań</span>
+                    <span className="font-semibold text-foreground text-lg">{totalQuestions}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-muted-foreground">Szacowany czas</span>
+                    <span className="font-semibold text-foreground text-lg">{questionnaire.estimatedTime}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-muted-foreground">Częstotliwość</span>
+                    <span className="font-semibold text-foreground text-lg">{questionnaire.frequency}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-primary/5 rounded-lg p-6 border border-primary/20">
+                <h3 className="font-semibold mb-3 text-foreground">Jak odpowiadać?</h3>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <p>📝 Przeczytaj każde pytanie uważnie.</p>
+                  <p>💭 Pomyśl, jak zwykle się czujesz lub zachowujesz – nie jak chciałbyś/chciałabyś.</p>
+                  <p>✅ Wybierz odpowiedź od <strong className="text-foreground">{questionnaire.scaleLabels.min}</strong> do <strong className="text-foreground">{questionnaire.scaleLabels.max}</strong>.</p>
+                  <p>⏱️ Nie zastanawiaj się zbyt długo – pierwsza myśl jest najlepsza!</p>
+                </div>
+              </div>
+
+              <Button 
+                onClick={() => setIsStarted(true)}
+                size="lg"
+                className="w-full text-lg py-6"
+              >
+                Zacznij odpowiadać
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (isCompleted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="container mx-auto px-4 max-w-2xl">
-          <Card className="text-center">
-            <CardHeader>
-              <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="h-8 w-8 text-green-600" />
-              </div>
-              <CardTitle className="text-2xl">Kwestionariusz ukończony!</CardTitle>
-              <CardDescription>
-                Dziękujemy za wypełnienie kwestionariusza {questionnaire.name}
-              </CardDescription>
+      <div className="min-h-screen bg-background p-6">
+        <BackButton />
+        <div className="max-w-4xl mx-auto mt-8">
+          <Card className="border-border">
+            <CardHeader className="bg-gradient-to-br from-primary/10 to-background">
+              <CardTitle className="text-3xl text-foreground flex items-center gap-3">
+                ✨ Świetna robota!
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-muted p-4 rounded-lg">
-                <p className="text-sm text-muted-foreground mb-2">Odpowiedzi udzielone</p>
-                <p className="text-3xl font-bold">{Object.keys(answers).length} / {questionnaire.questions.length}</p>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                W pełnej wersji systemu wyniki zostaną automatycznie przeanalizowane i dodane do profilu zawodnika wraz z interpretacją dla każdej skali pomiarowej.
+            <CardContent className="space-y-6 p-8">
+              <p className="text-muted-foreground text-lg">
+                Dziękujemy za wypełnienie kwestionariusza <strong className="text-foreground">{questionnaire.name}</strong>. 
+                Twoje odpowiedzi zostały zapisane i pomogą w śledzeniu Twojego rozwoju.
               </p>
-              <div className="flex gap-3 justify-center pt-4">
-                <Button onClick={() => {
-                  setIsStarted(false);
-                  setIsCompleted(false);
-                  setCurrentQuestion(0);
-                  setAnswers({});
-                }}>
-                  Wypełnij ponownie
-                </Button>
-                <Button variant="outline" onClick={() => navigate("/biblioteka")}>
-                  Wróć do biblioteki
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
-  if (!isStarted) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto py-8 px-4 max-w-4xl">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/biblioteka")}
-            className="mb-6"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Powrót
-          </Button>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-primary/10 p-3 rounded-lg">
-                  <ClipboardList className="h-8 w-8 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-2xl">{questionnaire.name}</CardTitle>
-                  <CardDescription className="text-base mt-1">{questionnaire.fullName}</CardDescription>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <Badge variant="outline" className="flex items-center gap-1">
-                  {questionnaire.items} pozycji
-                </Badge>
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {questionnaire.duration}
-                </Badge>
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-6">
-              <div>
-                <h3 className="font-semibold mb-2">Opis</h3>
-                <p className="text-sm text-muted-foreground">{questionnaire.description}</p>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start gap-2">
-                  <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-blue-900 mb-1">Informacje naukowe</h4>
-                    <p className="text-sm text-blue-800">{questionnaire.info}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-3">Skale pomiarowe</h3>
-                <div className="flex flex-wrap gap-2">
-                  {questionnaire.scales.map((scale, index) => (
-                    <Badge key={index} variant="secondary">
-                      {scale}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <Button onClick={() => setIsStarted(true)} className="w-full" size="lg">
-                  Rozpocznij wypełnianie
-                </Button>
-                <p className="text-xs text-muted-foreground text-center mt-2">
-                  To wersja demonstracyjna. W pełnej wersji wyniki będą zapisywane do profilu zawodnika.
+              <div className="bg-primary/5 rounded-lg p-6 border border-primary/20">
+                <h3 className="font-semibold mb-2 text-foreground">Co dalej?</h3>
+                <p className="text-sm text-muted-foreground">
+                  Trener otrzyma szczegółowy raport z Twoimi wynikami. Będzie mógł zobaczyć, 
+                  w których obszarach jesteś najsilniejszy/a i nad czym warto jeszcze popracować.
                 </p>
               </div>
+
+              <div className="bg-muted/30 rounded-lg p-6 border border-border">
+                <h3 className="font-semibold mb-4 text-foreground">Liczba odpowiedzi: {Object.keys(answers).length} / {totalQuestions}</h3>
+                <Progress value={100} className="h-3" />
+              </div>
+
+              <div className="flex gap-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsStarted(false);
+                    setCurrentQuestionIndex(0);
+                    setAnswers({});
+                    setIsCompleted(false);
+                  }}
+                  className="flex-1"
+                >
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Wypełnij ponownie
+                </Button>
+                <Button
+                  onClick={() => navigate('/biblioteka')}
+                  className="flex-1"
+                >
+                  Powrót do biblioteki
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -343,68 +227,114 @@ export default function QuestionnaireDetail() {
     );
   }
 
-  const question = questionnaire.questions[currentQuestion];
+  // Render scale option tiles (child-friendly, large clickable areas)
+  const renderScaleOptions = () => {
+    const scaleValues = Array.from({ length: questionnaire.scale }, (_, i) => i + 1);
+    
+    return (
+      <div className="grid grid-cols-5 gap-3">
+        {scaleValues.map((value) => {
+          const isSelected = answers[currentQuestionData.questionId] === value;
+          const isMin = value === 1;
+          const isMax = value === questionnaire.scale;
+          
+          return (
+            <button
+              key={value}
+              onClick={() => handleAnswer(value)}
+              className={`
+                relative flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all
+                ${isSelected 
+                  ? 'border-primary bg-primary/10 shadow-lg scale-105' 
+                  : 'border-border bg-background hover:border-primary/50 hover:bg-muted/30'
+                }
+              `}
+            >
+              <span className={`text-3xl font-bold mb-2 ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                {value}
+              </span>
+              {(isMin || isMax) && (
+                <span className="text-xs text-center text-muted-foreground leading-tight">
+                  {isMin ? questionnaire.scaleLabels.min : questionnaire.scaleLabels.max}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8 px-4 max-w-3xl">
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">
-              Pytanie {currentQuestion + 1} z {questionnaire.questions.length}
-            </span>
-            <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-
-        {/* Question Card */}
-        <Card className="mb-6">
-          <CardHeader>
-            <Badge variant="outline" className="w-fit mb-3">{question.scale}</Badge>
-            <CardTitle className="text-xl leading-relaxed">{question.text}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup value={currentAnswer?.toString()} onValueChange={(value) => handleAnswer(parseInt(value))}>
-              <div className="space-y-3">
-                {questionnaire.scaleLabels.map((label, index) => (
-                  <div key={index} className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                    <RadioGroupItem value={index.toString()} id={`option-${index}`} />
-                    <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer font-normal">
-                      {label}
-                    </Label>
-                  </div>
-                ))}
+    <div className="min-h-screen bg-background p-4 md:p-6">
+      <BackButton />
+      <div className="max-w-4xl mx-auto mt-8">
+        <Card className="border-border">
+          <CardHeader className="bg-gradient-to-br from-primary/5 to-background">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="text-primary font-bold">{currentQuestionIndex + 1}</span>
+                </div>
+                <div>
+                  <CardTitle className="text-lg text-foreground">
+                    {currentQuestionData.competencyName}
+                  </CardTitle>
+                  <span className="text-sm text-muted-foreground">
+                    Pytanie {currentQuestionIndex + 1} z {totalQuestions}
+                  </span>
+                </div>
               </div>
-            </RadioGroup>
+              <span className="text-sm font-semibold text-primary">
+                {Math.round(progress)}%
+              </span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </CardHeader>
+
+          <CardContent className="space-y-8 p-6 md:p-8">
+            <div className="bg-muted/30 rounded-xl p-6 md:p-8 border border-border">
+              <p className="text-xl md:text-2xl font-medium text-foreground leading-relaxed text-center">
+                {currentQuestionData.question.text}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Wybierz odpowiedź, która najlepiej do Ciebie pasuje:
+                </p>
+              </div>
+              
+              {renderScaleOptions()}
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentQuestionIndex === 0}
+                className="flex-1"
+                size="lg"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Cofnij
+              </Button>
+              <Button
+                onClick={handleNext}
+                disabled={!answers[currentQuestionData.questionId]}
+                className="flex-1"
+                size="lg"
+              >
+                {currentQuestionIndex === totalQuestions - 1 ? "Zakończ" : "Dalej"}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </CardContent>
         </Card>
-
-        {/* Navigation */}
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentQuestion === 0}
-            className="flex-1"
-          >
-            Poprzednie
-          </Button>
-          <Button
-            onClick={handleNext}
-            disabled={currentAnswer === undefined}
-            className="flex-1"
-          >
-            {currentQuestion === questionnaire.questions.length - 1 ? "Zakończ" : "Następne"}
-          </Button>
-        </div>
-
-        {/* Help text */}
-        <p className="text-xs text-muted-foreground text-center mt-4">
-          Wybierz odpowiedź, która najlepiej opisuje Twoje aktualne odczucia
-        </p>
       </div>
     </div>
   );
-}
+};
+
+export default QuestionnaireDetail;
