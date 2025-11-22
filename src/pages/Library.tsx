@@ -297,11 +297,40 @@ const Library = () => {
         </TabsContent>
 
         <TabsContent value="kwestionariusze" className="space-y-6">
+          <Card className="bg-primary/5 border-primary/20">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Brain className="h-6 w-6 text-primary" />
+                <CardTitle className="text-lg">Dla trenera: Narzędzie feedbacku</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <strong className="text-foreground">Six Sigma</strong> to część <strong className="text-foreground">Sigma Score</strong> – mapy kompetencji i rozwoju sportowego IQ młodych zawodników. 
+                To narzędzie feedbacku w treningu mentalnym, które pokazuje mocne strony i obszary do rozwoju w 6 kluczowych kompetencjach psychologicznych.
+              </p>
+              <div className="mt-4 grid grid-cols-3 gap-4 text-xs">
+                <div>
+                  <div className="font-semibold text-foreground mb-1">Six Sigma (Full)</div>
+                  <div className="text-muted-foreground">T0 + T-Final w sezonie</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-foreground mb-1">Six Sigma Lite</div>
+                  <div className="text-muted-foreground">Co miesiąc po Sprincie</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-foreground mb-1">Six Sigma Mood</div>
+                  <div className="text-muted-foreground">Przy każdym pomiarze</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 gap-6">
             {questionnaires.map((questionnaire) => (
               <Card 
                 key={questionnaire.id} 
-                className="hover:shadow-lg transition-shadow cursor-pointer"
+                className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary"
                 onClick={() => navigate(`/biblioteka/kwestionariusz/${questionnaire.id}`)}
               >
                 <CardHeader>
@@ -316,11 +345,11 @@ const Library = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <Badge variant="outline">{questionnaire.duration}</Badge>
+                      <Badge variant="outline" className="bg-background">{questionnaire.duration}</Badge>
                       <p className="text-sm text-muted-foreground mt-1">{questionnaire.frequency}</p>
                     </div>
                   </div>
-                  <CardDescription className="mt-4 text-base">{questionnaire.description}</CardDescription>
+                  <CardDescription className="mt-4 text-base leading-relaxed">{questionnaire.description}</CardDescription>
                 </CardHeader>
               </Card>
             ))}

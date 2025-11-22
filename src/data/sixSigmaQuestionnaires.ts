@@ -373,14 +373,14 @@ export const sixSigmaFull: SixSigmaQuestionnaire = {
   id: 'six_sigma_full',
   name: 'Six Sigma',
   shortName: 'Pełna Bateria',
-  description: 'Kompleksowa ocena 6 kluczowych kompetencji psychologicznych w sporcie. Wykrywa mocne strony i obszary do rozwoju.',
-  usage: 'Przeprowadzaj 2 razy w sezonie: na początku (linia bazowa) i na końcu (pomiar progresu).',
+  description: 'Cześć! To nie jest klasówka i nikt Cię tu nie ocenia. To narzędzie, które tworzy mapę Twojego sportowego mózgu.',
+  usage: 'Odpowiadaj tak, jak faktycznie czujesz, a nie tak, jak "wypada". Jeśli zaznaczysz prawdę → dowiemy się, co podkręcić, żebyś wygrywał. Jeśli skłamiesz → oszukasz tylko własny trening.',
   frequency: 'T0 (początek sezonu) + T-Final (koniec sezonu)',
-  estimatedTime: '8-10 minut',
+  estimatedTime: '5 minut',
   scale: 5,
   scaleLabels: {
-    min: 'Wcale nie',
-    max: 'Całkowicie tak'
+    min: 'To zupełnie nie o mnie',
+    max: 'To o mnie'
   },
   competencies: [
     {
@@ -419,22 +419,22 @@ export const sixSigmaFull: SixSigmaQuestionnaire = {
       description: 'Wytrwałość i grit',
       questions: determinationQuestions
     }
-  ],
-  modifiers: contextualModifiers
+  ]
+  // No modifiers in Full - they're in Mood
 };
 
 export const sixSigmaLite: SixSigmaQuestionnaire = {
   id: 'six_sigma_lite',
   name: 'Six Sigma Lite',
   shortName: 'Szybka Sonda',
-  description: 'Skrócona wersja do cotygodniowego monitoringu. Tylko Key Indicators + walidatory.',
-  usage: 'Po każdym Sigma Sprincie (co miesiąc) do śledzenia trendów.',
+  description: 'Czas na przegląd formy mentalnej po tym Sprincie. 12 pytań o to, jak Ci się trenowało w tym miesiącu.',
+  usage: 'Nie analizuj za długo – pierwsza myśl jest zazwyczaj najlepsza!',
   frequency: 'Co 4 tygodnie (po każdym Sprincie)',
-  estimatedTime: '2-3 minuty',
+  estimatedTime: '90 sekund',
   scale: 5,
   scaleLabels: {
-    min: 'Wcale nie',
-    max: 'Całkowicie tak'
+    min: 'To zupełnie nie o mnie',
+    max: 'To o mnie'
   },
   competencies: [
     {
@@ -481,14 +481,14 @@ export const sixSigmaMood: SixSigmaQuestionnaire = {
   id: 'six_sigma_mood',
   name: 'Six Sigma Mood',
   shortName: 'Kontekst',
-  description: 'Pytania o stan fizyczny, emocjonalny i środowiskowy. Pomaga zrozumieć, dlaczego wyniki mogą być niższe.',
-  usage: 'Zawsze towarzyszą pomiarom (łącznie z Full lub Lite).',
+  description: 'Daj nam znać, jak wyglądał ostatni tydzień, a będziesz widział jak Twoja dyspozycja i wyniki w wyzwaniach zależą także od tego, jak śpisz, co jesz i czy masz spokój w szkole.',
+  usage: 'Odpowiadaj szczerze – to pomaga zrozumieć Twoje wyniki.',
   frequency: 'Przy każdym pomiarze',
-  estimatedTime: '1-2 minuty',
+  estimatedTime: '1 minuta',
   scale: 5,
   scaleLabels: {
-    min: 'Wcale nie',
-    max: 'Całkowicie tak'
+    min: 'To zupełnie nie o mnie',
+    max: 'To o mnie'
   },
   competencies: [], // Mood has no competencies, only modifiers
   modifiers: contextualModifiers
