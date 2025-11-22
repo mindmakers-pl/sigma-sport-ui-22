@@ -22,6 +22,10 @@ import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
 import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
 import { loadMockSessionsToStorage } from "@/utils/mockSessionData";
 import TrainingsTable from "@/components/TrainingsTable";
+import QuestionnaireSelector from "@/components/forms/QuestionnaireSelector";
+import SixSigmaQuestionnaire from "@/components/forms/SixSigmaQuestionnaire";
+import { allSixSigmaQuestionnaires } from "@/data/sixSigmaQuestionnaires";
+import { scoreSixSigma, QuestionnaireResponse } from "@/utils/sixSigmaScoring";
 
 const AthleteProfile = () => {
   const { id } = useParams();
@@ -36,6 +40,10 @@ const AthleteProfile = () => {
   const [currentView, setCurrentView] = useState('kokpit');
   const [measurementConditions, setMeasurementConditions] = useState('gabinet');
   const [selectedChallengeType, setSelectedChallengeType] = useState('');
+  const [selectedQuestionnaires, setSelectedQuestionnaires] = useState<string[]>([]);
+  const [questionnaireStep, setQuestionnaireStep] = useState<'select' | 'fill'>('select');
+  const [currentQuestionnaireIndex, setCurrentQuestionnaireIndex] = useState(0);
+  const [questionnaireResponses, setQuestionnaireResponses] = useState<any>({});
   
   const [taskStatus, setTaskStatus] = useState({
     kwestionariusz: 'pending',
@@ -218,6 +226,55 @@ const AthleteProfile = () => {
     setSavedSessions(existingSessions.filter((s: any) => s.athlete_id === id));
     
     setCurrentView('kokpit');
+  };
+
+  const handleQuestionnaireStart = (selectedIds: string[]) => {
+    setSelectedQuestionnaires(selectedIds);
+    setQuestionnaireStep('fill');
+    setCurrentQuestionnaireIndex(0);
+    setQuestionnaireResponses({});
+  };
+
+  const handleQuestionnaireComplete = (responses: QuestionnaireResponse[]) => {
+    const currentQuestionnaire = allSixSigmaQuestionnaires.find(
+      q => q.id === selectedQuestionnaires[currentQuestionnaireIndex]
+    );
+    
+    if (!currentQuestionnaire) return;
+
+    // Store responses
+    const updatedResponses = {
+      ...questionnaireResponses,
+      [currentQuestionnaire.id]: responses
+    };
+    setQuestionnaireResponses(updatedResponses);
+
+    // Check if there are more questionnaires
+    if (currentQuestionnaireIndex < selectedQuestionnaires.length - 1) {
+      setCurrentQuestionnaireIndex(prev => prev + 1);
+    } else {
+      // All questionnaires completed - calculate scores
+      const mainResponses = updatedResponses['six_sigma_full'] || updatedResponses['six_sigma_lite'];
+      const moodResponses = updatedResponses['six_sigma_mood'];
+      
+      const scaleType = allSixSigmaQuestionnaires.find(
+        q => q.id === (updatedResponses['six_sigma_full'] ? 'six_sigma_full' : 'six_sigma_lite')
+      )?.scaleType || 5;
+
+      const results = scoreSixSigma(mainResponses, moodResponses, scaleType);
+      
+      handleTaskComplete({
+        selectedQuestionnaires,
+        responses: updatedResponses,
+        results
+      });
+      
+      // Reset questionnaire state
+      setQuestionnaireStep('select');
+      setSelectedQuestionnaires([]);
+      setCurrentQuestionnaireIndex(0);
+      setQuestionnaireResponses({});
+    }
   };
 
   const handleSaveSession = () => {
@@ -685,10 +742,10 @@ const AthleteProfile = () => {
                 <Card className={`cursor-pointer transition-all ${taskStatus.kwestionariusz === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-slate-900">Kwestionariusz</h3>
+                      <h3 className="font-semibold text-slate-900">Six Sigma</h3>
                       {taskStatus.kwestionariusz === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                     </div>
-                    <p className="text-sm text-slate-600 mb-4">Ocena psychometryczna</p>
+                    <p className="text-sm text-slate-600 mb-4">Kwestionariusz kompetencji psychologicznych</p>
                     <Button 
                       size="sm" 
                       className="w-full"
@@ -1444,8 +1501,27 @@ const AthleteProfile = () => {
             Powrót
           </Button>
 
-          {currentView === 'showing_questionnaire' && (
-            <Kwestionariusz onComplete={handleTaskComplete} />
+          {currentView === 'showing_questionnaire' && questionnaireStep === 'select' && (
+            <QuestionnaireSelector 
+              onStart={handleQuestionnaireStart}
+              onBack={() => setCurrentView('kokpit')}
+            />
+          )}
+
+          {currentView === 'showing_questionnaire' && questionnaireStep === 'fill' && (
+            <SixSigmaQuestionnaire
+              questionnaire={allSixSigmaQuestionnaires.find(
+                q => q.id === selectedQuestionnaires[currentQuestionnaireIndex]
+              )!}
+              onComplete={handleQuestionnaireComplete}
+              onBack={() => {
+                if (currentQuestionnaireIndex === 0) {
+                  setQuestionnaireStep('select');
+                } else {
+                  setCurrentQuestionnaireIndex(prev => prev - 1);
+                }
+              }}
+            />
           )}
 
           {currentView === 'measuring_baseline' && (
