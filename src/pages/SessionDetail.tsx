@@ -441,18 +441,30 @@ export default function SessionDetail() {
                   <div>
                     <h4 className="font-semibold text-slate-900 mb-4">Mediana czasu reakcji</h4>
                     <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={[
-                        { name: 'Łatwe\n(Bez konfliktu)', value: coachReport.coachMetrics.congruent.medianRT, fill: 'hsl(142, 71%, 45%)' },
-                        { name: 'Trudne\n(Z konfliktem)', value: coachReport.coachMetrics.incongruent.medianRT, fill: 'hsl(0, 84%, 60%)' }
-                      ]}>
+                      <BarChart data={[{
+                      name: 'Łatwe\n(Bez konfliktu)',
+                      value: coachReport.coachMetrics.congruent.medianRT,
+                      fill: 'hsl(142, 71%, 45%)'
+                    }, {
+                      name: 'Trudne\n(Z konfliktem)',
+                      value: coachReport.coachMetrics.incongruent.medianRT,
+                      fill: 'hsl(0, 84%, 60%)'
+                    }]}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                        <YAxis label={{ value: 'ms', angle: -90, position: 'insideLeft' }} />
+                        <XAxis dataKey="name" tick={{
+                        fontSize: 12
+                      }} />
+                        <YAxis label={{
+                        value: 'ms',
+                        angle: -90,
+                        position: 'insideLeft'
+                      }} />
                         <Tooltip formatter={(value: number) => [`${value} ms`, 'Czas reakcji']} />
-                        <Bar dataKey="value" label={{ position: 'top', formatter: (value: number) => `${value} ms` }}>
-                          {[0, 1].map((entry, index) => (
-                            <Bar key={`cell-${index}`} dataKey="value" fill={index === 0 ? 'hsl(142, 71%, 45%)' : 'hsl(0, 84%, 60%)'} />
-                          ))}
+                        <Bar dataKey="value" label={{
+                        position: 'top',
+                        formatter: (value: number) => `${value} ms`
+                      }}>
+                          {[0, 1].map((entry, index) => <Bar key={`cell-${index}`} dataKey="value" fill={index === 0 ? 'hsl(142, 71%, 45%)' : 'hsl(0, 84%, 60%)'} />)}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -462,18 +474,30 @@ export default function SessionDetail() {
                   <div>
                     <h4 className="font-semibold text-slate-900 mb-4">Procent błędów</h4>
                     <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={[
-                        { name: 'Łatwe', value: (coachReport.coachMetrics.congruent.errorRate * 100), fill: 'hsl(142, 71%, 45%)' },
-                        { name: 'Trudne', value: (coachReport.coachMetrics.incongruent.errorRate * 100), fill: 'hsl(0, 84%, 60%)' }
-                      ]}>
+                      <BarChart data={[{
+                      name: 'Łatwe',
+                      value: coachReport.coachMetrics.congruent.errorRate * 100,
+                      fill: 'hsl(142, 71%, 45%)'
+                    }, {
+                      name: 'Trudne',
+                      value: coachReport.coachMetrics.incongruent.errorRate * 100,
+                      fill: 'hsl(0, 84%, 60%)'
+                    }]}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                        <YAxis label={{ value: '%', angle: -90, position: 'insideLeft' }} />
+                        <XAxis dataKey="name" tick={{
+                        fontSize: 12
+                      }} />
+                        <YAxis label={{
+                        value: '%',
+                        angle: -90,
+                        position: 'insideLeft'
+                      }} />
                         <Tooltip formatter={(value: number) => [`${value.toFixed(1)}%`, 'Błędy']} />
-                        <Bar dataKey="value" label={{ position: 'top', formatter: (value: number) => `${value.toFixed(1)}%` }}>
-                          {[0, 1].map((entry, index) => (
-                            <Bar key={`cell-${index}`} dataKey="value" fill={index === 0 ? 'hsl(142, 71%, 45%)' : 'hsl(0, 84%, 60%)'} />
-                          ))}
+                        <Bar dataKey="value" label={{
+                        position: 'top',
+                        formatter: (value: number) => `${value.toFixed(1)}%`
+                      }}>
+                          {[0, 1].map((entry, index) => <Bar key={`cell-${index}`} dataKey="value" fill={index === 0 ? 'hsl(142, 71%, 45%)' : 'hsl(0, 84%, 60%)'} />)}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -483,18 +507,29 @@ export default function SessionDetail() {
                   <div>
                     <h4 className="font-semibold text-slate-900 mb-4">IES (niższy = lepszy)</h4>
                     <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={[
-                        { name: 'Łatwe', value: coachReport.coachMetrics.congruent.ies, fill: 'hsl(142, 71%, 45%)' },
-                        { name: 'Trudne', value: coachReport.coachMetrics.incongruent.ies, fill: 'hsl(0, 84%, 60%)' }
-                      ]}>
+                      <BarChart data={[{
+                      name: 'Łatwe',
+                      value: coachReport.coachMetrics.congruent.ies,
+                      fill: 'hsl(142, 71%, 45%)'
+                    }, {
+                      name: 'Trudne',
+                      value: coachReport.coachMetrics.incongruent.ies,
+                      fill: 'hsl(0, 84%, 60%)'
+                    }]}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                        <YAxis label={{ value: 'IES', angle: -90, position: 'insideLeft' }} />
+                        <XAxis dataKey="name" tick={{
+                        fontSize: 12
+                      }} />
+                        <YAxis label={{
+                        value: 'IES',
+                        angle: -90,
+                        position: 'insideLeft'
+                      }} />
                         <Tooltip formatter={(value: number) => [value, 'IES']} />
-                        <Bar dataKey="value" label={{ position: 'top' }}>
-                          {[0, 1].map((entry, index) => (
-                            <Bar key={`cell-${index}`} dataKey="value" fill={index === 0 ? 'hsl(142, 71%, 45%)' : 'hsl(0, 84%, 60%)'} />
-                          ))}
+                        <Bar dataKey="value" label={{
+                        position: 'top'
+                      }}>
+                          {[0, 1].map((entry, index) => <Bar key={`cell-${index}`} dataKey="value" fill={index === 0 ? 'hsl(142, 71%, 45%)' : 'hsl(0, 84%, 60%)'} />)}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -504,18 +539,30 @@ export default function SessionDetail() {
                   <div>
                     <h4 className="font-semibold text-slate-900 mb-4">Zmienność (IQR)</h4>
                     <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={[
-                        { name: 'Łatwe', value: coachReport.coachMetrics.variability.congruentIQR, fill: 'hsl(142, 71%, 45%)' },
-                        { name: 'Trudne', value: coachReport.coachMetrics.variability.incongruentIQR, fill: 'hsl(0, 84%, 60%)' }
-                      ]}>
+                      <BarChart data={[{
+                      name: 'Łatwe',
+                      value: coachReport.coachMetrics.variability.congruentIQR,
+                      fill: 'hsl(142, 71%, 45%)'
+                    }, {
+                      name: 'Trudne',
+                      value: coachReport.coachMetrics.variability.incongruentIQR,
+                      fill: 'hsl(0, 84%, 60%)'
+                    }]}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                        <YAxis label={{ value: 'ms', angle: -90, position: 'insideLeft' }} />
+                        <XAxis dataKey="name" tick={{
+                        fontSize: 12
+                      }} />
+                        <YAxis label={{
+                        value: 'ms',
+                        angle: -90,
+                        position: 'insideLeft'
+                      }} />
                         <Tooltip formatter={(value: number) => [`${value} ms`, 'IQR']} />
-                        <Bar dataKey="value" label={{ position: 'top', formatter: (value: number) => `${value} ms` }}>
-                          {[0, 1].map((entry, index) => (
-                            <Bar key={`cell-${index}`} dataKey="value" fill={index === 0 ? 'hsl(142, 71%, 45%)' : 'hsl(0, 84%, 60%)'} />
-                          ))}
+                        <Bar dataKey="value" label={{
+                        position: 'top',
+                        formatter: (value: number) => `${value} ms`
+                      }}>
+                          {[0, 1].map((entry, index) => <Bar key={`cell-${index}`} dataKey="value" fill={index === 0 ? 'hsl(142, 71%, 45%)' : 'hsl(0, 84%, 60%)'} />)}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -609,14 +656,7 @@ export default function SessionDetail() {
                         <p className="text-xs text-slate-600 mt-2">Root Mean Square of Successive Differences</p>
                       </div>}
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-lg">
-                    <h4 className="font-semibold text-slate-900 mb-2">📊 Czy HR i rMSSD to rzeczywiście HRV?</h4>
-                    <ul className="text-sm text-slate-700 space-y-2">
-                      <li><strong>HR (Heart Rate):</strong> Średnia częstość akcji serca podczas testu. Nie jest to bezpośredni wskaźnik HRV, ale dostarcza kontekstu - wzrost HR może wskazywać na mobilizację lub stres.</li>
-                      <li><strong>rMSSD:</strong> TAK, to kluczowy wskaźnik HRV z domeny czasowej! Root Mean Square of Successive Differences mierzy zmienność między kolejnymi odstępami RR. Wyższe wartości rMSSD = większa zmienność = lepszy stan autonomicznego układu nerwowego, lepsza regeneracja i gotowość.</li>
-                      <li><strong>Polar H10:</strong> Doskonały wybór do tego zadania! Polar H10 to jeden z najbardziej precyzyjnych pasów na rynku do pomiaru RR intervals, co jest fundamentem dla rzetelnego obliczania rMSSD. Jest używany w wielu badaniach naukowych ze względu na swoją dokładność.</li>
-                    </ul>
-                  </div>
+                  
                 </CardContent>
               </Card>}
           </TabsContent>
