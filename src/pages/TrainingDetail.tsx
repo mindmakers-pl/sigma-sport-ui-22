@@ -96,7 +96,7 @@ export default function TrainingDetail() {
       <Button 
         variant="ghost" 
         className="mb-4"
-        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)}
+        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=treningi`)}
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Powrót
@@ -119,7 +119,7 @@ export default function TrainingDetail() {
       </div>
 
       <Tabs defaultValue="player" className="w-full">
-        <div className="flex justify-between items-center mb-6">
+        <div className="mb-6">
           <TabsList>
             <TabsTrigger value="player">Dla Zawodnika</TabsTrigger>
             <TabsTrigger value="coach">Dla Trenera</TabsTrigger>
@@ -136,7 +136,10 @@ export default function TrainingDetail() {
               Pobierz
             </Button>
             <Button variant="outline" size="sm">
-              <Share2 className="h-4 w-4 mr-2" />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m22 2-7 20-4-9-9-4Z" />
+                <path d="M22 2 11 13" />
+              </svg>
               Wyślij
             </Button>
           </div>
@@ -553,7 +556,7 @@ export default function TrainingDetail() {
                   Informacje o danych:
                 </h4>
                 <ul className="text-sm text-slate-700 space-y-1 list-disc list-inside">
-                  <li><strong>JSON:</strong> Zawiera wszystkie surowe dane, coach metrics, i metadane treningu</li>
+                  <li><strong>JSON:</strong> Zawiera wszystkie surowe dane, szczegółowe metryki i metadane treningu</li>
                   <li><strong>CSV:</strong> Tabela wszystkich prób z czasami reakcji i poprawnością</li>
                   <li><strong>PDF (wkrótce):</strong> Obrandowany raport z wykresami i analizą</li>
                 </ul>
