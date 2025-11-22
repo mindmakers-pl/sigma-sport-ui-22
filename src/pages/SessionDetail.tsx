@@ -222,11 +222,13 @@ export default function SessionDetail() {
     ];
 
     // Prepare trial-by-trial chart data (showing errors)
-    const trialChartData = coachReport.rawTrials?.slice(0, 80).map((trial: any, idx: number) => ({
-      trial: idx + 1,
-      rt: trial.reactionTime,
-      isError: !trial.isCorrect
-    })) || [];
+    const trialChartData = coachReport.rawTrials && coachReport.rawTrials.length > 0
+      ? coachReport.rawTrials.slice(0, 80).map((trial: any, idx: number) => ({
+          trial: idx + 1,
+          rt: trial.reactionTime,
+          isError: !trial.isCorrect
+        }))
+      : [];
 
     return (
       <div className="p-8 max-w-6xl mx-auto">
@@ -257,9 +259,40 @@ export default function SessionDetail() {
 
           {/* Player View - Simple metrics */}
           <TabsContent value="player" className="space-y-6">
+            {/* Download and Send buttons */}
+            <div className="flex justify-end gap-2 mb-4">
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Pobierz
+              </Button>
+              <Button variant="outline" size="sm">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m22 2-7 20-4-9-9-4Z"/>
+                  <path d="M22 2 11 13"/>
+                </svg>
+                Wyślij
+              </Button>
+            </div>
+
+            {/* Intro explanation */}
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+              <CardContent className="pt-6">
+                <h3 className="font-bold text-lg text-slate-900 mb-3">🎯 Co mierzy Test Stroopa?</h3>
+                <p className="text-slate-700 leading-relaxed mb-2">
+                  Test Stroopa sprawdza Twoją <strong>koncentrację</strong> i umiejętność <strong>ignorowania rozpraszaczy</strong>. 
+                  W sporcie ta zdolność przekłada się na precyzję w kluczowych momentach – możesz skupić się na tym, co ważne, 
+                  nawet gdy dookoła dzieje się wiele rzeczy (kibice, przeciwnicy, zmęczenie).
+                </p>
+                <p className="text-sm text-slate-600">
+                  Poniżej znajdziesz swoje wyniki: jak szybko reagujesz i jak radzisz sobie w trudniejszych sytuacjach.
+                </p>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
-                <CardTitle>Twój czas reakcji (mediana)</CardTitle>
+                <CardTitle>Twój typowy czas reakcji</CardTitle>
+                <p className="text-sm text-slate-600">To czas, w jakim zazwyczaj odpowiadałeś/aś</p>
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline gap-4 mb-6">
@@ -269,7 +302,7 @@ export default function SessionDetail() {
                   <span className="text-2xl text-slate-600">ms</span>
                   <div className="ml-auto">
                     <Badge variant="secondary" className="text-lg px-4 py-2">
-                      {coachReport.playerMetrics.accuracy}% trafień
+                      {coachReport.playerMetrics.accuracy}% poprawnych
                       <span className="ml-2 text-slate-500">
                         ({focusData.correctCount}/{focusData.totalTrials})
                       </span>
@@ -278,9 +311,12 @@ export default function SessionDetail() {
                 </div>
 
                 <div className="bg-slate-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-slate-900 mb-4">
-                    Porównanie trudności
+                  <h4 className="font-semibold text-slate-900 mb-2">
+                    Porównanie: łatwe vs trudne próby
                   </h4>
+                  <p className="text-sm text-slate-600 mb-4">
+                    <strong>Łatwe</strong> = gdy kolor pasował do słowa. <strong>Trudne</strong> = gdy kolor i słowo się różniły.
+                  </p>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={difficultyChartData}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -293,75 +329,87 @@ export default function SessionDetail() {
                         label={{ value: 'Czas reakcji (ms)', angle: -90, position: 'insideLeft' }}
                       />
                       <Tooltip />
-                      <Bar dataKey="medianRT" fill="hsl(var(--primary))" />
+                      <Bar 
+                        dataKey="medianRT" 
+                        fill="hsl(var(--primary))"
+                        label={{ position: 'top', fill: 'hsl(var(--primary))', fontWeight: 'bold' }}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Różnica (Koszt Koncentracji)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-amber-50 border border-amber-200 p-6 rounded-lg">
-                  <div className="flex items-baseline gap-4 mb-3">
-                    <span className="text-4xl font-bold text-amber-700">
-                      +{coachReport.coachMetrics.interferenceCost.rawMs}
-                    </span>
-                    <span className="text-xl text-amber-600">ms</span>
+                  
+                  <div className="mt-6 bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                    <div className="flex items-baseline gap-3 mb-2">
+                      <span className="text-sm font-semibold text-amber-900">Różnica:</span>
+                      <span className="text-3xl font-bold text-amber-700">
+                        +{coachReport.coachMetrics.interferenceCost.rawMs}
+                      </span>
+                      <span className="text-lg text-amber-600">ms</span>
+                    </div>
+                    <p className="text-sm text-amber-800">
+                      💡 Im mniejsza różnica, tym lepiej radzisz sobie z rozpraszaczami!
+                    </p>
                   </div>
-                  <p className="text-sm text-amber-800">
-                    Im mniejsza różnica, tym lepiej ignorujesz zakłócacze
-                  </p>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Krzywa Koncentracji</CardTitle>
+                <CardTitle>Twoja stabilność w czasie</CardTitle>
                 <p className="text-sm text-slate-600">
-                  Czerwone punkty pokazują błędy
+                  Jak zmieniała się Twoja szybkość przez cały test? Czerwone punkty to błędy.
                 </p>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={trialChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="trial" 
-                      label={{ value: 'Numer próby', position: 'insideBottom', offset: -5 }}
-                    />
-                    <YAxis 
-                      label={{ value: 'Czas reakcji (ms)', angle: -90, position: 'insideLeft' }}
-                    />
-                    <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="rt" 
-                      stroke="hsl(var(--primary))" 
-                      strokeWidth={2}
-                      dot={(props: any) => {
-                        const { cx, cy, payload } = props;
-                        if (payload.isError) {
-                          return (
-                            <circle 
-                              cx={cx} 
-                              cy={cy} 
-                              r={5} 
-                              fill="red" 
-                              stroke="darkred" 
-                              strokeWidth={2}
-                            />
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                {trialChartData && trialChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={trialChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="trial" 
+                        label={{ value: 'Numer próby', position: 'insideBottom', offset: -5 }}
+                      />
+                      <YAxis 
+                        label={{ value: 'Czas reakcji (ms)', angle: -90, position: 'insideLeft' }}
+                      />
+                      <Tooltip 
+                        formatter={(value: any, name: string) => {
+                          if (name === 'rt') return [`${value} ms`, 'Czas reakcji'];
+                          return [value, name];
+                        }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="rt" 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={2}
+                        dot={(props: any) => {
+                          const { cx, cy, payload } = props;
+                          if (!cx || !cy) return null;
+                          if (payload.isError) {
+                            return (
+                              <circle 
+                                cx={cx} 
+                                cy={cy} 
+                                r={5} 
+                                fill="red" 
+                                stroke="darkred" 
+                                strokeWidth={2}
+                              />
+                            );
+                          }
+                          return <circle cx={cx} cy={cy} r={2} fill="hsl(var(--primary))" />;
+                        }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-slate-500">Brak danych do wyświetlenia krzywej.</p>
+                )}
+                <p className="text-sm text-slate-600 mt-4">
+                  📊 <strong>Co to znaczy?</strong> Jeśli linia jest w miarę płaska, Twoja koncentracja była stabilna. 
+                  Duże skoki mogą oznaczać moment zmęczenia lub trudności z utrzymaniem uwagi.
+                </p>
               </CardContent>
             </Card>
 

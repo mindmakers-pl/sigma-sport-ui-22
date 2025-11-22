@@ -17,6 +17,44 @@ export const sigmaSigmaAthlete = {
   createdAt: "2024-03-20"
 };
 
+// Generate realistic mock trial data for SigmaFocus
+const generateMockTrials = () => {
+  const COLORS = ['RED', 'BLUE', 'GREEN', 'YELLOW'];
+  const WORDS = ["CZERWONY", "NIEBIESKI", "ZIELONY", "ŻÓŁTY"];
+  const trials = [];
+  
+  for (let i = 0; i < 80; i++) {
+    const isCongruent = i % 2 === 0;
+    const colorIndex = Math.floor(Math.random() * 4);
+    const color = COLORS[colorIndex];
+    const word = isCongruent 
+      ? WORDS[colorIndex] 
+      : WORDS[(colorIndex + 1 + Math.floor(Math.random() * 3)) % 4];
+    
+    // Realistic RT: congruent ~500-550ms, incongruent ~650-750ms, with some variability
+    const baseRT = isCongruent ? 500 : 650;
+    const variability = Math.random() * 100;
+    const fatigueFactor = i > 60 ? (i - 60) * 2 : 0; // slight slowdown at end
+    const reactionTime = Math.round(baseRT + variability + fatigueFactor);
+    
+    // Occasional errors (~8%)
+    const isCorrect = Math.random() > 0.08;
+    
+    trials.push({
+      trialId: i + 1,
+      type: isCongruent ? 'CONGRUENT' : 'INCONGRUENT',
+      stimulusWord: word,
+      stimulusColor: color,
+      userAction: isCorrect ? color : COLORS[(colorIndex + 1) % 4],
+      isCorrect: isCorrect,
+      reactionTime: reactionTime,
+      timestamp: Date.now() + i * 3000
+    });
+  }
+  
+  return trials;
+};
+
 // Mock session for Sigma Sigma with only SigmaFocus completed
 export const sigmaSigmaSession = {
   id: `session_sigma_${Date.now()}`,
@@ -26,7 +64,7 @@ export const sigmaSigmaSession = {
   conditions: 'pracownia',
   results: {
     focus: {
-      trials: [], // Will be populated with actual trial data
+      trials: generateMockTrials(),
       medianCongruent: 520,
       medianIncongruent: 680,
       concentrationCost: 160,
@@ -68,7 +106,7 @@ export const sigmaSigmaSession = {
             iesDiff: 194
           }
         },
-        rawTrials: [] // Complete trial data would go here
+        rawTrials: generateMockTrials()
       },
       rMSSD: "52",
       HR: "78"
