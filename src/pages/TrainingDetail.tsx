@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, Share2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 export default function TrainingDetail() {
   const { athleteId, trainingId } = useParams();
@@ -93,14 +94,25 @@ export default function TrainingDetail() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
-      <Button 
-        variant="ghost" 
-        className="mb-4"
-        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)}
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Powrót
-      </Button>
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)} className="cursor-pointer">
+              Profil zawodnika
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)} className="cursor-pointer">
+              Raporty treningowe
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Raport {training.game_name}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-slate-900 mb-2">

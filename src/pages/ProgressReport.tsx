@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Download } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const ProgressReport = () => {
   const { athleteId, gameType } = useParams();
@@ -37,10 +38,19 @@ const ProgressReport = () => {
   if (trainings.length === 0) {
     return (
       <div className="container mx-auto p-6">
-        <Button variant="ghost" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Powrót
-        </Button>
+        <Breadcrumb className="mb-4">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)} className="cursor-pointer">
+                Profil zawodnika
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Raport postępów</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="mt-8 text-center text-muted-foreground">
           Brak danych do wygenerowania raportu postępów
         </div>
@@ -79,14 +89,25 @@ const ProgressReport = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <Button 
-        variant="ghost" 
-        className="mb-4"
-        onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)}
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Powrót
-      </Button>
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)} className="cursor-pointer">
+              Profil zawodnika
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)} className="cursor-pointer">
+              Raporty treningowe
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Raport postępów - {gameName}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Raport postępów - {gameName}</h1>

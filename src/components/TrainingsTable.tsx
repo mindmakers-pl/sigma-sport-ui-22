@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface TrainingsTableProps {
   athleteId: string | undefined;
@@ -39,15 +40,15 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
     if (training.game_type === 'focus') {
       const coachReport = results.coachReport || {};
       return {
-        metric1: { label: 'Mediana RT', value: `${Math.round(coachReport.overall?.medianRT || 0)} ms` },
-        metric2: { label: 'Trafność', value: `${Math.round((coachReport.overall?.accuracy || 0) * 100)}%` },
-        metric3: { label: 'Koszt koncentracji', value: `+${Math.round(results.concentrationCost || 0)} ms` }
+        metric1: { label: 'Mediana RT', value: `${Math.round(coachReport.overall?.medianRT || 0)} ms`, key: 'medianRT' },
+        metric2: { label: 'Trafność', value: `${Math.round((coachReport.overall?.accuracy || 0) * 100)}%`, key: 'accuracy' },
+        metric3: { label: 'Koszt koncentracji', value: `+${Math.round(results.concentrationCost || 0)} ms`, key: 'cost' }
       };
     }
     return {
-      metric1: { label: 'Wynik', value: '-' },
-      metric2: { label: 'Celność', value: '-' },
-      metric3: { label: 'Czas', value: '-' }
+      metric1: { label: 'Wynik', value: '-', key: 'score' },
+      metric2: { label: 'Celność', value: '-', key: 'accuracy' },
+      metric3: { label: 'Czas', value: '-', key: 'time' }
     };
   };
 
@@ -114,71 +115,127 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
           Brak treningów do wyświetlenia
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {gameFilter !== 'wszystkie' && <TableHead className="w-12"></TableHead>}
-              <TableHead>Gra</TableHead>
-              <TableHead>Data</TableHead>
-              <TableHead>Mediana RT</TableHead>
-              <TableHead>Trafność</TableHead>
-              <TableHead>Koszt koncentracji</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <>
+          {/* Desktop and Tablet view with table - only when filter is selected */}
+          {gameFilter !== 'wszystkie' ? (
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead>Gra</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>{filteredTrainings[0] && getGameMetrics(filteredTrainings[0]).metric1.label}</TableHead>
+                    <TableHead>{filteredTrainings[0] && getGameMetrics(filteredTrainings[0]).metric2.label}</TableHead>
+                    <TableHead>{filteredTrainings[0] && getGameMetrics(filteredTrainings[0]).metric3.label}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTrainings.map((training) => {
+                    const metrics = getGameMetrics(training);
+                    const isSelected = selectedIds.includes(training.id);
+                    return (
+                      <TableRow 
+                        key={training.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={(e) => {
+                          if ((e.target as HTMLElement).closest('[data-checkbox]')) {
+                            return;
+                          }
+                          navigate(`/zawodnicy/${athleteId}/trening/${training.id}`);
+                        }}
+                      >
+                        <TableCell onClick={(e) => e.stopPropagation()} data-checkbox>
+                          <Checkbox 
+                            checked={isSelected}
+                            onCheckedChange={() => toggleSelection(training.id)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getGameBadgeColor(training.game_type)}>
+                            {training.game_name}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(training.completedAt).toLocaleDateString('pl-PL', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-semibold">{metrics.metric1.value}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-semibold">{metrics.metric2.value}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-semibold">{metrics.metric3.value}</span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          ) : null}
+
+          {/* Card layout for mobile when filter is selected OR for all views when "wszystkie" */}
+          <div className={gameFilter !== 'wszystkie' ? 'sm:hidden space-y-3' : 'space-y-3'}>
             {filteredTrainings.map((training) => {
               const metrics = getGameMetrics(training);
               const isSelected = selectedIds.includes(training.id);
               return (
-                <TableRow 
-                  key={training.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={(e) => {
-                    // If clicking checkbox, don't navigate
-                    if ((e.target as HTMLElement).closest('[data-checkbox]')) {
-                      return;
-                    }
-                    navigate(`/zawodnicy/${athleteId}/trening/${training.id}`);
-                  }}
+                <Card 
+                  key={training.id} 
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => navigate(`/zawodnicy/${athleteId}/trening/${training.id}`)}
                 >
-                  {gameFilter !== 'wszystkie' && (
-                    <TableCell onClick={(e) => e.stopPropagation()} data-checkbox>
-                      <Checkbox 
-                        checked={isSelected}
-                        onCheckedChange={() => toggleSelection(training.id)}
-                      />
-                    </TableCell>
-                  )}
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Badge className={getGameBadgeColor(training.game_type)}>
-                        {training.game_name}
-                      </Badge>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        {gameFilter !== 'wszystkie' && (
+                          <div onClick={(e) => e.stopPropagation()} data-checkbox>
+                            <Checkbox 
+                              checked={isSelected}
+                              onCheckedChange={() => toggleSelection(training.id)}
+                            />
+                          </div>
+                        )}
+                        <Badge className={getGameBadgeColor(training.game_type)}>
+                          {training.game_name}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(training.completedAt).toLocaleDateString('pl-PL', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })}
+                      </p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(training.completedAt).toLocaleDateString('pl-PL', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-semibold">{metrics.metric1.value}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-semibold">{metrics.metric2.value}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-semibold">{metrics.metric3.value}</span>
-                  </TableCell>
-                </TableRow>
+                    <div className="grid grid-cols-3 gap-3 text-sm">
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-1">{metrics.metric1.label}</p>
+                        <p className="font-semibold">{metrics.metric1.value}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-1">{metrics.metric2.label}</p>
+                        <p className="font-semibold">{metrics.metric2.value}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-1">{metrics.metric3.label}</p>
+                        <p className="font-semibold">{metrics.metric3.value}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               );
             })}
-          </TableBody>
-        </Table>
+          </div>
+        </>
       )}
     </div>
   );
