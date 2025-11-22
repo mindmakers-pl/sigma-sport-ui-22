@@ -52,7 +52,7 @@ const QuestionnaireSelector = ({ onComplete, onCancel }: QuestionnaireSelectorPr
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4">
+    <div className="flex items-center justify-center min-h-screen p-4 bg-background">
       <Card className="w-full max-w-2xl">
         <CardContent className="pt-6 space-y-6">
           <div>
