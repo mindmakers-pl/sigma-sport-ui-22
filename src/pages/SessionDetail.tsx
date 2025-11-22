@@ -131,6 +131,23 @@ export default function SessionDetail() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Six Sigma tile if available */}
+              {session.results.six_sigma && (
+                <Card 
+                  className="border-slate-200 hover:border-primary/50 transition-colors cursor-pointer bg-slate-50 hover:bg-slate-100" 
+                  onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}/six-sigma`)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <h3 className="font-semibold text-slate-900">Six Sigma</h3>
+                        <p className="text-sm text-slate-600">Psychometria • 6x6+6</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
               {completedTasks.map(task => {
               const taskNames: Record<string, string> = {
                 kwestionariusz: "Kwestionariusz",
