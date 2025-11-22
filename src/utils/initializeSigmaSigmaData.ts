@@ -1,5 +1,7 @@
 // Initialize Sigma Sigma athlete with Six Sigma session data
 
+import { loadMockSessionsToStorage } from "@/utils/mockSessionData";
+
 export function initializeSigmaSigmaData() {
   // Check if Sigma Sigma exists
   const athletes = JSON.parse(localStorage.getItem('athletes') || '[]');
@@ -33,7 +35,6 @@ export function initializeSigmaSigmaData() {
   }
   
   // Load mock sessions (which now include Six Sigma data)
-  const { loadMockSessionsToStorage } = require('./mockSessionData');
   loadMockSessionsToStorage('999', 'Sigma Sigma');
   
   console.log('Sigma Sigma initialized with Six Sigma data');
