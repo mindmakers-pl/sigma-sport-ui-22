@@ -60,6 +60,8 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
   const [results, setResults] = useState<TrialResult[]>([]);
   const [stimulusStartTime, setStimulusStartTime] = useState<number>(0);
   const [buttonsDisabled, setButtonsDisabled] = useState(true);
+  const [manualRMSSD, setManualRMSSD] = useState("");
+  const [manualHR, setManualHR] = useState("");
 
   // Generate trial sequence with no consecutive identical stimuli
   const generateTrials = useCallback((): Trial[] => {
@@ -311,9 +313,6 @@ export default function FocusGame({ onComplete, onGoToCockpit, mode = "training"
       : 0;
     
     const concentrationCost = medianIncongruent - medianCongruent;
-
-    const [manualRMSSD, setManualRMSSD] = React.useState("");
-    const [manualHR, setManualHR] = React.useState("");
 
     // Calculate max for chart scale
     const maxTime = Math.max(medianCongruent, medianIncongruent);
