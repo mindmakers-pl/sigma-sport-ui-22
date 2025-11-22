@@ -220,7 +220,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'game-focus',
     title: 'Sigma Focus',
-    description: 'Gra treningowa - uwaga selektywna. Test Stroopa - wybieraj kolor napisu, ignorując jego znaczenie.',
+    description: 'Gra treningowa - uwaga selektywna. Wybieraj kolor napisu, ignorując jego znaczenie.',
     duration: '3-5 min',
     category: 'game',
     objective: 'Pomiar efektu interferencji i zdolności do selekcji istotnych informacji pod presją.',

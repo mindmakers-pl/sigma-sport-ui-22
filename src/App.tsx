@@ -24,6 +24,8 @@ import TrackerGame from "./pages/TrackerGame";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import SessionDetail from "./pages/SessionDetail";
+import TrainingDetail from "./pages/TrainingDetail";
+import ProgressReport from "./pages/ProgressReport";
 import { useEffect } from "react";
 import { addSigmaSigmaToStorage } from "./data/mockAthletes";
 
@@ -49,6 +51,8 @@ const App = () => {
             <Route path="/zawodnicy" element={<AppLayoutNew><Athletes /></AppLayoutNew>} />
             <Route path="/zawodnicy/:id" element={<AppLayoutNew><AthleteProfile /></AppLayoutNew>} />
             <Route path="/zawodnicy/:athleteId/sesja/:sessionId" element={<AppLayoutNew><SessionDetail /></AppLayoutNew>} />
+            <Route path="/zawodnicy/:athleteId/trening/:trainingId" element={<AppLayoutNew><TrainingDetail /></AppLayoutNew>} />
+            <Route path="/zawodnicy/:athleteId/postepy/:gameType" element={<AppLayoutNew><ProgressReport /></AppLayoutNew>} />
             <Route path="/kluby" element={<AppLayoutNew><Clubs /></AppLayoutNew>} />
             <Route path="/kluby/:id" element={<AppLayoutNew><ClubDetail /></AppLayoutNew>} />
             <Route path="/kluby/:id/zarzadzaj" element={<AppLayoutNew><ClubManagement /></AppLayoutNew>} />
