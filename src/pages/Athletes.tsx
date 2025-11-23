@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Plus, Search, FileText, Settings, Archive, X } from "lucide-react";
+import { Plus, Search, FileText, Settings, Archive, X, Loader2 } from "lucide-react";
 import DisciplineSelector from "@/components/DisciplineSelector";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
@@ -37,6 +37,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import BackButton from "@/components/BackButton";
+import { useAthletes } from "@/hooks/useAthletes";
+import { useClubs } from "@/hooks/useClubs";
+import { toast } from "sonner";
 
 const Athletes = () => {
   const navigate = useNavigate();
@@ -50,13 +53,16 @@ const Athletes = () => {
   const [showArchived, setShowArchived] = useState(false);
   const itemsPerPage = 10;
   
+  const { athletes, loading, addAthlete, archiveAthletes, restoreAthletes } = useAthletes();
+  const { clubs, loading: clubsLoading } = useClubs();
+  
   const [newAthlete, setNewAthlete] = useState({
     firstName: "",
     lastName: "",
     gender: "",
     email: "",
     phone: "",
-    club: "",
+    clubId: "",
     coach: "",
     discipline: "",
     birthDate: undefined as Date | undefined,
@@ -67,86 +73,40 @@ const Athletes = () => {
     parentEmail: "",
   });
 
-  const [athletes, setAthletes] = useState(() => {
-    const stored = localStorage.getItem('athletes');
-    if (stored) {
-      return JSON.parse(stored);
-    }
-    return [];
-  });
+  // Get unique disciplines from all athletes
+  const disciplines = Array.from(new Set(
+    athletes
+      .map(athlete => athlete.discipline)
+      .filter(discipline => discipline && discipline.trim() !== "")
+  )) as string[];
 
-  const [clubs, setClubs] = useState(() => {
-    const storedClubs = localStorage.getItem('clubs');
-    if (storedClubs) {
-      const clubsData = JSON.parse(storedClubs);
-      return clubsData.map((club: any) => club.name);
-    }
-    return ["KS Górnik", "MKS Cracovia", "Wisła Kraków", "Legia Warszawa"];
-  });
-  
-  // Pobierz unikalne dyscypliny z zawodników w localStorage
-  const getDisciplines = () => {
-    const storedAthletes = localStorage.getItem('athletes');
-    if (storedAthletes) {
-      const athletesData = JSON.parse(storedAthletes);
-      const uniqueDisciplines = Array.from(new Set(
-        athletesData
-          .map((athlete: any) => athlete.discipline)
-          .filter((discipline: string) => discipline && discipline.trim() !== "")
-      ));
-      return uniqueDisciplines as string[];
-    }
-    return ["Piłka nożna", "Koszykówka", "Siatkówka"];
-  };
-
-  const [disciplines, setDisciplines] = useState<string[]>(getDisciplines());
-
-  // Pobierz trenerów z wybranego klubu
+  // Get coaches for selected club
   const getCoachesForClub = () => {
-    if (!newAthlete.club) return [];
-    
-    const storedClubs = localStorage.getItem('clubs');
-    if (storedClubs) {
-      const clubsData = JSON.parse(storedClubs);
-      const selectedClub = clubsData.find((club: any) => club.name === newAthlete.club);
-      if (selectedClub && selectedClub.coaches) {
-        return selectedClub.coaches;
-      }
-    }
-    return [];
+    if (!newAthlete.clubId) return [];
+    const selectedClub = clubs.find(c => c.id === newAthlete.clubId);
+    return selectedClub?.coaches || [];
   };
-
-  // Synchronizuj listę klubów i dyscyplin z localStorage
-  useEffect(() => {
-    const storedClubs = localStorage.getItem('clubs');
-    if (storedClubs) {
-      const clubsData = JSON.parse(storedClubs);
-      setClubs(clubsData.map((club: any) => club.name));
-    }
-    
-    // Aktualizuj dyscypliny przy zmianie athletes
-    setDisciplines(getDisciplines());
-  }, [athletes]);
 
   const filteredAthletes = athletes.filter(athlete => {
-    // Filtruj według statusu archiwizacji
+    // Filter by archive status
     if (!showArchived && athlete.archived) return false;
     if (showArchived && !athlete.archived) return false;
     
-    const matchesSearch = athlete.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClub = filterClub === "all" || athlete.club === filterClub;
+    const fullName = `${athlete.first_name} ${athlete.last_name}`.toLowerCase();
+    const matchesSearch = fullName.includes(searchTerm.toLowerCase());
+    const matchesClub = filterClub === "all" || athlete.club_id === filterClub;
     const matchesDiscipline = filterDiscipline === "all" || athlete.discipline === filterDiscipline;
     return matchesSearch && matchesClub && matchesDiscipline;
   });
 
-  // Paginacja
+  // Pagination
   const totalPages = Math.ceil(filteredAthletes.length / itemsPerPage);
   const paginatedAthletes = filteredAthletes.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // Reset strony przy zmianie filtrów
+  // Reset page on filter change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterClub, filterDiscipline, showArchived]);
@@ -165,26 +125,24 @@ const Athletes = () => {
     );
   };
 
-  const handleArchiveSelected = () => {
-    const updatedAthletes = athletes.map(athlete => 
-      selectedAthletes.includes(athlete.id) 
-        ? { ...athlete, archived: true, archivedAt: new Date().toISOString() }
-        : athlete
-    );
-    localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
-    setAthletes(updatedAthletes);
+  const handleArchiveSelected = async () => {
+    const { error } = await archiveAthletes(selectedAthletes);
+    if (error) {
+      toast.error("Błąd podczas archiwizacji zawodników");
+      return;
+    }
+    toast.success("Zawodnicy zostali zarchiwizowani");
     setSelectedAthletes([]);
     setIsSelectionMode(false);
   };
 
-  const handleRestoreSelected = () => {
-    const updatedAthletes = athletes.map(athlete => 
-      selectedAthletes.includes(athlete.id) 
-        ? { ...athlete, archived: false, archivedAt: null }
-        : athlete
-    );
-    localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
-    setAthletes(updatedAthletes);
+  const handleRestoreSelected = async () => {
+    const { error } = await restoreAthletes(selectedAthletes);
+    if (error) {
+      toast.error("Błąd podczas przywracania zawodników");
+      return;
+    }
+    toast.success("Zawodnicy zostali przywróceni");
     setSelectedAthletes([]);
     setIsSelectionMode(false);
   };
@@ -196,62 +154,38 @@ const Athletes = () => {
 
   const hasActiveFilters = filterClub !== "all" || filterDiscipline !== "all";
 
-  const handleAddAthlete = () => {
-    const newId = athletes.length > 0 ? Math.max(...athletes.map(a => a.id)) + 1 : 1;
-    const fullName = `${newAthlete.lastName} ${newAthlete.firstName}`;
-    const birthYear = newAthlete.birthDate ? newAthlete.birthDate.getFullYear() : new Date().getFullYear();
-    
-    const athleteToAdd = {
-      id: newId,
-      name: fullName,
-      firstName: newAthlete.firstName,
-      lastName: newAthlete.lastName,
-      gender: newAthlete.gender,
-      club: newAthlete.club,
-      coach: newAthlete.coach,
-      discipline: newAthlete.discipline,
-      birthYear: birthYear,
-      birthDate: newAthlete.birthDate?.toISOString(),
-      sessions: 0,
-      email: newAthlete.email,
-      phone: newAthlete.phone,
-      notes: newAthlete.notes,
-      parentFirstName: newAthlete.parentFirstName,
-      parentLastName: newAthlete.parentLastName,
-      parentPhone: newAthlete.parentPhone,
-      parentEmail: newAthlete.parentEmail,
-      createdAt: new Date().toISOString(),
+  const handleAddAthlete = async () => {
+    if (!newAthlete.firstName.trim() || !newAthlete.lastName.trim() || !newAthlete.clubId) {
+      toast.error("Wypełnij wszystkie wymagane pola");
+      return;
+    }
+
+    const athleteData = {
+      first_name: newAthlete.firstName,
+      last_name: newAthlete.lastName,
+      gender: newAthlete.gender || undefined,
+      email: newAthlete.email || undefined,
+      phone: newAthlete.phone || undefined,
+      club_id: newAthlete.clubId,
+      coach: newAthlete.coach || undefined,
+      discipline: newAthlete.discipline || undefined,
+      birth_date: newAthlete.birthDate?.toISOString(),
+      birth_year: newAthlete.birthDate?.getFullYear(),
+      notes: newAthlete.notes || undefined,
+      parent_first_name: newAthlete.parentFirstName || undefined,
+      parent_last_name: newAthlete.parentLastName || undefined,
+      parent_phone: newAthlete.parentPhone || undefined,
+      parent_email: newAthlete.parentEmail || undefined,
     };
     
-    const updatedAthletes = [...athletes, athleteToAdd];
-    setAthletes(updatedAthletes);
+    const { error } = await addAthlete(athleteData);
     
-    // Zapisz do localStorage
-    localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
-    
-    // Dodaj klub do listy jeśli nie istnieje
-    if (newAthlete.club && !clubs.includes(newAthlete.club)) {
-      const updatedClubs = [...clubs, newAthlete.club];
-      setClubs(updatedClubs);
-      
-      // Zaktualizuj też clubs w localStorage jeśli istnieje struktura klubów
-      const storedClubs = localStorage.getItem('clubs');
-      if (storedClubs) {
-        const clubsData = JSON.parse(storedClubs);
-        const clubExists = clubsData.some((c: any) => c.name === newAthlete.club);
-        if (!clubExists) {
-          const newClubData = {
-            id: Math.max(...clubsData.map((c: any) => c.id), 0) + 1,
-            name: newAthlete.club,
-            city: "",
-            disciplines: newAthlete.discipline ? [newAthlete.discipline] : [],
-            members: 1
-          };
-          localStorage.setItem('clubs', JSON.stringify([...clubsData, newClubData]));
-        }
-      }
+    if (error) {
+      toast.error("Błąd podczas dodawania zawodnika");
+      return;
     }
-    
+
+    toast.success("Zawodnik został dodany");
     setIsAddDialogOpen(false);
     setNewAthlete({
       firstName: "",
@@ -259,7 +193,7 @@ const Athletes = () => {
       gender: "",
       email: "",
       phone: "",
-      club: "",
+      clubId: "",
       coach: "",
       discipline: "",
       birthDate: undefined,
@@ -273,7 +207,15 @@ const Athletes = () => {
 
   const isFormValid = newAthlete.firstName.trim() !== "" && 
                       newAthlete.lastName.trim() !== "" && 
-                      newAthlete.club !== "";
+                      newAthlete.clubId !== "";
+
+  if (loading || clubsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -354,21 +296,21 @@ const Athletes = () => {
                     <Label htmlFor="club" className="text-slate-900 font-semibold">
                       Klub <span className="text-red-500">*</span>
                     </Label>
-                    <Input
-                      id="club"
-                      value={newAthlete.club}
-                      onChange={(e) => {
-                        setNewAthlete({ ...newAthlete, club: e.target.value, coach: "" });
-                      }}
-                      placeholder="Wpisz nazwę klubu"
-                      className="mt-2"
-                      list="clubs-list"
-                    />
-                    <datalist id="clubs-list">
-                      {clubs.map(club => (
-                        <option key={club} value={club} />
-                      ))}
-                    </datalist>
+                    <Select
+                      value={newAthlete.clubId}
+                      onValueChange={(value) => setNewAthlete({ ...newAthlete, clubId: value, coach: "" })}
+                    >
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Wybierz klub" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clubs.map(club => (
+                          <SelectItem key={club.id} value={club.id}>
+                            {club.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div>
@@ -378,10 +320,10 @@ const Athletes = () => {
                     <Select
                       value={newAthlete.coach}
                       onValueChange={(value) => setNewAthlete({ ...newAthlete, coach: value })}
-                      disabled={!newAthlete.club}
+                      disabled={!newAthlete.clubId}
                     >
                       <SelectTrigger className="mt-2">
-                        <SelectValue placeholder={newAthlete.club ? "Wybierz trenera" : "Najpierw wybierz klub"} />
+                        <SelectValue placeholder={newAthlete.clubId ? "Wybierz trenera" : "Najpierw wybierz klub"} />
                       </SelectTrigger>
                       <SelectContent>
                         {getCoachesForClub().map((coach: any, index: number) => (
@@ -468,42 +410,37 @@ const Athletes = () => {
                   />
                 </div>
 
-                <div className="border-t border-slate-200 pt-4 space-y-4">
-                  <h3 className="text-slate-900 font-semibold">Dane kontaktowe rodzica/opiekuna (opcjonalne)</h3>
+                {/* Parent/Guardian Section */}
+                <div className="space-y-4 pt-4 border-t">
+                  <h3 className="text-lg font-semibold text-slate-900">Kontakt do rodzica/opiekuna</h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="parentFirstName" className="text-slate-900 font-semibold">
-                        Imię rodzica
-                      </Label>
+                      <Label htmlFor="parentFirstName" className="text-slate-900 font-semibold">Imię rodzica</Label>
                       <Input
                         id="parentFirstName"
                         value={newAthlete.parentFirstName}
                         onChange={(e) => setNewAthlete({ ...newAthlete, parentFirstName: e.target.value })}
-                        placeholder="Jan"
+                        placeholder="Anna"
                         className="mt-2"
                       />
                     </div>
                     
                     <div>
-                      <Label htmlFor="parentLastName" className="text-slate-900 font-semibold">
-                        Nazwisko rodzica
-                      </Label>
+                      <Label htmlFor="parentLastName" className="text-slate-900 font-semibold">Nazwisko rodzica</Label>
                       <Input
                         id="parentLastName"
                         value={newAthlete.parentLastName}
                         onChange={(e) => setNewAthlete({ ...newAthlete, parentLastName: e.target.value })}
-                        placeholder="Kowalski"
+                        placeholder="Kowalska"
                         className="mt-2"
                       />
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="parentPhone" className="text-slate-900 font-semibold">
-                        Telefon rodzica
-                      </Label>
+                      <Label htmlFor="parentPhone" className="text-slate-900 font-semibold">Telefon rodzica</Label>
                       <Input
                         id="parentPhone"
                         type="tel"
@@ -513,268 +450,268 @@ const Athletes = () => {
                         className="mt-2"
                       />
                     </div>
-
+                    
                     <div>
-                      <Label htmlFor="parentEmail" className="text-slate-900 font-semibold">
-                        Email rodzica
-                      </Label>
+                      <Label htmlFor="parentEmail" className="text-slate-900 font-semibold">E-mail rodzica</Label>
                       <Input
                         id="parentEmail"
                         type="email"
                         value={newAthlete.parentEmail}
                         onChange={(e) => setNewAthlete({ ...newAthlete, parentEmail: e.target.value })}
-                        placeholder="rodzic@example.com"
+                        placeholder="anna.kowalska@example.com"
                         className="mt-2"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex gap-4 pt-4 border-t border-slate-200">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsAddDialogOpen(false)}
-                    className="flex-1"
-                  >
-                    Anuluj
-                  </Button>
-                  <Button 
-                    onClick={handleAddAthlete} 
-                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                    disabled={!isFormValid}
-                  >
-                    Zapisz zawodnika
-                  </Button>
-                </div>
+                <Button 
+                  onClick={handleAddAthlete} 
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                  disabled={!isFormValid}
+                >
+                  Dodaj zawodnika
+                </Button>
               </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Filtrowanie/Wyszukiwanie */}
+      {/* Filters */}
       <Card className="mb-6">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-lg">Filtruj zawodników</CardTitle>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <CardTitle>Filtruj zawodników</CardTitle>
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setFilterClub("all");
+                  setFilterDiscipline("all");
+                }}
+                className="gap-2"
+              >
+                <X className="h-4 w-4" />
+                Wyczyść filtry
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="search">Wyszukaj</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="search"
-                  placeholder="Imię, nazwisko..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Szukaj zawodnika..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-            <div>
-              <Label htmlFor="clubFilter">Klub</Label>
-              <Select value={filterClub} onValueChange={setFilterClub}>
-                <SelectTrigger id="clubFilter">
-                  <SelectValue placeholder="Wszystkie kluby" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Wszystkie kluby</SelectItem>
-                  {clubs.map(club => (
-                    <SelectItem key={club} value={club}>{club}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="disciplineFilter">Dyscyplina</Label>
-              <Select value={filterDiscipline} onValueChange={setFilterDiscipline}>
-                <SelectTrigger id="disciplineFilter">
-                  <SelectValue placeholder="Wszystkie dyscypliny" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Wszystkie dyscypliny</SelectItem>
-                  {disciplines.map(disc => (
-                    <SelectItem key={disc} value={disc}>{disc}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {hasActiveFilters && (
-                <p className="text-sm text-muted-foreground">
-                  Znaleziono {filteredAthletes.length} zawodników
-                </p>
-              )}
-            </div>
-            {hasActiveFilters && (
-              <Button variant="outline" size="sm" className="gap-2">
-                <FileText className="h-4 w-4" />
-                Wygeneruj raport
-              </Button>
-            )}
+            <Select value={filterClub} onValueChange={setFilterClub}>
+              <SelectTrigger>
+                <SelectValue placeholder="Wszystkie kluby" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Wszystkie kluby</SelectItem>
+                {clubs.map(club => (
+                  <SelectItem key={club.id} value={club.id}>
+                    {club.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterDiscipline} onValueChange={setFilterDiscipline}>
+              <SelectTrigger>
+                <SelectValue placeholder="Wszystkie dyscypliny" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Wszystkie dyscypliny</SelectItem>
+                {disciplines.map(discipline => (
+                  <SelectItem key={discipline} value={discipline}>
+                    {discipline}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Tabela Zawodników */}
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {isSelectionMode && (
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={selectedAthletes.length === paginatedAthletes.length && paginatedAthletes.length > 0}
-                    onCheckedChange={toggleSelectAll}
-                  />
-                </TableHead>
-              )}
-              <TableHead className="font-semibold">Nazwisko i imię</TableHead>
-              <TableHead className="font-semibold">Klub</TableHead>
-              <TableHead className="font-semibold">Dyscyplina</TableHead>
-              <TableHead className="font-semibold">Rok ur.</TableHead>
-              <TableHead className="text-right font-semibold">
-                <div className="flex items-center justify-end gap-2">
-                  {!isSelectionMode ? (
-                    <>
-                      Akcje
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => setIsSelectionMode(true)}
-                        title="Tryb selekcji"
-                      >
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      {selectedAthletes.length > 0 && (
-                        !showArchived ? (
-                          <Button 
-                            variant="destructive" 
-                            size="sm"
-                            onClick={handleArchiveSelected}
-                            className="gap-2"
-                          >
-                            <Archive className="h-4 w-4" />
-                            Archiwizuj ({selectedAthletes.length})
-                          </Button>
-                        ) : (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={handleRestoreSelected}
-                            className="gap-2"
-                          >
-                            <Archive className="h-4 w-4" />
-                            Przywróć ({selectedAthletes.length})
-                          </Button>
-                        )
-                      )}
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={cancelSelectionMode}
-                        title="Anuluj tryb selekcji"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedAthletes.map((athlete) => (
-              <TableRow 
-                key={athlete.id}
-                className={isSelectionMode ? "cursor-pointer" : "cursor-pointer hover:bg-muted/50"}
-                onClick={(e) => {
-                  // In selection mode, toggle checkbox
-                  if (isSelectionMode) {
-                    toggleSelectAthlete(athlete.id);
-                    return;
-                  }
-                  
-                  // Don't navigate if clicking on checkbox or action button
-                  if ((e.target as HTMLElement).closest('input[type="checkbox"]') || 
-                      (e.target as HTMLElement).closest('button')) {
-                    return;
-                  }
-                  navigate(`/zawodnicy/${athlete.id}`);
-                }}
-              >
-                {isSelectionMode && (
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={selectedAthletes.includes(athlete.id)}
-                      onCheckedChange={() => toggleSelectAthlete(athlete.id)}
-                    />
-                  </TableCell>
-                )}
-                <TableCell className="font-medium">{athlete.name}</TableCell>
-                <TableCell className="text-muted-foreground">{athlete.club}</TableCell>
-                <TableCell className="text-muted-foreground">{athlete.discipline}</TableCell>
-                <TableCell className="text-muted-foreground">{athlete.birthYear}</TableCell>
-                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                  <Button 
-                    variant="default" 
-                    size="sm"
-                    onClick={() => navigate(`/zawodnicy/${athlete.id}?tab=dodaj-pomiar`)}
+      {/* Selection Mode Controls */}
+      {isSelectionMode && (
+        <Card className="mb-6 border-primary">
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <p className="font-semibold">
+                  Zaznaczono: {selectedAthletes.length} {selectedAthletes.length === 1 ? 'zawodnika' : 'zawodników'}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                {showArchived ? (
+                  <Button
+                    onClick={handleRestoreSelected}
+                    disabled={selectedAthletes.length === 0}
+                    variant="default"
                   >
-                    Dodaj pomiar
+                    Przywróć zaznaczonych
                   </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+                ) : (
+                  <Button
+                    onClick={handleArchiveSelected}
+                    disabled={selectedAthletes.length === 0}
+                    variant="destructive"
+                  >
+                    <Archive className="h-4 w-4 mr-2" />
+                    Archiwizuj zaznaczonych
+                  </Button>
+                )}
+                <Button onClick={cancelSelectionMode} variant="outline">
+                  Anuluj
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Paginacja i przycisk archiwum */}
-      <div className="flex items-center justify-between mt-4">
-        <Button 
-          variant={showArchived ? "default" : "outline"} 
-          size="sm" 
-          className="gap-2"
-          onClick={() => setShowArchived(!showArchived)}
-        >
-          <Archive className="h-4 w-4" />
-          {showArchived ? "Pokaż aktywnych" : "Pokaż archiwum"}
-        </Button>
-        
-        {totalPages > 1 && (
-          <div className="flex items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              Strona {currentPage} z {totalPages} ({filteredAthletes.length} zawodników)
-            </p>
+      {/* Athletes Table */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <CardTitle>
+              {showArchived ? "Zarchiwizowani zawodnicy" : "Lista zawodników"}
+            </CardTitle>
             <div className="flex gap-2">
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
+                variant={showArchived ? "default" : "outline"}
+                onClick={() => setShowArchived(!showArchived)}
+                className="gap-2"
               >
-                Poprzednia
+                <Archive className="h-4 w-4" />
+                {showArchived ? "Pokaż aktywnych" : "Pokaż zarchiwizowanych"}
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Następna
-              </Button>
+              {!showArchived && (
+                <Button
+                  variant={isSelectionMode ? "default" : "outline"}
+                  onClick={() => {
+                    setIsSelectionMode(!isSelectionMode);
+                    setSelectedAthletes([]);
+                  }}
+                  className="gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  {isSelectionMode ? "Zakończ zaznaczanie" : "Zaznacz"}
+                </Button>
+              )}
             </div>
           </div>
-        )}
-      </div>
+        </CardHeader>
+        <CardContent>
+          {filteredAthletes.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                {showArchived ? "Brak zarchiwizowanych zawodników" : "Brak zawodników spełniających kryteria"}
+              </p>
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {isSelectionMode && (
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={selectedAthletes.length === paginatedAthletes.length}
+                          onCheckedChange={toggleSelectAll}
+                        />
+                      </TableHead>
+                    )}
+                    <TableHead>Imię i nazwisko</TableHead>
+                    <TableHead>Klub</TableHead>
+                    <TableHead>Dyscyplina</TableHead>
+                    <TableHead>Data urodzenia</TableHead>
+                    <TableHead className="text-right">Akcje</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedAthletes.map((athlete) => {
+                    const club = clubs.find(c => c.id === athlete.club_id);
+                    return (
+                      <TableRow key={athlete.id}>
+                        {isSelectionMode && (
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedAthletes.includes(athlete.id)}
+                              onCheckedChange={() => toggleSelectAthlete(athlete.id)}
+                            />
+                          </TableCell>
+                        )}
+                        <TableCell className="font-medium">
+                          {athlete.first_name} {athlete.last_name}
+                        </TableCell>
+                        <TableCell>{club?.name || 'N/A'}</TableCell>
+                        <TableCell>{athlete.discipline || 'N/A'}</TableCell>
+                        <TableCell>
+                          {athlete.birth_date ? format(new Date(athlete.birth_date), "dd MMM yyyy", { locale: pl }) : 'N/A'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/zawodnicy/${athlete.id}`)}
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              Profil
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => navigate(`/zawodnicy/${athlete.id}?tab=dodaj-pomiar`)}
+                            >
+                              Pomiar
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Strona {currentPage} z {totalPages}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Poprzednia
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Następna
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
