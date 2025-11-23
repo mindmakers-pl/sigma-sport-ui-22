@@ -1,14 +1,9 @@
-import { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, RotateCcw } from "lucide-react";
-import { 
-  allSixSigmaQuestionnaires, 
-  SixSigmaQuestionnaire, 
-  SixSigmaQuestion 
-} from "@/data/sixSigmaQuestionnaires";
-import { scoreQuestionnaire, QuestionnaireResponse } from "@/utils/sixSigmaScoring";
+import { ArrowLeft } from "lucide-react";
+import { allSixSigmaQuestionnaires, type SixSigmaQuestionnaire, type SixSigmaQuestion } from "@/data/sixSigmaQuestionnaires";
 
 interface QuestionnaireRunnerProps {
   questionnaireIds: string[];
@@ -22,100 +17,58 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [showIntro, setShowIntro] = useState(true);
   const [showCompletion, setShowCompletion] = useState(false);
-  const [completedQuestionnaires, setCompletedQuestionnaires] = useState<any[]>([]);
-  const [questionnaireStartTime, setQuestionnaireStartTime] = useState<number | null>(null);
 
   const getCurrentQuestionnaire = (): SixSigmaQuestionnaire | null => {
-    const qId = questionnaireIds[currentQuestionnaireIndex];
-    if (qId === 'six_sigma_full') return allSixSigmaQuestionnaires.full;
-    if (qId === 'six_sigma_lite') return allSixSigmaQuestionnaires.lite;
-    if (qId === 'six_sigma_mood') return allSixSigmaQuestionnaires.mood;
+    const currentId = questionnaireIds[currentQuestionnaireIndex];
+    if (currentId === 'six_sigma_full') return allSixSigmaQuestionnaires.full;
+    if (currentId === 'six_sigma_lite') return allSixSigmaQuestionnaires.lite;
+    if (currentId === 'six_sigma_mood') return allSixSigmaQuestionnaires.mood;
     return null;
   };
 
   const questionnaire = getCurrentQuestionnaire();
-  if (!questionnaire) return null;
 
-  // Flatten all questions (from competencies and modifiers)
-  const allQuestions: SixSigmaQuestion[] = [
-    ...questionnaire.competencies.flatMap(c => c.questions),
-    ...(questionnaire.modifiers?.map(m => ({
-      id: m.id,
-      text: m.question,
+  if (!questionnaire) {
+    return null;
+  }
+
+  // Flatten all questions from competencies and modifiers
+  const allQuestions: (SixSigmaQuestion & { competency?: string })[] = [
+    ...questionnaire.competencies.flatMap(comp => 
+      comp.questions.map(q => ({ ...q, competency: comp.id }))
+    ),
+    ...(questionnaire.modifiers?.map(mod => ({
+      id: mod.id,
+      text: mod.question,
       type: 'direct' as const,
       domain: 'body' as const,
-      weight: 1.0
+      competency: 'modifier'
     })) || [])
   ];
 
   const randomizedQuestions = useMemo(() => {
-    return [...allQuestions].sort(() => Math.random() - 0.5);
-  }, [questionnaire.id]);
+    const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+    return shuffled;
+  }, [currentQuestionnaireIndex]);
 
   const currentQuestion = randomizedQuestions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / randomizedQuestions.length) * 100;
 
   const handleAnswer = (value: number) => {
-    const newAnswers = {
+    const updatedAnswers = {
       ...answers,
       [currentQuestion.id]: value
     };
-    setAnswers(newAnswers);
+    setAnswers(updatedAnswers);
 
-    // Auto-advance
     if (currentQuestionIndex < randomizedQuestions.length - 1) {
-      setTimeout(() => setCurrentQuestionIndex(prev => prev + 1), 300);
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Questionnaire completed - score it with enriched metadata
-      const completionTimeSeconds = questionnaireStartTime 
-        ? Math.round((Date.now() - questionnaireStartTime) / 1000)
-        : undefined;
-      
-      console.log(`Kwestionariusz wypełniony w ${completionTimeSeconds}s`);
-      
-      const responses: QuestionnaireResponse[] = Object.entries(newAnswers).map(([questionId, value]) => {
-        // Find the original question to get metadata
-        const question = allQuestions.find(q => q.id === questionId);
-        
-        // Find which competency this question belongs to
-        let competencyId = '';
-        questionnaire.competencies.forEach(comp => {
-          if (comp.questions.find(q => q.id === questionId)) {
-            competencyId = comp.id;
-          }
-        });
-        
-        // Check if it's a modifier question
-        const isModifier = questionnaire.modifiers?.find(m => m.id === questionId);
-        
-        return {
-          questionId,
-          value,
-          questionText: question?.text || isModifier?.question || '',
-          competency: competencyId || (isModifier ? 'modifier' : ''),
-          domain: question?.domain,
-          type: question?.type,
-          isKeyIndicator: question?.isKeyIndicator,
-          weight: question?.weight
-        };
-      });
-
-      const scored = scoreQuestionnaire(questionnaire, responses, completionTimeSeconds);
-      const newCompleted = [...completedQuestionnaires, scored];
-      setCompletedQuestionnaires(newCompleted);
-      
-      console.log('Scored questionnaire with responses:', scored);
-
-      // Check if more questionnaires to go
       if (currentQuestionnaireIndex < questionnaireIds.length - 1) {
-        // Move to next questionnaire
-        setCurrentQuestionnaireIndex(prev => prev + 1);
+        setCurrentQuestionnaireIndex(currentQuestionnaireIndex + 1);
         setCurrentQuestionIndex(0);
-        setAnswers({});
         setShowIntro(true);
-        setQuestionnaireStartTime(null); // Reset timer for next questionnaire
       } else {
-        // All questionnaires completed
         setShowCompletion(true);
       }
     }
@@ -123,33 +76,65 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
 
   const handleFinish = () => {
-    onComplete({ questionnaires: completedQuestionnaires });
+    const enrichedResponses = Object.entries(answers).map(([questionId, value]) => {
+      const question = allQuestions.find(q => q.id === questionId);
+      return {
+        questionId,
+        questionText: question?.text || '',
+        competency: question?.competency || '',
+        domain: question?.domain || '',
+        value,
+        isReverse: question?.type === 'reverse',
+        isKeyIndicator: question?.isKeyIndicator || false,
+        timestamp: new Date().toISOString()
+      };
+    });
+
+    const results = {
+      questionnaireIds,
+      responses: enrichedResponses,
+      completedAt: new Date().toISOString()
+    };
+
+    onComplete(results);
   };
 
   if (showCompletion) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-slate-900 border-slate-800">
+        <Card className="max-w-md w-full bg-slate-900 border-slate-800">
           <CardContent className="pt-6 space-y-6">
             <div className="text-center">
-              <h2 className="text-3xl font-bold mb-4 text-white">Świetna robota!</h2>
-              <p className="text-slate-400 text-lg mb-6">
-                Wszystkie kwestionariusze zostały wypełnione.
+              <h2 className="text-2xl font-semibold text-white mb-4">
+                Kwestionariusz ukończony!
+              </h2>
+              <p className="text-slate-400">
+                Twoje odpowiedzi zostały zapisane.
               </p>
             </div>
 
-            <div className="pt-2 pb-2 border-t border-slate-800">
-              <p className="text-green-400 text-sm text-center">✓ Zapisane</p>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline"
+                onClick={onCancel}
+                className="flex-1"
+                size="lg"
+              >
+                Powrót do Kokpitu
+              </Button>
+              <Button 
+                onClick={handleFinish}
+                className="flex-1"
+                size="lg"
+              >
+                Dalej
+              </Button>
             </div>
-
-            <Button onClick={handleFinish} className="w-full" size="lg">
-              Wybierz Wyzwanie
-            </Button>
           </CardContent>
         </Card>
       </div>
@@ -159,40 +144,31 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
   if (showIntro) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <div className="absolute top-4 left-4 z-10">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onCancel}
-            className="text-slate-400 hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Powrót
-          </Button>
-        </div>
-
-        <Card className="w-full max-w-md bg-slate-900 border-slate-800">
+        <Card className="max-w-2xl w-full bg-slate-900 border-slate-800">
           <CardContent className="pt-6 space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold mb-4 text-white">{questionnaire.name}</h2>
-              <p className="text-slate-400 whitespace-pre-line leading-relaxed">
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold text-white">{questionnaire.name}</h2>
+              <p className="text-slate-400 text-base leading-relaxed">
                 {questionnaire.description}
+              </p>
+              <div className="flex items-center gap-4 text-sm text-slate-400">
+                <span>{randomizedQuestions.length} pytań</span>
+                <span>•</span>
+                <span>{questionnaire.estimatedTime}</span>
+              </div>
+            </div>
+
+            <div className="bg-slate-800/50 p-4 rounded-lg">
+              <p className="text-slate-300 text-sm leading-relaxed">
+                {questionnaire.usage}
               </p>
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-slate-400">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-white">{randomizedQuestions.length}</span> pytań
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-white">{questionnaire.estimatedTime}</span>
-              </div>
-            </div>
-
-            <Button onClick={() => {
-              setShowIntro(false);
-              setQuestionnaireStartTime(Date.now());
-            }} className="w-full" size="lg">
+            <Button 
+              onClick={() => setShowIntro(false)} 
+              className="w-full"
+              size="lg"
+            >
               GO!
             </Button>
           </CardContent>

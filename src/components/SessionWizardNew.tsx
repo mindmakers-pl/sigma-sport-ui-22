@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import QuestionnaireSelector from "@/components/QuestionnaireSelector";
 import QuestionnaireRunner from "@/components/QuestionnaireRunner";
 import ScanGame from "@/pages/ScanGame";
@@ -19,7 +17,6 @@ interface SessionWizardNewProps {
 type WizardStep = 
   | 'questionnaire-select'
   | 'questionnaires'
-  | 'challenge-select'
   | 'scan' 
   | 'focus'
   | 'memo'
@@ -53,11 +50,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
       description: "Wynik został zapisany do sesji.",
     });
 
-    // Return to challenge selection
-    setCurrentStep('challenge-select');
-  };
-
-  const handleReturnToCockpit = () => {
+    // Return to cockpit after each task
     onClose();
   };
 
@@ -66,7 +59,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
     if (questionnaireIds.length > 0) {
       setCurrentStep('questionnaires');
     } else {
-      setCurrentStep('challenge-select');
+      onClose();
     }
   };
 
@@ -77,20 +70,18 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
     };
     setSessionResults(updatedResults);
     
+    // Auto-save
+    const existingSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
+    const sessionIndex = existingSessions.findIndex((s: any) => s.athleteId === athleteId && s.inProgress);
+    
+    if (sessionIndex >= 0) {
+      existingSessions[sessionIndex].results = updatedResults;
+      localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
+    }
+
     toast({
       title: "Kwestionariusz ukończony",
       description: "Dane zostały zapisane.",
-    });
-    
-    setCurrentStep('challenge-select');
-  };
-
-  const handleFinalSave = () => {
-    onSaveSession(sessionResults);
-    
-    toast({
-      title: "Sesja zakończona",
-      description: "Wszystkie dane zostały zapisane.",
     });
     
     onClose();
@@ -111,72 +102,8 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
           <QuestionnaireRunner
             questionnaireIds={selectedQuestionnaires}
             onComplete={handleQuestionnairesComplete}
-            onCancel={() => setCurrentStep('questionnaire-select')}
+            onCancel={onClose}
           />
-        );
-
-      case 'challenge-select':
-        return (
-          <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-            <Card className="max-w-4xl w-full bg-slate-900 border-slate-800">
-              <CardContent className="pt-6 space-y-6">
-                <h2 className="text-xl font-semibold text-white">Wybierz Wyzwanie</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => setCurrentStep('scan')}
-                    className="h-20 text-base"
-                  >
-                    Sigma Scan
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => setCurrentStep('focus')}
-                    className="h-20 text-base"
-                  >
-                    Sigma Focus
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => setCurrentStep('memo')}
-                    className="h-20 text-base"
-                  >
-                    Sigma Memo
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => setCurrentStep('feedback')}
-                    className="h-20 text-base"
-                  >
-                    Sigma Feedback
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => setCurrentStep('hrv_baseline')}
-                    className="h-20 text-base"
-                  >
-                    HRV Baseline
-                  </Button>
-                </div>
-                <div className="flex justify-between pt-4">
-                  <Button 
-                    variant="ghost" 
-                    onClick={handleReturnToCockpit}
-                  >
-                    Powrót do Kokpitu
-                  </Button>
-                  <Button onClick={handleFinalSave}>
-                    Zakończ Sesję
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         );
 
       case 'scan':
@@ -184,7 +111,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
           <ScanGame 
             mode="measurement"
             onComplete={(data) => handleStepComplete('scan', data)}
-            onGoToCockpit={handleReturnToCockpit}
+            onGoToCockpit={onClose}
           />
         );
 
@@ -193,7 +120,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
           <FocusGame 
             mode="measurement"
             onComplete={(data) => handleStepComplete('focus', data)}
-            onGoToCockpit={handleReturnToCockpit}
+            onGoToCockpit={onClose}
           />
         );
 
@@ -209,7 +136,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
         return (
           <SigmaFeedbackForm 
             onComplete={(data) => handleStepComplete('feedback', data)}
-            onGoToCockpit={handleReturnToCockpit}
+            onGoToCockpit={onClose}
           />
         );
 
@@ -217,7 +144,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
         return (
           <HRVBaselineForm 
             onComplete={(data) => handleStepComplete('hrv_baseline', data)}
-            onGoToCockpit={handleReturnToCockpit}
+            onGoToCockpit={onClose}
           />
         );
 
