@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2, XCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 export default function SessionDetail() {
   const {
@@ -65,6 +65,17 @@ export default function SessionDetail() {
 
   // Overview screen
   if (taskView === "overview") {
+    // Define all possible tests
+    const allTests = [
+      { id: 'six_sigma', name: 'Six Sigma', resultKey: 'six_sigma', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}/six-sigma` },
+      { id: 'hrv_baseline', name: 'HRV Baseline', resultKey: 'hrv_baseline', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=hrv_baseline` },
+      { id: 'scan', name: 'Sigma Scan', resultKey: 'scan', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=scan` },
+      { id: 'control', name: 'Sigma Control', resultKey: 'control', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=control` },
+      { id: 'focus', name: 'Sigma Focus', resultKey: 'focus', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=focus` },
+      { id: 'sigma_move', name: 'Sigma Move', resultKey: 'sigma_move', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=sigma_move` },
+      { id: 'hrv_training', name: 'HRV Training', resultKey: 'hrv_training', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=hrv_training` }
+    ];
+
     return <div className="p-8 max-w-6xl mx-auto">
         <Button variant="ghost" className="mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}?tab=raporty`)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -85,95 +96,47 @@ export default function SessionDetail() {
             minute: '2-digit'
           })}
           </p>
-          <Badge variant="outline" className="mt-2">
-            {session.conditions}
-          </Badge>
         </div>
 
         <Card>
           <CardContent className="pt-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Status</p>
-                <p className="text-lg font-semibold">
-                  {session.inProgress ? "W trakcie" : "Zakończona"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Ukończone testy</p>
-                <p className="text-lg font-semibold">
-                  {completedTasks.length}/7
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Warunki</p>
-                <p className="text-lg font-semibold capitalize">
-                  {session.conditions}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Data</p>
-                <p className="text-lg font-semibold">
-                  {new Date(session.date).toLocaleDateString('pl-PL')}
-                </p>
-              </div>
+            {/* Metadata badges */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <Badge variant="outline" className="text-sm">
+                {session.conditions}
+              </Badge>
+              <Badge variant="outline" className="text-sm">
+                {completedTasks.length}/7 testów
+              </Badge>
+              <Badge variant="outline" className="text-sm">
+                {new Date(session.date).toLocaleDateString('pl-PL')}
+              </Badge>
             </div>
 
+            {/* Test tiles grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Six Sigma tile */}
-              <Card 
-                className={`border-slate-200 transition-colors ${
-                  session.results.six_sigma 
-                    ? 'hover:border-primary/50 cursor-pointer bg-slate-50 hover:bg-slate-100' 
-                    : 'bg-slate-100 opacity-60'
-                }`}
-                onClick={() => session.results.six_sigma && navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}/six-sigma`)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <h3 className="font-semibold text-slate-900">Six Sigma</h3>
-                      <p className="text-sm text-slate-600">Psychometria • 6x6+6</p>
-                    </div>
-                    <Badge variant={session.results.six_sigma ? "default" : "secondary"}>
-                      {session.results.six_sigma ? "Zrealizowany" : "Niezrealizowany"}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* All other tasks */}
-              {(['kwestionariusz', 'hrv_baseline', 'scan', 'control', 'focus', 'sigma_move', 'hrv_training'] as const).map(task => {
-                const taskNames: Record<string, string> = {
-                  kwestionariusz: "Kwestionariusz",
-                  hrv_baseline: "HRV Baseline",
-                  scan: "Sigma Scan",
-                  control: "Sigma Control",
-                  focus: "Sigma Focus",
-                  sigma_move: "Sigma Move",
-                  hrv_training: "HRV Training"
-                };
-                const isCompleted = completedTasks.includes(task);
+              {allTests.map(test => {
+                const isCompleted = session.results[test.resultKey];
                 return (
                   <Card 
-                    key={task}
-                    className={`border-slate-200 transition-colors ${
+                    key={test.id}
+                    className={`relative border transition-colors ${
                       isCompleted 
-                        ? 'hover:border-primary/50 cursor-pointer bg-slate-50 hover:bg-slate-100' 
-                        : 'bg-slate-100 opacity-60'
+                        ? 'border-green-200 bg-green-50/30 hover:bg-green-50/50 cursor-pointer' 
+                        : 'border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed'
                     }`}
-                    onClick={() => isCompleted && navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=${task}`)}
+                    onClick={() => isCompleted && navigate(test.navPath)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <h3 className="font-semibold text-slate-900">
-                            {taskNames[task]}
-                          </h3>
-                        </div>
-                        <Badge variant={isCompleted ? "default" : "secondary"}>
-                          {isCompleted ? "Zrealizowany" : "Niezrealizowany"}
-                        </Badge>
+                        <h3 className={`font-semibold ${isCompleted ? 'text-slate-900' : 'text-slate-500'}`}>
+                          {test.name}
+                        </h3>
+                        {isCompleted ? (
+                          <CheckCircle2 className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <XCircle className="h-5 w-5 text-slate-400" />
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -712,6 +675,195 @@ export default function SessionDetail() {
                     <li><strong>CSV:</strong> Tabela wszystkich prób z czasami reakcji i poprawnością</li>
                     <li><strong>PDF (wkrótce):</strong> Obrandowany raport z wykresami i analizą</li>
                   </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>;
+  }
+
+  // Sigma Scan detailed view
+  if (taskView === "scan" && session.results.scan) {
+    const scanData = session.results.scan;
+    
+    return <div className="p-8 max-w-6xl mx-auto">
+        <Button variant="ghost" className="mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=overview`)}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Powrót do podsumowania
+        </Button>
+
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">
+            Raport Sigma Scan
+          </h2>
+          <p className="text-slate-600">
+            {athlete.name} • {new Date(session.date).toLocaleDateString('pl-PL')}
+          </p>
+        </div>
+
+        <Tabs defaultValue="player" className="w-full">
+          <div className="mb-6">
+            <TabsList>
+              <TabsTrigger value="player">Dla Zawodnika</TabsTrigger>
+              <TabsTrigger value="coach">Dla Trenera</TabsTrigger>
+              <TabsTrigger value="export">Eksport Danych</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="player" className="space-y-6">
+            <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
+              <CardContent className="pt-6">
+                <h3 className="font-bold text-lg text-slate-900 mb-3">Sigma Score: Koncentracja</h3>
+                <p className="text-slate-700 leading-relaxed mb-2">
+                  Test skanowania wzrokowego sprawdza, jak szybko i precyzyjnie potrafisz znaleźć i przetworzyć informacje w chaotycznym środowisku. W sporcie ta umiejętność przekłada się na szybkie lokalizowanie wolnych kolegów, wykrywanie luk w obronie i orientację w przestrzeni.
+                </p>
+                <p className="text-sm text-slate-600">
+                  Poniżej znajdziesz swoje wyniki: jak daleko udało Ci się dojść i jak radzisz sobie z utrzymaniem uwagi.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Twój wynik</CardTitle>
+                <p className="text-sm text-slate-600">Najdłuższa poprawna sekwencja liczb</p>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-baseline gap-4 mb-6">
+                  <span className="text-5xl font-bold text-primary">
+                    {scanData.scan_max_number_reached}
+                  </span>
+                  <span className="text-2xl text-slate-600">/ 63</span>
+                  <div className="ml-auto">
+                    <Badge variant="secondary" className="text-lg px-4 py-2">
+                      {scanData.scan_correct_clicks} poprawnych kliknięć
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 p-6 rounded-lg">
+                  <h4 className="font-semibold text-slate-900 mb-2">
+                    Szczegóły wykonania
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="bg-white p-4 rounded border">
+                      <p className="text-sm text-slate-600 mb-1">Błędne kliknięcia</p>
+                      <p className="text-2xl font-bold text-slate-900">{scanData.scan_error_clicks}</p>
+                    </div>
+                    <div className="bg-white p-4 rounded border">
+                      <p className="text-sm text-slate-600 mb-1">Czas trwania</p>
+                      <p className="text-2xl font-bold text-slate-900">{scanData.scan_duration_s}s</p>
+                    </div>
+                  </div>
+                  
+                  {scanData.scan_skipped_numbers && scanData.scan_skipped_numbers.length > 0 && (
+                    <div className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                      <p className="text-sm font-semibold text-amber-900 mb-2">Pominięte liczby:</p>
+                      <p className="text-amber-800">{scanData.scan_skipped_numbers.join(', ')}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="coach" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Szczegóły Wykonania</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-1">Maksymalna liczba</p>
+                    <p className="text-2xl font-bold">{scanData.scan_max_number_reached}</p>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-1">Poprawne kliknięcia</p>
+                    <p className="text-2xl font-bold text-green-700">{scanData.scan_correct_clicks}</p>
+                  </div>
+                  <div className="bg-red-50 p-4 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-1">Błędne kliknięcia</p>
+                    <p className="text-2xl font-bold text-red-700">{scanData.scan_error_clicks}</p>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-1">Czas trwania</p>
+                    <p className="text-2xl font-bold text-blue-700">{scanData.scan_duration_s}s</p>
+                  </div>
+                </div>
+
+                {scanData.scan_skipped_numbers && scanData.scan_skipped_numbers.length > 0 && (
+                  <div className="mt-6 bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                    <h4 className="font-semibold text-amber-900 mb-2">Pominięte liczby w sekwencji:</h4>
+                    <p className="text-amber-800">{scanData.scan_skipped_numbers.join(', ')}</p>
+                    <p className="text-sm text-amber-700 mt-2">
+                      Te liczby zostały pominięte, co przerwało poprawną sekwencję.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {(scanData.scan_rmssd_ms || scanData.scan_avg_hr_bpm) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Dane HRV (Polar H10)</CardTitle>
+                  <p className="text-sm text-slate-600">Zmienność rytmu serca i tętno podczas testu</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {scanData.scan_rmssd_ms && (
+                      <div className="bg-blue-50 p-6 rounded-lg">
+                        <p className="text-sm text-slate-600 mb-2">rMSSD</p>
+                        <p className="text-4xl font-bold text-blue-700">{scanData.scan_rmssd_ms}</p>
+                        <p className="text-sm text-slate-500 mt-1">ms</p>
+                        <p className="text-xs text-slate-600 mt-3">
+                          Wyższa wartość = lepsza regeneracja układu nerwowego
+                        </p>
+                      </div>
+                    )}
+                    {scanData.scan_avg_hr_bpm && (
+                      <div className="bg-red-50 p-6 rounded-lg">
+                        <p className="text-sm text-slate-600 mb-2">Średnie HR</p>
+                        <p className="text-4xl font-bold text-red-700">{scanData.scan_avg_hr_bpm}</p>
+                        <p className="text-sm text-slate-500 mt-1">BPM</p>
+                        <p className="text-xs text-slate-600 mt-3">
+                          Tętno podczas wykonywania zadania
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="export" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Eksport Danych</CardTitle>
+                <p className="text-sm text-slate-600">Pobierz dane w różnych formatach</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button variant="outline" className="h-24 flex-col gap-2" onClick={handleExportJSON}>
+                    <Download className="h-6 w-6" />
+                    <span>Pobierz JSON</span>
+                    <span className="text-xs text-slate-500">Pełne dane sesji</span>
+                  </Button>
+                  
+                  <Button variant="outline" className="h-24 flex-col gap-2" onClick={handleExportCSV}>
+                    <Download className="h-6 w-6" />
+                    <span>Pobierz CSV</span>
+                    <span className="text-xs text-slate-500">Dane kliknięć</span>
+                  </Button>
+                  
+                  <Button variant="outline" className="h-24 flex-col gap-2" disabled>
+                    <Download className="h-6 w-6" />
+                    <span>Pobierz PDF</span>
+                    <span className="text-xs text-slate-500">Wkrótce</span>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
