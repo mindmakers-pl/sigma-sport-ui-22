@@ -1,5 +1,1 @@
-[project]
-name = "mindmakers"
-
-[functions.analyze-sigma-score]
-verify_jwt = false
+project_id = "gutbbnccwgxyshjioaul"
