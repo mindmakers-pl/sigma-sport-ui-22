@@ -7,6 +7,11 @@ import { ArrowLeft, Download, Share2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useTrainings } from "@/hooks/useTrainings";
+import FocusGameReport from "@/components/reports/FocusGameReport";
+import ScanGameReport from "@/components/reports/ScanGameReport";
+import MemoGameReport from "@/components/reports/MemoGameReport";
+import ControlGameReport from "@/components/reports/ControlGameReport";
+import TrackerGameReport from "@/components/reports/TrackerGameReport";
 
 export default function TrainingDetail() {
   const { athleteId, trainingId } = useParams();

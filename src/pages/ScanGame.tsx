@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { useTrainings } from "@/hooks/useTrainings";
 import { determineGameContext } from "@/utils/gameContext";
 import { useToast } from "@/hooks/use-toast";
+import { HRVInputFields } from "@/components/game-shared/HRVInputFields";
 
 type GameState = "ready" | "playing" | "finished";
 
@@ -291,31 +292,12 @@ const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode = 
                 )}
 
                 {/* HRV Input */}
-                <div className="bg-slate-700/50 p-4 rounded-lg space-y-3">
-                  <p className="text-slate-400 text-sm">Pomiar HRV (opcjonalnie)</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs text-slate-500 block mb-1">rMSSD (ms)</label>
-                      <Input
-                        type="number"
-                        value={manualRMSSD}
-                        onChange={(e) => setManualRMSSD(e.target.value)}
-                        placeholder="np. 45"
-                        className="bg-slate-700 border-slate-600 text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-slate-500 block mb-1">Średnie HR (bpm)</label>
-                      <Input
-                        type="number"
-                        value={manualHR}
-                        onChange={(e) => setManualHR(e.target.value)}
-                        placeholder="np. 72"
-                        className="bg-slate-700 border-slate-600 text-white"
-                      />
-                    </div>
-                  </div>
-                </div>
+                <HRVInputFields 
+                  rmssd={manualRMSSD}
+                  hr={manualHR}
+                  onRmssdChange={setManualRMSSD}
+                  onHrChange={setManualHR}
+                />
               </div>
 
               {isLibrary && (

@@ -10,6 +10,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useSessions } from "@/hooks/useSessions";
 import { useSessionTasks } from "@/hooks/useSessionTasks";
 import { useAthletes } from "@/hooks/useAthletes";
+import FocusGameReport from "@/components/reports/FocusGameReport";
+import ScanGameReport from "@/components/reports/ScanGameReport";
+import MemoGameReport from "@/components/reports/MemoGameReport";
 
 export default function SessionDetail() {
   const { athleteId, sessionId } = useParams();

@@ -15,7 +15,7 @@ interface ScanGameReportProps {
   variant: 'athlete' | 'coach';
 }
 
-export function ScanGameReport({ results, variant }: ScanGameReportProps) {
+export default function ScanGameReport({ results, variant }: ScanGameReportProps) {
   const maxNumber = results.scan_max_number_reached;
   const correctClicks = results.scan_correct_clicks;
   const errorClicks = results.scan_error_clicks;
