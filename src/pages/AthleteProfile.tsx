@@ -72,12 +72,12 @@ const AthleteProfile = () => {
   
   // MEASUREMENT_SEQUENCE for automatic task flow
   const MEASUREMENT_SEQUENCE = [
-    'kwestionariusz',
+    'six_sigma',
     'hrv_baseline',
     'scan',
     'focus',
     'memo',
-    'feedback'
+    'sigma_feedback'
   ] as const;
   
   const [currentMeasurementIndex, setCurrentMeasurementIndex] = useState<number | null>(null);
@@ -88,7 +88,7 @@ const AthleteProfile = () => {
     scan: 'pending',
     focus: 'pending',
     memo: 'pending',
-    feedback: 'pending'
+    sigma_feedback: 'pending'
   });
 
   const [sessionResults, setSessionResults] = useState<Record<string, any>>({});
@@ -213,7 +213,7 @@ const AthleteProfile = () => {
       if (inProgressSession.results?.scan) newStatus.scan = 'completed';
       if (inProgressSession.results?.focus) newStatus.focus = 'completed';
       if (inProgressSession.results?.memo) newStatus.memo = 'completed';
-      if (inProgressSession.results?.feedback) newStatus.feedback = 'completed';
+      if (inProgressSession.results?.sigma_feedback) newStatus.sigma_feedback = 'completed';
       setTaskStatus(newStatus);
       
       console.log('✅ Session resumed with status:', newStatus);
@@ -290,8 +290,11 @@ const AthleteProfile = () => {
       
       console.log(`📊 Task status updated:`, updatedStatus);
       
+      // Map taskName to match MEASUREMENT_SEQUENCE keys
+      const statusKey = taskName === 'six_sigma' ? 'six_sigma' : taskName === 'sigma_feedback' ? 'sigma_feedback' : taskName;
+      
       // Find current task in sequence
-      const currentIndex = MEASUREMENT_SEQUENCE.indexOf(taskName as any);
+      const currentIndex = MEASUREMENT_SEQUENCE.indexOf(statusKey as any);
       
       if (currentIndex !== -1 && currentIndex < MEASUREMENT_SEQUENCE.length - 1) {
         // Advance to next task
@@ -312,6 +315,11 @@ const AthleteProfile = () => {
             completed_at: new Date().toISOString()
           });
           console.log('✅ Measurement session complete');
+          
+          toast({
+            title: "Pomiar zakończony",
+            description: "Wszystkie zadania zostały ukończone",
+          });
         }
       }
     } catch (error: any) {
@@ -427,7 +435,7 @@ const AthleteProfile = () => {
       scan: wizardResults.scan ? 'completed' : 'pending',
       focus: wizardResults.focus ? 'completed' : 'pending',
       memo: wizardResults.memo ? 'completed' : 'pending',
-      feedback: wizardResults.feedback ? 'completed' : 'pending'
+      sigma_feedback: wizardResults.sigma_feedback ? 'completed' : 'pending'
     };
     
     const sessionId = currentSessionId || `session_${Date.now()}`;
@@ -526,7 +534,7 @@ const AthleteProfile = () => {
       scan: 'pending',
       focus: 'pending',
       memo: 'pending',
-      feedback: 'pending'
+      sigma_feedback: 'pending'
     });
     setSelectedChallengeType('');
     
@@ -1076,18 +1084,18 @@ const AthleteProfile = () => {
                   </CardContent>
                 </Card>
 
-                {/* Feedback */}
+                {/* Sigma Feedback */}
                 <Card 
-                  className={`cursor-pointer transition-all ${taskStatus.feedback === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}
-                  onClick={() => setActiveTask('feedback')}
+                  className={`cursor-pointer transition-all ${taskStatus.sigma_feedback === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}
+                  onClick={() => setActiveTask('sigma_feedback')}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-slate-900">Sigma Feedback</h3>
-                      {taskStatus.feedback === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                      {taskStatus.sigma_feedback === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                     </div>
                     <p className="text-sm text-slate-600 mb-4">Twoja refleksja po dzisiejszych wyzwaniach</p>
-                    <Button size="sm" className="w-full">{taskStatus.feedback === 'completed' ? 'Edytuj' : 'Wypełnij'}</Button>
+                    <Button size="sm" className="w-full">{taskStatus.sigma_feedback === 'completed' ? 'Edytuj' : 'Wypełnij'}</Button>
                   </CardContent>
                 </Card>
               </div>
@@ -1858,6 +1866,7 @@ const AthleteProfile = () => {
                   athleteId={id}
                   mode="measurement"
                   onComplete={(data) => handleMeasurementTaskComplete('memo', data)}
+                  onGoToCockpit={() => setActiveTask(null)}
                 />
               )}
               {activeTask === 'control' && (
@@ -1925,9 +1934,9 @@ const AthleteProfile = () => {
                   onGoToCockpit={() => setActiveTask(null)}
                 />
               )}
-              {activeTask === 'feedback' && (
+              {activeTask === 'sigma_feedback' && (
                 <SigmaFeedbackForm
-                  onComplete={(data) => handleMeasurementTaskComplete('feedback', data)}
+                  onComplete={(data) => handleMeasurementTaskComplete('sigma_feedback', data)}
                   onGoToCockpit={() => setActiveTask(null)}
                 />
               )}
