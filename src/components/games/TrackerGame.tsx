@@ -1,6 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -8,6 +6,8 @@ import { useTrackerGame } from "@/hooks/useTrackerGame";
 import { determineGameContext } from "@/utils/gameContext";
 import { useTrainings } from "@/hooks/useTrainings";
 import { useToast } from "@/hooks/use-toast";
+import { HRVInputFields } from "@/components/game-shared/HRVInputFields";
+import { GameResultsButtons } from "@/components/game-shared/GameResultsButtons";
 
 interface TrackerGameProps {
   athleteId?: string;
@@ -115,72 +115,48 @@ const TrackerGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode
 
             <Card className="border-slate-700 bg-slate-800">
               <CardContent className="pt-6 space-y-4">
-                <div>
-                  <Label className="text-slate-300">HRV ręcznie (opcjonalnie)</Label>
-                  <Input type="text" value={hrvInput} onChange={(e) => setHrvInput(e.target.value)} placeholder="np. 65" className="bg-slate-700 border-slate-600 text-white mt-2" />
-                </div>
+                <HRVInputFields
+                  rmssd=""
+                  hr={hrvInput}
+                  onRmssdChange={() => {}}
+                  onHrChange={setHrvInput}
+                />
                 
-                {isLibrary && (
-                  <Button 
-                    className="w-full"
-                    onClick={() => navigate('/biblioteka?tab=wyzwania')}
-                  >
-                    Zakończ
-                  </Button>
-                )}
-
-                {isMeasurement && (
-                  <Button 
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    onClick={handleSaveAndContinue}
-                  >
-                    Następne Wyzwanie
-                  </Button>
-                )}
-
-                {isTraining && (
-                  <div className="flex gap-4">
-                    <Button 
-                      variant="outline" 
-                      className="flex-1"
-                      onClick={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
-                    >
-                      Zakończ
-                    </Button>
-                    <Button 
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      onClick={async () => {
-                        const payload = { 
-                          gameData: { level, finalScore, mistakes }, 
-                          hrvData: hrvInput 
-                        };
-                        
-                        const { error } = await addTraining({
-                          athlete_id: athleteId!,
-                          task_type: 'tracker',
-                          date: new Date().toISOString(),
-                          results: payload
-                        });
-                        
-                        if (error) {
-                          toast({
-                            title: "Błąd",
-                            description: "Nie udało się zapisać treningu",
-                            variant: "destructive",
-                          });
-                        } else {
-                          toast({
-                            title: "Sukces",
-                            description: "Trening został zapisany",
-                          });
-                          navigate(`/zawodnicy/${athleteId}?tab=trening`);
-                        }
-                      }}
-                    >
-                      Zapisz trening
-                    </Button>
-                  </div>
-                )}
+                <GameResultsButtons
+                  isLibrary={isLibrary}
+                  isMeasurement={isMeasurement}
+                  isTraining={isTraining}
+                  onLibraryComplete={() => navigate('/biblioteka?tab=wyzwania')}
+                  onMeasurementComplete={handleSaveAndContinue}
+                  onTrainingEnd={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
+                  onTrainingSave={async () => {
+                    const payload = { 
+                      gameData: { level, finalScore, mistakes }, 
+                      hrvData: hrvInput 
+                    };
+                    
+                    const { error } = await addTraining({
+                      athlete_id: athleteId!,
+                      task_type: 'tracker',
+                      date: new Date().toISOString(),
+                      results: payload
+                    });
+                    
+                    if (error) {
+                      toast({
+                        title: "Błąd",
+                        description: "Nie udało się zapisać treningu",
+                        variant: "destructive",
+                      });
+                    } else {
+                      toast({
+                        title: "Sukces",
+                        description: "Trening został zapisany",
+                      });
+                      navigate(`/zawodnicy/${athleteId}?tab=trening`);
+                    }
+                  }}
+                />
               </CardContent>
             </Card>
           </div>
