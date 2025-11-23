@@ -33,19 +33,22 @@ export default function SixSigmaReport() {
 
   const sixSigmaData = session.results.six_sigma;
   const { 
-    competencyScores, 
-    modifierScores, 
-    overallScore, 
+    competencyScores = [], 
+    modifierScores = [], 
+    overallScore = 0, 
     validation 
   } = sixSigmaData;
 
-  // 🧪 Diagnostic logging for validation structure
+  // 🧪 Diagnostic logging for data structure
   console.log('🧪 Six Sigma data debug', {
     sessionId: session.id,
     hasValidation: !!validation,
+    hasCompetencyScores: !!competencyScores,
+    hasModifierScores: !!modifierScores,
+    competencyCount: competencyScores?.length || 0,
+    modifierCount: modifierScores?.length || 0,
     validationType: typeof validation,
-    validationRaw: validation,
-    hasIsValid: validation && 'isValid' in validation
+    validationRaw: validation
   });
 
   // Create safe validation object with guaranteed structure
@@ -60,6 +63,29 @@ export default function SixSigmaReport() {
           speedingDetected: false
         }
       };
+
+  // Prevent errors if competencyScores is empty
+  if (!competencyScores || competencyScores.length === 0) {
+    return (
+      <div className="p-8 max-w-6xl mx-auto">
+        <Button
+          variant="ghost"
+          className="mb-4"
+          onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=overview`)}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Powrót do podsumowania
+        </Button>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <p className="text-red-700">
+              Brak danych Six Sigma w tej sesji. Sesja może być niepełna lub uszkodzona.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Find strongest and weakest competencies
   const sortedCompetencies = [...competencyScores].sort((a, b) => b.normalizedScore - a.normalizedScore);

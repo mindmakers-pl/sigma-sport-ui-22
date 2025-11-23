@@ -152,30 +152,53 @@ const AthleteProfile = () => {
       // Load sessions directly from localStorage
       const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
       
-      // 🔧 One-time migration: normalize validation object for old sessions
+      // 🔧 One-time migration: normalize Six Sigma data structure for old sessions
       let needsSave = false;
       const migratedSessions = allSessions.map((session: any) => {
-        if (session.results?.six_sigma && !session.results.six_sigma.validation) {
-          console.log(`🔧 Migrating session ${session.id} - adding validation object`);
-          needsSave = true;
-          return {
-            ...session,
-            results: {
-              ...session.results,
-              six_sigma: {
-                ...session.results.six_sigma,
-                validation: {
-                  isValid: true,
-                  warnings: [],
-                  flags: {
-                    straightLining: false,
-                    reverseInconsistency: false,
-                    speedingDetected: false
-                  }
-                }
+        if (session.results?.six_sigma) {
+          const sixSigma = session.results.six_sigma;
+          let needsMigration = false;
+          const migratedSixSigma = { ...sixSigma };
+          
+          // Add validation if missing
+          if (!sixSigma.validation) {
+            console.log(`🔧 Migrating session ${session.id} - adding validation object`);
+            migratedSixSigma.validation = {
+              isValid: true,
+              warnings: [],
+              flags: {
+                straightLining: false,
+                reverseInconsistency: false,
+                speedingDetected: false
               }
-            }
-          };
+            };
+            needsMigration = true;
+          }
+          
+          // Add competencyScores if missing
+          if (!sixSigma.competencyScores || !Array.isArray(sixSigma.competencyScores)) {
+            console.log(`🔧 Migrating session ${session.id} - adding empty competencyScores`);
+            migratedSixSigma.competencyScores = [];
+            needsMigration = true;
+          }
+          
+          // Add modifierScores if missing
+          if (!sixSigma.modifierScores || !Array.isArray(sixSigma.modifierScores)) {
+            console.log(`🔧 Migrating session ${session.id} - adding empty modifierScores`);
+            migratedSixSigma.modifierScores = [];
+            needsMigration = true;
+          }
+          
+          if (needsMigration) {
+            needsSave = true;
+            return {
+              ...session,
+              results: {
+                ...session.results,
+                six_sigma: migratedSixSigma
+              }
+            };
+          }
         }
         return session;
       });
