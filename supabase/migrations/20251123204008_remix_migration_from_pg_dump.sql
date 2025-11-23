@@ -82,7 +82,8 @@ CREATE TABLE public.athletes (
     parent_email text,
     archived boolean DEFAULT false,
     archived_at timestamp with time zone,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now(),
+    notes_history jsonb DEFAULT '[]'::jsonb
 );
 
 
@@ -125,7 +126,23 @@ CREATE TABLE public.sessions (
     conditions text,
     in_progress boolean DEFAULT true,
     completed_at timestamp with time zone,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now(),
+    results jsonb DEFAULT '{}'::jsonb
+);
+
+
+--
+-- Name: trainers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.trainers (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    email text NOT NULL,
+    name text NOT NULL,
+    phone text,
+    role text DEFAULT 'trainer'::text,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT trainers_role_check CHECK ((role = ANY (ARRAY['admin'::text, 'trainer'::text, 'coach'::text])))
 );
 
 
@@ -193,6 +210,22 @@ ALTER TABLE ONLY public.session_tasks
 
 ALTER TABLE ONLY public.sessions
     ADD CONSTRAINT sessions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trainers trainers_email_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.trainers
+    ADD CONSTRAINT trainers_email_key UNIQUE (email);
+
+
+--
+-- Name: trainers trainers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.trainers
+    ADD CONSTRAINT trainers_pkey PRIMARY KEY (id);
 
 
 --
@@ -267,136 +300,171 @@ CREATE POLICY "Admins can manage all roles" ON public.user_roles TO authenticate
 
 
 --
--- Name: athletes Authenticated users can delete athletes; Type: POLICY; Schema: public; Owner: -
+-- Name: athletes Allow anon to delete athletes; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY "Authenticated users can delete athletes" ON public.athletes FOR DELETE TO authenticated USING (true);
-
-
---
--- Name: clubs Authenticated users can delete clubs; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Authenticated users can delete clubs" ON public.clubs FOR DELETE TO authenticated USING (true);
+CREATE POLICY "Allow anon to delete athletes" ON public.athletes FOR DELETE TO anon USING (true);
 
 
 --
--- Name: session_tasks Authenticated users can delete session_tasks; Type: POLICY; Schema: public; Owner: -
+-- Name: clubs Allow anon to delete clubs; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY "Authenticated users can delete session_tasks" ON public.session_tasks FOR DELETE TO authenticated USING (true);
-
-
---
--- Name: sessions Authenticated users can delete sessions; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Authenticated users can delete sessions" ON public.sessions FOR DELETE TO authenticated USING (true);
+CREATE POLICY "Allow anon to delete clubs" ON public.clubs FOR DELETE TO anon USING (true);
 
 
 --
--- Name: trainings Authenticated users can delete trainings; Type: POLICY; Schema: public; Owner: -
+-- Name: session_tasks Allow anon to delete session_tasks; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY "Authenticated users can delete trainings" ON public.trainings FOR DELETE TO authenticated USING (true);
-
-
---
--- Name: athletes Authenticated users can insert athletes; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Authenticated users can insert athletes" ON public.athletes FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow anon to delete session_tasks" ON public.session_tasks FOR DELETE USING (true);
 
 
 --
--- Name: clubs Authenticated users can insert clubs; Type: POLICY; Schema: public; Owner: -
+-- Name: sessions Allow anon to delete sessions; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY "Authenticated users can insert clubs" ON public.clubs FOR INSERT TO authenticated WITH CHECK (true);
-
-
---
--- Name: session_tasks Authenticated users can insert session_tasks; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Authenticated users can insert session_tasks" ON public.session_tasks FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow anon to delete sessions" ON public.sessions FOR DELETE USING (true);
 
 
 --
--- Name: sessions Authenticated users can insert sessions; Type: POLICY; Schema: public; Owner: -
+-- Name: trainers Allow anon to delete trainers; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY "Authenticated users can insert sessions" ON public.sessions FOR INSERT TO authenticated WITH CHECK (true);
-
-
---
--- Name: trainings Authenticated users can insert trainings; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Authenticated users can insert trainings" ON public.trainings FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow anon to delete trainers" ON public.trainers FOR DELETE USING (true);
 
 
 --
--- Name: athletes Authenticated users can update athletes; Type: POLICY; Schema: public; Owner: -
+-- Name: trainings Allow anon to delete trainings; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY "Authenticated users can update athletes" ON public.athletes FOR UPDATE TO authenticated USING (true);
-
-
---
--- Name: clubs Authenticated users can update clubs; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Authenticated users can update clubs" ON public.clubs FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Allow anon to delete trainings" ON public.trainings FOR DELETE TO anon USING (true);
 
 
 --
--- Name: session_tasks Authenticated users can update session_tasks; Type: POLICY; Schema: public; Owner: -
+-- Name: athletes Allow anon to insert athletes; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY "Authenticated users can update session_tasks" ON public.session_tasks FOR UPDATE TO authenticated USING (true);
-
-
---
--- Name: sessions Authenticated users can update sessions; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Authenticated users can update sessions" ON public.sessions FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Allow anon to insert athletes" ON public.athletes FOR INSERT TO anon WITH CHECK (true);
 
 
 --
--- Name: trainings Authenticated users can update trainings; Type: POLICY; Schema: public; Owner: -
+-- Name: clubs Allow anon to insert clubs; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY "Authenticated users can update trainings" ON public.trainings FOR UPDATE TO authenticated USING (true);
-
-
---
--- Name: athletes Authenticated users can view athletes; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Authenticated users can view athletes" ON public.athletes FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow anon to insert clubs" ON public.clubs FOR INSERT TO anon WITH CHECK (true);
 
 
 --
--- Name: clubs Authenticated users can view clubs; Type: POLICY; Schema: public; Owner: -
+-- Name: session_tasks Allow anon to insert session_tasks; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY "Authenticated users can view clubs" ON public.clubs FOR SELECT TO authenticated USING (true);
-
-
---
--- Name: session_tasks Authenticated users can view session_tasks; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Authenticated users can view session_tasks" ON public.session_tasks FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow anon to insert session_tasks" ON public.session_tasks FOR INSERT WITH CHECK (true);
 
 
 --
--- Name: sessions Authenticated users can view sessions; Type: POLICY; Schema: public; Owner: -
+-- Name: sessions Allow anon to insert sessions; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY "Authenticated users can view sessions" ON public.sessions FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow anon to insert sessions" ON public.sessions FOR INSERT WITH CHECK (true);
+
+
+--
+-- Name: trainers Allow anon to insert trainers; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to insert trainers" ON public.trainers FOR INSERT WITH CHECK (true);
+
+
+--
+-- Name: trainings Allow anon to insert trainings; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to insert trainings" ON public.trainings FOR INSERT TO anon WITH CHECK (true);
+
+
+--
+-- Name: athletes Allow anon to update athletes; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to update athletes" ON public.athletes FOR UPDATE TO anon USING (true) WITH CHECK (true);
+
+
+--
+-- Name: clubs Allow anon to update clubs; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to update clubs" ON public.clubs FOR UPDATE TO anon USING (true) WITH CHECK (true);
+
+
+--
+-- Name: session_tasks Allow anon to update session_tasks; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to update session_tasks" ON public.session_tasks FOR UPDATE USING (true);
+
+
+--
+-- Name: sessions Allow anon to update sessions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to update sessions" ON public.sessions FOR UPDATE USING (true);
+
+
+--
+-- Name: trainers Allow anon to update trainers; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to update trainers" ON public.trainers FOR UPDATE USING (true);
+
+
+--
+-- Name: trainings Allow anon to update trainings; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to update trainings" ON public.trainings FOR UPDATE TO anon USING (true) WITH CHECK (true);
+
+
+--
+-- Name: athletes Allow anon to view athletes; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to view athletes" ON public.athletes FOR SELECT TO anon USING (true);
+
+
+--
+-- Name: clubs Allow anon to view clubs; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to view clubs" ON public.clubs FOR SELECT TO anon USING (true);
+
+
+--
+-- Name: session_tasks Allow anon to view session_tasks; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to view session_tasks" ON public.session_tasks FOR SELECT USING (true);
+
+
+--
+-- Name: sessions Allow anon to view sessions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to view sessions" ON public.sessions FOR SELECT USING (true);
+
+
+--
+-- Name: trainers Allow anon to view trainers; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to view trainers" ON public.trainers FOR SELECT USING (true);
+
+
+--
+-- Name: trainings Allow anon to view trainings; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow anon to view trainings" ON public.trainings FOR SELECT TO anon USING (true);
 
 
 --
@@ -404,13 +472,6 @@ CREATE POLICY "Authenticated users can view sessions" ON public.sessions FOR SEL
 --
 
 CREATE POLICY "Authenticated users can view their own roles" ON public.user_roles FOR SELECT TO authenticated USING ((user_id = auth.uid()));
-
-
---
--- Name: trainings Authenticated users can view trainings; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Authenticated users can view trainings" ON public.trainings FOR SELECT TO authenticated USING (true);
 
 
 --
@@ -436,6 +497,12 @@ ALTER TABLE public.session_tasks ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: trainers; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.trainers ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: trainings; Type: ROW SECURITY; Schema: public; Owner: -
