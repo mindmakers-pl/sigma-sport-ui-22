@@ -315,7 +315,7 @@ const AthleteProfile = () => {
     }
   };
 
-  const handleSaveSessionFromWizard = (wizardResults: any) => {
+  const handleSaveSessionFromWizard = async (wizardResults: any) => {
     console.log('🎯 Otrzymano dane z wizard:', wizardResults);
     
     // Transform questionnaires data to Six Sigma format
@@ -379,9 +379,9 @@ const AthleteProfile = () => {
           questionnaireName: sixSigmaFull.questionnaireName,
           completionDate: sixSigmaFull.completedAt,
           completionTimeSeconds: completionTime,
+          responses: allResponses,
           competencyScores: mappedCompetencies,
           modifierScores: mappedModifiers,
-          overallScore: sixSigmaFull.overallScore ? sixSigmaFull.overallScore / 100 : 0,
           validation: sixSigmaFull.validation || {
             isValid: true,
             warnings: [],
@@ -390,78 +390,72 @@ const AthleteProfile = () => {
               reverseInconsistency: false,
               speedingDetected: false
             }
-          },
-          responses: allResponses
+          }
         };
-        
-        console.log('✅ Transformed Six Sigma results:', {
-          responsesCount: sixSigmaResults.responses.length,
-          completionTime: sixSigmaResults.completionTimeSeconds,
-          modifiersCount: sixSigmaResults.modifierScores.length,
-          overallScore: sixSigmaResults.overallScore
+      }
+    }
+    
+    // Combine wizard results with sixSigmaResults
+    const resultsToSave = {
+      ...wizardResults,
+      six_sigma: sixSigmaResults
+    };
+    
+    // Determine which tasks were completed
+    const updatedTaskStatus = {
+      six_sigma: sixSigmaResults ? 'completed' : 'pending',
+      hrv_baseline: wizardResults.hrv_baseline ? 'completed' : 'pending',
+      scan: wizardResults.scan ? 'completed' : 'pending',
+      focus: wizardResults.focus ? 'completed' : 'pending',
+      memo: wizardResults.memo ? 'completed' : 'pending',
+      feedback: wizardResults.feedback ? 'completed' : 'pending'
+    };
+    
+    const sessionId = currentSessionId || `session_${Date.now()}`;
+    
+    // Save to Supabase
+    if (currentSessionId) {
+      const { error } = await updateSession(currentSessionId, {
+        results: resultsToSave as any,
+        in_progress: true
+      });
+      
+      if (error) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się zapisać sesji",
+          variant: "destructive",
         });
-      } else {
-        console.warn('⚠️ Six Sigma Full nie znaleziony w questionnaires:', scoredQuestionnaires.map((q: any) => q.questionnaireId));
+        return;
       }
     } else {
-      console.warn('⚠️ Brak danych kwestionariuszy w wizardResults');
+      const { data: newSession, error } = await addSession({
+        athlete_id: id!,
+        date: new Date().toISOString(),
+        results: resultsToSave as any,
+        conditions: measurementConditions,
+        in_progress: true
+      });
+      
+      if (error) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się utworzyć sesji",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (newSession) {
+        setCurrentSessionId(newSession.id);
+      }
     }
     
-    // Update taskStatus based on what was completed
-    const updatedTaskStatus = {
-      ...taskStatus,
-      ...(sixSigmaResults && { kwestionariusz: 'completed' }),
-      ...(wizardResults.scan && { scan: 'completed' }),
-      ...(wizardResults.focus && { focus: 'completed' }),
-      ...(wizardResults.memo && { memo: 'completed' }),
-      ...(wizardResults.feedback && { feedback: 'completed' }),
-      ...(wizardResults.hrv_baseline && { hrv_baseline: 'completed' })
-    };
-    
-    // Create or update session
-    const sessionId = currentSessionId || `session_${Date.now()}`;
-    const sessionData = {
-      id: sessionId,
-      athlete_id: id,
-      athlete_name: athlete?.name || 'Unknown',
-      date: new Date().toISOString(),
-      conditions: measurementConditions,
-      results: {
-        ...sessionResults,
-        ...wizardResults,
-        ...(sixSigmaResults && { six_sigma: sixSigmaResults })
-      },
-      taskStatus: updatedTaskStatus,
-      inProgress: true // Pozostaje w trakcie - nie finalizujemy automatycznie
-    };
-    
-    console.log('💾 Zapisuję sesję do localStorage:', {
-      sessionId,
-      hasSixSigma: !!sixSigmaResults,
-      responsesCount: sixSigmaResults?.responses?.length || 0,
-      modifiersCount: sixSigmaResults?.modifierScores?.length || 0,
-      updatedTaskStatus
-    });
-    
-    const existingSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-    const sessionIndex = existingSessions.findIndex((s: any) => s.id === sessionId);
-    
-    if (sessionIndex !== -1) {
-      existingSessions[sessionIndex] = sessionData;
-    } else {
-      existingSessions.push(sessionData);
-    }
-    
-    localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
-    const athleteSessions = existingSessions
-      .filter((s: any) => s.athlete_id === id)
-      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    setSavedSessions(athleteSessions);
+    await refetchSessions();
     
     // Update local state
     setTaskStatus(updatedTaskStatus);
-    setSessionResults(sessionData.results);
-    setCurrentSessionId(sessionId);
+    setSessionResults(resultsToSave);
     
     console.log('✅ Sesja zapisana pomyślnie, powrót do kokpitu');
   };
@@ -481,22 +475,25 @@ const AthleteProfile = () => {
     return 'negative';
   };
 
-  const handleSaveSession = () => {
+  const handleSaveSession = async () => {
     if (!currentSessionId) return;
     
     // Finalize session (remove "inProgress" flag)
-    const existingSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-    const sessionIndex = existingSessions.findIndex((s: any) => s.id === currentSessionId);
+    const { error } = await updateSession(currentSessionId, {
+      in_progress: false,
+      completed_at: new Date().toISOString()
+    });
     
-    if (sessionIndex !== -1) {
-      existingSessions[sessionIndex].inProgress = false;
-      localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
-    // Force refresh savedSessions with proper type handling
-    const athleteSessions = existingSessions
-      .filter((s: any) => String(s.athlete_id) === String(id))
-      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    setSavedSessions(athleteSessions);
+    if (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zakończyć sesji",
+        variant: "destructive",
+      });
+      return;
     }
+    
+    await refetchSessions();
 
     // Navigate to reports
     setSearchParams({ tab: 'raporty' });
@@ -504,49 +501,51 @@ const AthleteProfile = () => {
     // Reset session
     setCurrentSessionId(null);
     setSessionResults({});
-      setTaskStatus({
-        six_sigma: 'pending',
-        hrv_baseline: 'pending',
-        scan: 'pending',
-        focus: 'pending',
-        memo: 'pending',
-        feedback: 'pending'
-      });
+    setTaskStatus({
+      six_sigma: 'pending',
+      hrv_baseline: 'pending',
+      scan: 'pending',
+      focus: 'pending',
+      memo: 'pending',
+      feedback: 'pending'
+    });
     setSelectedChallengeType('');
+    
+    toast({
+      title: "Sukces",
+      description: "Sesja pomiarowa została zakończona",
+    });
   };
 
-  const handleAddNote = () => {
-    if (!newNote.trim()) return;
+  const handleAddNote = async () => {
+    if (!newNote.trim() || !athleteData) return;
     
-    const storedAthletes = localStorage.getItem('athletes');
-    if (storedAthletes) {
-      const athletes = JSON.parse(storedAthletes);
-      const athleteIndex = athletes.findIndex((a: any) => a.id === parseInt(id || "1"));
-      
-      if (athleteIndex !== -1) {
-        const currentDate = new Date().toLocaleString('pl-PL', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-        
-        const noteEntry = {
-          date: currentDate,
-          text: newNote.trim()
-        };
-        
-        if (!athletes[athleteIndex].notesHistory) {
-          athletes[athleteIndex].notesHistory = [];
-        }
-        
-        athletes[athleteIndex].notesHistory.push(noteEntry);
-        localStorage.setItem('athletes', JSON.stringify(athletes));
-        
-        setNewNote('');
-        window.location.reload();
-      }
+    const currentDate = new Date().toISOString();
+    const noteEntry = {
+      date: currentDate,
+      text: newNote.trim(),
+      timestamp: currentDate
+    };
+    
+    const updatedNotesHistory = [...athlete.notesHistory, noteEntry];
+    
+    const { error } = await updateAthlete(athleteData.id, {
+      notes_history: updatedNotesHistory as any
+    });
+    
+    if (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się dodać notatki",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Sukces",
+        description: "Notatka została dodana",
+      });
+      setNewNote('');
+      await refetchAthletes();
     }
   };
 
@@ -566,31 +565,42 @@ const AthleteProfile = () => {
     setIsEditingProfile(true);
   };
 
-  const handleSaveProfile = () => {
-    const storedAthletes = localStorage.getItem('athletes');
-    if (storedAthletes) {
-      const athletes = JSON.parse(storedAthletes);
-      const athleteIndex = athletes.findIndex((a: any) => a.id === parseInt(id || "1"));
-      
-      if (athleteIndex !== -1) {
-        athletes[athleteIndex] = {
-          ...athletes[athleteIndex],
-          name: editedProfile.name,
-          club: editedProfile.club,
-          coach: editedProfile.coach,
-          discipline: editedProfile.discipline,
-          email: editedProfile.email,
-          phone: editedProfile.phone,
-          parentName: editedProfile.parentName,
-          parentPhone: editedProfile.parentPhone,
-          parentEmail: editedProfile.parentEmail,
-          birthDate: editedProfile.birthDate?.toISOString(),
-          birthYear: editedProfile.birthDate?.getFullYear() || athletes[athleteIndex].birthYear,
-        };
-        localStorage.setItem('athletes', JSON.stringify(athletes));
-        setIsEditingProfile(false);
-        window.location.reload();
-      }
+  const handleSaveProfile = async () => {
+    if (!athleteData) return;
+    
+    const [firstName, ...lastNameParts] = editedProfile.name.split(' ').reverse();
+    const lastName = lastNameParts.reverse().join(' ');
+    
+    const updates = {
+      first_name: firstName,
+      last_name: lastName,
+      coach: editedProfile.coach,
+      discipline: editedProfile.discipline,
+      email: editedProfile.email,
+      phone: editedProfile.phone,
+      parent_first_name: editedProfile.parentName.split(' ')[0] || '',
+      parent_last_name: editedProfile.parentName.split(' ').slice(1).join(' ') || '',
+      parent_phone: editedProfile.parentPhone,
+      parent_email: editedProfile.parentEmail,
+      birth_date: editedProfile.birthDate?.toISOString().split('T')[0],
+      birth_year: editedProfile.birthDate?.getFullYear(),
+    };
+    
+    const { error } = await updateAthlete(athleteData.id, updates);
+    
+    if (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zapisać profilu",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Sukces",
+        description: "Profil został zaktualizowany",
+      });
+      setIsEditingProfile(false);
+      await refetchAthletes();
     }
   };
 
@@ -599,35 +609,57 @@ const AthleteProfile = () => {
     setEditedNoteText(text);
   };
 
-  const handleSaveEditedNote = () => {
-    if (editingNoteIndex === null || !editedNoteText.trim()) return;
+  const handleSaveEditedNote = async () => {
+    if (editingNoteIndex === null || !editedNoteText.trim() || !athleteData) return;
     
-    const storedAthletes = localStorage.getItem('athletes');
-    if (storedAthletes) {
-      const athletes = JSON.parse(storedAthletes);
-      const athleteIndex = athletes.findIndex((a: any) => a.id === parseInt(id || "1"));
-      
-      if (athleteIndex !== -1 && athletes[athleteIndex].notesHistory) {
-        athletes[athleteIndex].notesHistory[editingNoteIndex].text = editedNoteText.trim();
-        localStorage.setItem('athletes', JSON.stringify(athletes));
-        setEditingNoteIndex(null);
-        setEditedNoteText('');
-        window.location.reload();
-      }
+    const updatedNotesHistory = [...athlete.notesHistory];
+    updatedNotesHistory[editingNoteIndex] = {
+      ...updatedNotesHistory[editingNoteIndex],
+      text: editedNoteText.trim()
+    };
+    
+    const { error } = await updateAthlete(athleteData.id, {
+      notes_history: updatedNotesHistory as any
+    });
+    
+    if (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zapisać notatki",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Sukces",
+        description: "Notatka została zaktualizowana",
+      });
+      setEditingNoteIndex(null);
+      setEditedNoteText('');
+      await refetchAthletes();
     }
   };
 
-  const handleDeleteNote = (index: number) => {
-    const storedAthletes = localStorage.getItem('athletes');
-    if (storedAthletes) {
-      const athletes = JSON.parse(storedAthletes);
-      const athleteIndex = athletes.findIndex((a: any) => a.id === parseInt(id || "1"));
-      
-      if (athleteIndex !== -1 && athletes[athleteIndex].notesHistory) {
-        athletes[athleteIndex].notesHistory.splice(index, 1);
-        localStorage.setItem('athletes', JSON.stringify(athletes));
-        window.location.reload();
-      }
+  const handleDeleteNote = async (index: number) => {
+    if (!athleteData) return;
+    
+    const updatedNotesHistory = athlete.notesHistory.filter((_, i) => i !== index);
+    
+    const { error } = await updateAthlete(athleteData.id, {
+      notes_history: updatedNotesHistory as any
+    });
+    
+    if (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć notatki",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Sukces",
+        description: "Notatka została usunięta",
+      });
+      await refetchAthletes();
     }
   };
 
@@ -1091,36 +1123,10 @@ const AthleteProfile = () => {
                     </div>
                     
                     <div>
-                      <div className="font-semibold text-slate-700 mb-1">Saved Sessions in localStorage:</div>
+                      <div className="font-semibold text-slate-700 mb-1">Saved Sessions in Supabase:</div>
                       <div className="bg-white p-2 rounded border border-slate-200">
                         {savedSessions.length} sessions for athlete {id}
                       </div>
-                    </div>
-                    
-                    <div className="pt-2 border-t border-slate-300">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          // Manual mock data generation
-                          const { addSigmaSigmaToStorage } = require('@/data/mockAthletes');
-                          const { addMockCompletedSessionToStorage } = require('@/data/mockCompletedSession');
-                          addSigmaSigmaToStorage();
-                          addMockCompletedSessionToStorage();
-                          
-                          // Refresh sessions
-                          setTimeout(() => {
-                            const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-                            const athleteSessions = allSessions
-                              .filter((s: any) => String(s.athlete_id) === String(id))
-                              .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-                            setSavedSessions(athleteSessions);
-                            console.log('✅ Mock data generated manually');
-                          }, 100);
-                        }}
-                      >
-                        🎲 Generuj mock data (ręcznie)
-                      </Button>
                     </div>
                   </div>
                 </div>
@@ -1300,14 +1306,12 @@ const AthleteProfile = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => {
-                          // Refresh sessions from localStorage
-                          const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-                          const athleteSessions = allSessions
-                            .filter((s: any) => String(s.athlete_id) === String(id))
-                            .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-                          setSavedSessions(athleteSessions);
-                          console.log(`🔄 Refreshed: Found ${athleteSessions.length} sessions for athlete ${id}`);
+                        onClick={async () => {
+                          await refetchSessions();
+                          toast({
+                            title: "Odświeżono",
+                            description: `Znaleziono ${sessions.length} sesji`,
+                          });
                         }}
                       >
                         🔄 Odśwież historię
@@ -1490,13 +1494,8 @@ const AthleteProfile = () => {
             {/* Sigma Score - Latest Session Report */}
             <TabsContent value="sigma-score" className="space-y-6">
               {(() => {
-                // Get latest session for this athlete
-                const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-                const athleteSessions = allSessions
-                  .filter((s: any) => s.athlete_id === id)
-                  .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-                
-                const latestSession = athleteSessions[0];
+                // Get latest session from Supabase
+                const latestSession = savedSessions[0];
 
                 if (!latestSession) {
                   return (

@@ -446,16 +446,9 @@ const ClubDetail = () => {
                             list="clubs-list-dialog"
                           />
                           <datalist id="clubs-list-dialog">
-                            {(() => {
-                              const storedClubs = localStorage.getItem('clubs');
-                              if (storedClubs) {
-                                const clubsData = JSON.parse(storedClubs);
-                                return clubsData.map((c: any) => (
-                                  <option key={c.name} value={c.name} />
-                                ));
-                              }
-                              return null;
-                            })()}
+                            {clubs.map((c) => (
+                              <option key={c.id} value={c.name} />
+                            ))}
                           </datalist>
                         </div>
                         
@@ -474,17 +467,13 @@ const ClubDetail = () => {
                             <SelectContent>
                               {(() => {
                                 if (!newAthlete.club) return null;
-                                const storedClubs = localStorage.getItem('clubs');
-                                if (storedClubs) {
-                                  const clubsData = JSON.parse(storedClubs);
-                                  const selectedClub = clubsData.find((c: any) => c.name === newAthlete.club);
-                                  if (selectedClub && selectedClub.coaches) {
-                                    return selectedClub.coaches.map((coach: any, index: number) => (
-                                      <SelectItem key={index} value={coach.name}>
-                                        {coach.name}
-                                      </SelectItem>
-                                    ));
-                                  }
+                                const selectedClub = clubs.find((c) => c.name === newAthlete.club);
+                                if (selectedClub && selectedClub.coaches) {
+                                  return (selectedClub.coaches as any[]).map((coach: any, index: number) => (
+                                    <SelectItem key={index} value={coach.name}>
+                                      {coach.name}
+                                    </SelectItem>
+                                  ));
                                 }
                                 return null;
                               })()}
