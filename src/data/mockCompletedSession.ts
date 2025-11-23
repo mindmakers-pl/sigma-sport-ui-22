@@ -1,11 +1,12 @@
-// Comprehensive mock session for Sigma Sigma with Six Sigma, Sigma Scan, and Sigma Focus completed
-// This demonstrates the full report structure for all three tests
+// Comprehensive mock session for Sigma Sigma - realistyczny profil 13-letniego pływaka
+// Zawiera: Six Sigma, HRV Baseline, Sigma Scan, Sigma Focus, Sigma Memo, Sigma Feedback
 
 const generateMockTrials = () => {
   const COLORS = ['RED', 'BLUE', 'GREEN', 'YELLOW'];
   const WORDS = ["CZERWONY", "NIEBIESKI", "ZIELONY", "ŻÓŁTY"];
   const trials = [];
   
+  // Realistic 13-year-old swimmer - moderate control, occasional concentration lapses
   for (let i = 0; i < 80; i++) {
     const isCongruent = i % 2 === 0;
     const colorIndex = Math.floor(Math.random() * 4);
@@ -14,11 +15,14 @@ const generateMockTrials = () => {
       ? WORDS[colorIndex] 
       : WORDS[(colorIndex + 1 + Math.floor(Math.random() * 3)) % 4];
     
-    const baseRT = isCongruent ? 500 : 650;
-    const variability = Math.random() * 100;
-    const fatigueFactor = i > 60 ? (i - 60) * 2 : 0;
+    // Swimmer profile: decent baseline RT but higher variability, fatigue after 60 trials
+    const baseRT = isCongruent ? 520 : 680;
+    const variability = Math.random() * 130; // Higher variability for youth
+    const fatigueFactor = i > 60 ? (i - 60) * 3 : 0; // Concentration drops late
     const reactionTime = Math.round(baseRT + variability + fatigueFactor);
-    const isCorrect = Math.random() > 0.08;
+    
+    // 91% accuracy - some concentration lapses
+    const isCorrect = Math.random() > 0.09;
     
     trials.push({
       trialId: i + 1,
@@ -37,23 +41,28 @@ const generateMockTrials = () => {
 
 const generateMockScanClicks = () => {
   const clicks = [];
-  const correctSequence = Array.from({ length: 35 }, (_, i) => i); // 0-34
-  const errorClicks = [7, 15, 23]; // Some intentional errors
+  const maxReached = 29; // Decent but not exceptional for 13-year-old
+  const errorClicks = [8, 14, 22]; // A few mistakes
   
-  for (let i = 0; i < 35; i++) {
+  for (let i = 0; i < maxReached; i++) {
+    // Slightly inconsistent timing - faster at start, slower with fatigue
+    const baseTiming = 1600;
+    const fatigueFactor = i > 15 ? (i - 15) * 40 : 0;
+    const timing = baseTiming + Math.random() * 300 + fatigueFactor;
+    
     clicks.push({
       number: i,
-      timestamp: Date.now() + i * 1500,
+      timestamp: Date.now() + Math.round(timing * i),
       isCorrect: true,
       sequencePosition: i
     });
   }
   
-  // Add some error clicks
+  // Add error clicks
   errorClicks.forEach((num, idx) => {
     clicks.push({
-      number: num + 50,
-      timestamp: Date.now() + num * 1500 + 500,
+      number: num + 40,
+      timestamp: Date.now() + num * 1600 + 600,
       isCorrect: false,
       sequencePosition: -1
     });
@@ -68,16 +77,16 @@ const generateMockMemoTrials = () => {
   const sequence: number[] = [];
   
   // Generate position sequence
-  sequence.push(2, 5); // First two - no targets possible
+  sequence.push(3, 6); // First two - no targets possible
   
   // Generate rest with targets and lures
-  const targets = [2, 5, 1, 7, 4, 3, 8, 0]; // Positions that will be targets
-  const lures = [5, 1, 7, 4]; // 1-back lures
+  const targetIndices = [2, 4, 6, 8, 10, 12, 14, 16]; // Which trials will be targets
+  const lureIndices = [3, 7, 11, 15]; // 1-back lures
   
   for (let i = 2; i < totalTrials; i++) {
-    if (i < 10 && targets.includes(i - 2)) {
+    if (targetIndices.includes(i)) {
       sequence.push(sequence[i - 2]); // Target: match 2-back
-    } else if (i < 14 && lures.includes(i - 2)) {
+    } else if (lureIndices.includes(i)) {
       sequence.push(sequence[i - 1]); // Lure: match 1-back
     } else {
       // Random non-matching position
@@ -89,16 +98,24 @@ const generateMockMemoTrials = () => {
     }
   }
   
-  // Generate trial results
+  // Generate trial results - 83% accuracy (realistic for 13-year-old, some lure confusion)
   for (let i = 2; i < totalTrials; i++) {
     const position = sequence[i];
     const isTarget = sequence[i - 2] === position;
     const isLure = i >= 1 && sequence[i - 1] === position;
     const shouldRespond = isTarget;
     
-    // 85% accuracy
-    const userResponded = shouldRespond ? Math.random() > 0.15 : Math.random() < 0.10;
-    const reactionTime = userResponded ? Math.round(400 + Math.random() * 200) : null;
+    // Realistic error pattern: misses some targets, occasionally responds to lures
+    let userResponded;
+    if (isTarget) {
+      userResponded = Math.random() > 0.12; // 88% hit rate
+    } else if (isLure) {
+      userResponded = Math.random() < 0.20; // 20% false alarm on lures
+    } else {
+      userResponded = Math.random() < 0.05; // 5% random false alarms
+    }
+    
+    const reactionTime = userResponded ? Math.round(450 + Math.random() * 220) : null;
     
     trials.push({
       trial_index: i,
@@ -136,6 +153,11 @@ const calculateMemoMetrics = (trials: any[]) => {
   const hitRate = Math.max(0.01, Math.min(0.99, hits / (hits + misses || 1)));
   const faRate = Math.max(0.01, Math.min(0.99, falseAlarms / (falseAlarms + correctRejections || 1)));
   
+  // Inverse normal approximation
+  const zHit = hitRate > 0.5 ? 1.15 : 0.85;
+  const zFA = faRate > 0.5 ? 0.45 : -0.10;
+  const dPrime = zHit - zFA;
+  
   return {
     hits,
     misses,
@@ -143,83 +165,83 @@ const calculateMemoMetrics = (trials: any[]) => {
     correctRejections,
     accuracy: Math.round(accuracy),
     medianRT: Math.round(medianRT),
-    dPrime: 2.15,
-    responseBias: -0.12
+    dPrime: parseFloat(dPrime.toFixed(2)),
+    responseBias: -0.08
   };
 };
 
 export const mockCompletedSession = {
-  id: `session_completed_${Date.now()}`,
+  id: `session_completed_swimmer_${Date.now()}`,
   athlete_id: "999",
   athlete_name: "Sigma Sigma",
   date: new Date().toISOString(),
   conditions: 'gabinet',
   results: {
-    // Six Sigma questionnaire results
+    // Six Sigma questionnaire results - profil 13-letniego pływaka
     six_sigma: {
       version: "6x6+6",
       questionnaireName: "Six Sigma",
       completionDate: new Date().toISOString(),
-      completionTimeSeconds: 420,
+      completionTimeSeconds: 380,
       competencyScores: [
         { 
           competency: 'activation', 
           name: 'Aktywacja',
-          rawScore: 22, 
-          maxScore: 30, 
-          normalizedScore: 0.73,
-          interpretation: 'Dobry'
-        },
-        { 
-          competency: 'control', 
-          name: 'Kontrola',
-          rawScore: 18, 
-          maxScore: 30, 
-          normalizedScore: 0.60,
-          interpretation: 'Średni'
-        },
-        { 
-          competency: 'reset', 
-          name: 'Reset',
-          rawScore: 25, 
-          maxScore: 30, 
-          normalizedScore: 0.83,
-          interpretation: 'Wysoki'
-        },
-        { 
-          competency: 'focus', 
-          name: 'Focus',
-          rawScore: 27, 
-          maxScore: 30, 
-          normalizedScore: 0.90,
-          interpretation: 'Wysoki'
-        },
-        { 
-          competency: 'confidence', 
-          name: 'Pewność Siebie',
           rawScore: 20, 
           maxScore: 30, 
           normalizedScore: 0.67,
           interpretation: 'Dobry'
         },
         { 
+          competency: 'control', 
+          name: 'Kontrola',
+          rawScore: 16, 
+          maxScore: 30, 
+          normalizedScore: 0.53,
+          interpretation: 'Średni'
+        },
+        { 
+          competency: 'reset', 
+          name: 'Reset',
+          rawScore: 19, 
+          maxScore: 30, 
+          normalizedScore: 0.63,
+          interpretation: 'Średni'
+        },
+        { 
+          competency: 'focus', 
+          name: 'Focus',
+          rawScore: 21, 
+          maxScore: 30, 
+          normalizedScore: 0.70,
+          interpretation: 'Dobry'
+        },
+        { 
+          competency: 'confidence', 
+          name: 'Pewność Siebie',
+          rawScore: 23, 
+          maxScore: 30, 
+          normalizedScore: 0.77,
+          interpretation: 'Dobry'
+        },
+        { 
           competency: 'determination', 
           name: 'Determinacja',
-          rawScore: 24, 
+          rawScore: 25, 
           maxScore: 30, 
-          normalizedScore: 0.80,
-          interpretation: 'Dobry'
+          normalizedScore: 0.83,
+          interpretation: 'Wysoki'
         }
       ],
       modifierScores: [
-        { modifier: 'sleep', name: 'Sen', rawScore: 4, maxScore: 5, normalizedScore: 0.80, impact: 'positive' },
-        { modifier: 'stress', name: 'Stres', rawScore: 3, maxScore: 5, normalizedScore: 0.60, impact: 'neutral' },
-        { modifier: 'health', name: 'Zdrowie', rawScore: 5, maxScore: 5, normalizedScore: 1.0, impact: 'positive' },
-        { modifier: 'social', name: 'Wsparcie Społeczne', rawScore: 4, maxScore: 5, normalizedScore: 0.80, impact: 'positive' },
+        { modifier: 'sleep', name: 'Sen', rawScore: 3, maxScore: 5, normalizedScore: 0.60, impact: 'neutral' },
+        { modifier: 'stress', name: 'Stres', rawScore: 4, maxScore: 5, normalizedScore: 0.80, impact: 'positive' },
+        { modifier: 'health', name: 'Zdrowie', rawScore: 4, maxScore: 5, normalizedScore: 0.80, impact: 'positive' },
+        { modifier: 'social', name: 'Wsparcie Społeczne', rawScore: 5, maxScore: 5, normalizedScore: 1.0, impact: 'positive' },
         { modifier: 'nutrition', name: 'Odżywianie', rawScore: 3, maxScore: 5, normalizedScore: 0.60, impact: 'neutral' },
         { modifier: 'flow', name: 'Radość z Gry', rawScore: 5, maxScore: 5, normalizedScore: 1.0, impact: 'positive' }
       ],
-      overallScore: 0.76,
+      overallScore: 0.69,
       validation: {
         isStraightLining: false,
         hasReverseInconsistency: false,
@@ -228,62 +250,70 @@ export const mockCompletedSession = {
       }
     },
     
+    // HRV Baseline
+    hrv_baseline: {
+      rmssd_baseline: 62,
+      hr_baseline: 68,
+      measurement_duration_s: 180,
+      notes: "Spoczynkowy pomiar w pozycji siedzącej"
+    },
+    
     // Sigma Scan results
     scan: {
-      scan_max_number_reached: 34,
+      scan_max_number_reached: 29,
       scan_duration_s: 60,
-      scan_correct_clicks: 35,
+      scan_correct_clicks: 30,
       scan_error_clicks: 3,
-      scan_skipped_numbers: [12, 28],
-      scan_rmssd_ms: 58,
-      scan_avg_hr_bpm: 92,
+      scan_skipped_numbers: [15, 21],
+      scan_rmssd_ms: 54,
+      scan_avg_hr_bpm: 95,
       rawClicks: generateMockScanClicks()
     },
     
     // Sigma Focus results
     focus: {
-      interferenceEffect: 65,
-      focusScore: 92,
-      hrv: '58',
+      interferenceEffect: 72,
+      focusScore: 89,
+      hrv: '52',
       totalTrials: 80,
-      correctCount: 76,
+      correctCount: 73,
       coachReport: {
         sessionInfo: {
           totalTrials: 80,
-          validTrials: 76,
-          filteredOut: 4
+          validTrials: 73,
+          filteredOut: 7
         },
         playerMetrics: {
-          medianRT: 445,
-          accuracy: 95,
-          bestStreak: 18
+          medianRT: 485,
+          accuracy: 91,
+          bestStreak: 14
         },
         coachMetrics: {
           congruent: {
-            medianRT: 420,
-            errorRate: 0.05,
-            ies: 442,
-            validTrials: 38
+            medianRT: 450,
+            errorRate: 0.07,
+            ies: 463,
+            validTrials: 37
           },
           incongruent: {
-            medianRT: 580,
-            errorRate: 0.08,
-            ies: 631,
-            validTrials: 38
+            medianRT: 610,
+            errorRate: 0.11,
+            ies: 685,
+            validTrials: 36
           },
           variability: {
-            congruentIQR: 85,
-            incongruentIQR: 125
+            congruentIQR: 95,
+            incongruentIQR: 142
           },
           interferenceCost: {
             rawMs: 160,
-            iesDiff: 189
+            iesDiff: 222
           }
         },
         rawTrials: generateMockTrials()
       },
-      rMSSD: "58",
-      HR: "92"
+      rMSSD: "52",
+      HR: "95"
     },
     
     // Sigma Memo results
@@ -299,18 +329,28 @@ export const mockCompletedSession = {
         memo_correct_rejections: metrics.correctRejections,
         memo_d_prime: metrics.dPrime,
         memo_response_bias: metrics.responseBias,
-        memo_rmssd_ms: 61,
-        memo_hr_bpm: 88,
+        memo_rmssd_ms: 58,
+        memo_hr_bpm: 91,
         memo_trials: mockTrials
       };
-    })()
+    })(),
+    
+    // Sigma Feedback
+    feedback: {
+      question1: "Mój dzisiejszy wynik w wyzwaniach zależał głównie od...",
+      answer1: "Tego, że wczoraj spałem tylko 6 godzin bo oglądałem mecz. W testach na końcu czułem, że mi się myśli gubią. Trening dziś rano był ostry więc też byłem zmęczony.",
+      question2: "Gdybym mógł powtórzyć dzisiejszy test, to co zrobił(a)bym inaczej?",
+      answer2: "Poszedłbym spać wcześniej i może zrobiłbym jakieś ćwiczenia oddechowe przed testami żeby się bardziej skupić. Trener zawsze mówi żeby się dobrze wyspać przed zawodami.",
+      completedAt: new Date().toISOString()
+    }
   },
   taskStatus: {
     six_sigma: 'completed',
-    hrv_baseline: 'pending',
+    hrv_baseline: 'completed',
     scan: 'completed',
     focus: 'completed',
-    memo: 'completed'
+    memo: 'completed',
+    feedback: 'completed'
   },
   inProgress: false
 };
@@ -324,13 +364,14 @@ export function addMockCompletedSessionToStorage() {
     s.results.six_sigma && 
     s.results.scan && 
     s.results.focus &&
-    s.results.memo
+    s.results.memo &&
+    s.results.feedback
   );
   
   if (!existingSession) {
     sessions.push(mockCompletedSession);
     localStorage.setItem('athlete_sessions', JSON.stringify(sessions));
-    console.log('✅ Mock completed session (Six Sigma + Sigma Scan + Sigma Focus + Sigma Memo) added to storage');
+    console.log('✅ Mock completed session (Six Sigma + HRV Baseline + Sigma Scan + Sigma Focus + Sigma Memo + Sigma Feedback) added to storage');
   } else {
     console.log('ℹ️ Mock completed session already exists');
   }

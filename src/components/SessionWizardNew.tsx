@@ -9,6 +9,8 @@ import FocusGame from "@/pages/FocusGame";
 import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
 import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
 import HRVBaselineForm from "@/components/forms/HRVBaselineForm";
+import MemoGame from "@/pages/MemoGame";
+import SigmaFeedbackForm from "@/components/forms/SigmaFeedbackForm";
 
 interface SessionWizardNewProps {
   athleteId: string;
@@ -21,11 +23,10 @@ type WizardStep =
   | 'questionnaires'
   | 'challenge-select'
   | 'scan' 
-  | 'control' 
-  | 'focus' 
-  | 'move' 
+  | 'focus'
+  | 'memo'
+  | 'feedback'
   | 'hrv_baseline'
-  | 'hrv_training'
   | 'complete';
 
 const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNewProps) => {
@@ -115,14 +116,6 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
                   <Button
                     variant="outline"
                     size="lg"
-                    onClick={() => setCurrentStep('control')}
-                    className="h-24"
-                  >
-                    Sigma Control
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
                     onClick={() => setCurrentStep('focus')}
                     className="h-24"
                   >
@@ -131,10 +124,18 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
                   <Button
                     variant="outline"
                     size="lg"
-                    onClick={() => setCurrentStep('move')}
+                    onClick={() => setCurrentStep('memo')}
                     className="h-24"
                   >
-                    Sigma Move
+                    Sigma Memo
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setCurrentStep('feedback')}
+                    className="h-24"
+                  >
+                    Sigma Feedback
                   </Button>
                   <Button
                     variant="outline"
@@ -143,14 +144,6 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
                     className="h-24"
                   >
                     HRV Baseline
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => setCurrentStep('hrv_training')}
-                    className="h-24"
-                  >
-                    HRV Training
                   </Button>
                 </div>
                 <div className="mt-6 flex justify-between">
@@ -174,14 +167,6 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
           />
         );
 
-      case 'control':
-        return (
-          <ControlGame 
-            onComplete={(data) => handleStepComplete('control', data)}
-            onGoToCockpit={handleReturnToChallengeSelect}
-          />
-        );
-
       case 'focus':
         return (
           <FocusGame 
@@ -190,19 +175,17 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
           />
         );
 
-      case 'move':
+      case 'memo':
         return (
-          <SigmaMoveForm 
-            challengeType="time"
-            onComplete={(data) => handleStepComplete('move', data)}
-            onGoToCockpit={handleReturnToChallengeSelect}
+          <MemoGame 
+            onComplete={(data) => handleStepComplete('memo', data)}
           />
         );
 
-      case 'hrv_training':
+      case 'feedback':
         return (
-          <HRVTrainingForm 
-            onComplete={(data) => handleStepComplete('hrv_training', data)}
+          <SigmaFeedbackForm 
+            onComplete={(data) => handleStepComplete('feedback', data)}
             onGoToCockpit={handleReturnToChallengeSelect}
           />
         );

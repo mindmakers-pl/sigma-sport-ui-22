@@ -17,6 +17,7 @@ import ScanGame from "./ScanGame";
 import ControlGame from "./ControlGame";
 import FocusGame from "./FocusGame";
 import MemoGame from "./MemoGame";
+import SigmaFeedbackForm from "@/components/forms/SigmaFeedbackForm";
 import Kwestionariusz from "@/components/forms/Kwestionariusz";
 import HRVBaselineForm from "@/components/forms/HRVBaselineForm";
 import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
@@ -44,7 +45,8 @@ const AthleteProfile = () => {
     hrv_baseline: 'pending',
     scan: 'pending',
     focus: 'pending',
-    memo: 'pending'
+    memo: 'pending',
+    feedback: 'pending'
   });
 
   const [sessionResults, setSessionResults] = useState<Record<string, any>>({});
@@ -399,13 +401,14 @@ const AthleteProfile = () => {
     // Reset session
     setCurrentSessionId(null);
     setSessionResults({});
-    setTaskStatus({
-      kwestionariusz: 'pending',
-      hrv_baseline: 'pending',
-      scan: 'pending',
-      focus: 'pending',
-      memo: 'pending'
-    });
+      setTaskStatus({
+        kwestionariusz: 'pending',
+        hrv_baseline: 'pending',
+        scan: 'pending',
+        focus: 'pending',
+        memo: 'pending',
+        feedback: 'pending'
+      });
     setSelectedChallengeType('');
   };
 
@@ -925,6 +928,24 @@ const AthleteProfile = () => {
                       onClick={() => setCurrentView('playing_memo')}
                     >
                       {taskStatus.memo === 'completed' ? 'Powtórz' : 'Rozpocznij'}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Feedback */}
+                <Card className={`cursor-pointer transition-all ${taskStatus.feedback === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-slate-900">Sigma Feedback</h3>
+                      {taskStatus.feedback === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                    </div>
+                    <p className="text-sm text-slate-600 mb-4">Twoja refleksja po dzisiejszych wyzwaniach</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => setCurrentView('showing_feedback')}
+                    >
+                      {taskStatus.feedback === 'completed' ? 'Edytuj' : 'Wypełnij'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -1677,6 +1698,13 @@ const AthleteProfile = () => {
 
           {currentView === 'playing_memo' && (
             <MemoGame onComplete={handleTaskComplete} />
+          )}
+
+          {currentView === 'showing_feedback' && (
+            <SigmaFeedbackForm 
+              onComplete={handleTaskComplete}
+              onGoToCockpit={() => setCurrentView('kokpit')}
+            />
           )}
 
           {currentView === 'training_move' && (
