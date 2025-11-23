@@ -1331,161 +1331,97 @@ const AthleteProfile = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {savedSessions.length > 0 ? savedSessions.map((session) => (
-                      <Card key={session.id} className="border-slate-200 hover:border-primary/50 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/zawodnicy/${id}/sesja/${session.id}?task=overview`)}>
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <p className="font-semibold text-slate-900">
-                                {new Date(session.date).toLocaleDateString('pl-PL', { 
-                                  weekday: 'long', 
-                                  year: 'numeric', 
-                                  month: 'long', 
-                                  day: 'numeric' 
-                                })}
-                              </p>
-                              <div className="flex gap-2 mt-1">
-                                <Badge variant="outline">
-                                  {session.conditions}
+                    {savedSessions.length > 0 ? (
+                      savedSessions
+                        .filter(session => 
+                          conditionsFilter === 'wszystkie' || session.conditions === conditionsFilter
+                        )
+                        .map((session) => (
+                          <Card key={session.id} className="border-slate-200 hover:border-primary/50 transition-colors cursor-pointer"
+                            onClick={() => navigate(`/zawodnicy/${id}/sesja/${session.id}?task=overview`)}>
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-start mb-4">
+                                <div>
+                                  <p className="font-semibold text-slate-900">
+                                    {new Date(session.date).toLocaleDateString('pl-PL', { 
+                                      weekday: 'long', 
+                                      year: 'numeric', 
+                                      month: 'long', 
+                                      day: 'numeric' 
+                                    })}
+                                  </p>
+                                  <div className="flex gap-2 mt-1">
+                                    <Badge variant="outline">
+                                      {session.conditions}
+                                    </Badge>
+                                    {session.in_progress && (
+                                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                                        ⏳ W trakcie
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                                <Badge variant="secondary">
+                                  {session.results ? Object.keys(session.results).length : 0} testów
                                 </Badge>
-                                {session.inProgress && (
-                                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-300">
-                                    ⏳ W trakcie
-                                  </Badge>
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {session.results?.six_sigma && (
+                                  <div>
+                                    <span className="text-xs text-slate-600 block mb-1">Six Sigma</span>
+                                    <span className="font-semibold text-lg">{Math.round((session.results.six_sigma.overallScore || 0) * 100)}%</span>
+                                  </div>
+                                )}
+                                {session.results?.hrv_baseline && (
+                                  <div>
+                                    <span className="text-xs text-slate-600 block mb-1">HRV Baseline</span>
+                                    <span className="font-semibold text-lg">{session.results.hrv_baseline.rMSSD || session.results.hrv_baseline.hrv || 'N/A'}</span>
+                                  </div>
+                                )}
+                                {session.results?.scan && (
+                                  <div>
+                                    <span className="text-xs text-slate-600 block mb-1">Sigma Scan</span>
+                                    <span className="font-semibold text-lg">{session.results.scan.scan_max_number_reached ?? session.results.scan.maxNumber ?? 'N/A'}</span>
+                                  </div>
+                                )}
+                                {session.results?.focus && (
+                                  <div>
+                                    <span className="text-xs text-slate-600 block mb-1">Sigma Focus</span>
+                                    <span className="font-semibold text-lg">{Math.round(session.results.focus.accuracy || session.results.focus.focus_accuracy_pct || 0)}%</span>
+                                  </div>
+                                )}
+                                {session.results?.memo && (
+                                  <div>
+                                    <span className="text-xs text-slate-600 block mb-1">Sigma Memo</span>
+                                    <span className="font-semibold text-lg">{Math.round(session.results.memo.accuracy || session.results.memo.memo_accuracy_pct || 0)}%</span>
+                                  </div>
+                                )}
+                                {session.results?.feedback && (
+                                  <div>
+                                    <span className="text-xs text-slate-600 block mb-1">Feedback</span>
+                                    <span className="font-semibold text-lg">✓</span>
+                                  </div>
                                 )}
                               </div>
-                            </div>
-                            <Badge variant="secondary">
-                              {Object.values(session.taskStatus).filter(s => s === 'completed').length}/{Object.keys(session.taskStatus).length} testów
-                            </Badge>
-                          </div>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {session.results.six_sigma && (
-                              <div>
-                                <span className="text-xs text-slate-600 block mb-1">Six Sigma</span>
-                                <span className="font-semibold text-lg">{Math.round(session.results.six_sigma.overallScore * 100)}%</span>
-                              </div>
-                            )}
-                            {session.results.hrv_baseline && (
-                              <div>
-                                <span className="text-xs text-slate-600 block mb-1">HRV Baseline</span>
-                                <span className="font-semibold text-lg">{session.results.hrv_baseline.rMSSD || session.results.hrv_baseline.hrv || 'N/A'}</span>
-                              </div>
-                            )}
-                            {session.results.scan && (
-                              <div>
-                                <span className="text-xs text-slate-600 block mb-1">Sigma Scan</span>
-                                <span className="font-semibold text-lg">{session.results.scan.scan_max_number_reached ?? session.results.scan.maxNumber ?? 'N/A'}</span>
-                              </div>
-                            )}
-                            {session.results.focus && (
-                              <div>
-                                <span className="text-xs text-slate-600 block mb-1">Sigma Focus</span>
-                                <span className="font-semibold text-lg">{Math.round(session.results.focus.accuracy || session.results.focus.focus_accuracy_pct || 0)}%</span>
-                              </div>
-                            )}
-                            {session.results.memo && (
-                              <div>
-                                <span className="text-xs text-slate-600 block mb-1">Sigma Memo</span>
-                                <span className="font-semibold text-lg">{Math.round(session.results.memo.accuracy || session.results.memo.memo_accuracy_pct || 0)}%</span>
-                              </div>
-                            )}
-                            {session.results.feedback && (
-                              <div>
-                                <span className="text-xs text-slate-600 block mb-1">Feedback</span>
-                                <span className="font-semibold text-lg">✓</span>
-                              </div>
-                            )}
-                          </div>
+                            </CardContent>
+                          </Card>
+                        ))
+                    ) : (
+                      <Card className="border-slate-200">
+                        <CardContent className="p-8 text-center">
+                          <p className="text-slate-500 mb-4">Brak sesji pomiarowych</p>
+                          <Button 
+                            onClick={() => {
+                              setCurrentView('kokpit');
+                              setSearchParams({ tab: 'dodaj-pomiar' });
+                            }}
+                            className="gap-2"
+                          >
+                            Dodaj pierwszy pomiar
+                          </Button>
                         </CardContent>
                       </Card>
-                    )) : [
-                      {
-                        id: "mock-1",
-                        date: "2024-03-15",
-                        conditions: "trening",
-                        hrv: 68,
-                        scan: 8.2,
-                        control: 5,
-                        focus: 72,
-                        completed: 7
-                      },
-                      {
-                        id: 2,
-                        date: "2024-03-08",
-                        conditions: "baseline",
-                        hrv: 65,
-                        scan: 8.5,
-                        control: 6,
-                        focus: 68,
-                        completed: 7
-                      },
-                      {
-                        id: 3,
-                        date: "2024-03-01",
-                        conditions: "trening",
-                        hrv: 62,
-                        scan: 9.1,
-                        control: 7,
-                        focus: 65,
-                        completed: 6
-                      },
-                      {
-                        id: 4,
-                        date: "2024-02-23",
-                        conditions: "mecz",
-                        hrv: 60,
-                        scan: 9.8,
-                        control: 8,
-                        focus: 62,
-                        completed: 7
-                      }
-                    ].filter(session => 
-                      conditionsFilter === 'wszystkie' || session.conditions === conditionsFilter
-                    ).map((session) => (
-                      <Card key={session.id} className="border-slate-200 hover:border-primary/50 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/zawodnicy/${id}/sesja/${session.id}?task=overview`)}>
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <p className="font-semibold text-slate-900">
-                                {new Date(session.date).toLocaleDateString('pl-PL', { 
-                                  weekday: 'long', 
-                                  year: 'numeric', 
-                                  month: 'long', 
-                                  day: 'numeric' 
-                                })}
-                              </p>
-                              <Badge variant="outline" className="mt-1">
-                                {session.conditions}
-                              </Badge>
-                            </div>
-                            <Badge variant="secondary">
-                              {session.completed}/7 testów
-                            </Badge>
-                          </div>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div>
-                              <span className="text-xs text-slate-600 block mb-1">HRV Baseline</span>
-                              <span className="font-semibold text-lg">{session.hrv}</span>
-                            </div>
-                            <div>
-                              <span className="text-xs text-slate-600 block mb-1">Sigma Scan</span>
-                              <span className="font-semibold text-lg">{session.scan}s</span>
-                            </div>
-                            <div>
-                              <span className="text-xs text-slate-600 block mb-1">Sigma Control</span>
-                              <span className="font-semibold text-lg">{session.control}</span>
-                            </div>
-                            <div>
-                              <span className="text-xs text-slate-600 block mb-1">Sigma Focus</span>
-                              <span className="font-semibold text-lg">{session.focus}%</span>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
