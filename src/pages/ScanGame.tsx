@@ -323,10 +323,28 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
                   variant="outline"
                   className="flex-1"
                   onClick={() => {
+                    const result = calculateResult();
+                    const gameData = {
+                      results: {
+                        scan_max_number_reached: result.maxNumber,
+                        scan_duration_s: result.duration,
+                        scan_correct_clicks: result.correctClicks,
+                        scan_error_clicks: result.errorClicks,
+                        scan_skipped_numbers: result.skippedNumbers,
+                        scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
+                        scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
+                      },
+                      rawClicks: clickHistory
+                    };
+                    
+                    if (onComplete) {
+                      onComplete(gameData);
+                    }
+                    
                     if (onGoToCockpit) {
                       onGoToCockpit();
-                    } else {
-                      navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                    } else if (athleteId) {
+                      navigate(`/zawodnicy/${athleteId}?tab=trening`);
                     }
                   }}
                 >
