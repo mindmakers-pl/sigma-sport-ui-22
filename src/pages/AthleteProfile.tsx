@@ -22,6 +22,8 @@ import Kwestionariusz from "@/components/forms/Kwestionariusz";
 import HRVBaselineForm from "@/components/forms/HRVBaselineForm";
 import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
 import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
+import QuestionnaireSelector from "@/components/QuestionnaireSelector";
+import QuestionnaireRunner from "@/components/QuestionnaireRunner";
 import TrainingsTable from "@/components/TrainingsTable";
 import { useAthletes } from "@/hooks/useAthletes";
 import { useSessions } from "@/hooks/useSessions";
@@ -59,6 +61,18 @@ const AthleteProfile = () => {
   const [measurementConditions, setMeasurementConditions] = useState('gabinet');
   const [selectedChallengeType, setSelectedChallengeType] = useState('');
   
+  // MEASUREMENT_SEQUENCE for automatic task flow
+  const MEASUREMENT_SEQUENCE = [
+    'kwestionariusz',
+    'hrv_baseline',
+    'scan',
+    'focus',
+    'memo',
+    'feedback'
+  ] as const;
+  
+  const [currentMeasurementIndex, setCurrentMeasurementIndex] = useState<number | null>(null);
+  
   const [taskStatus, setTaskStatus] = useState({
     six_sigma: 'pending',
     hrv_baseline: 'pending',
@@ -71,6 +85,7 @@ const AthleteProfile = () => {
   const [sessionResults, setSessionResults] = useState<Record<string, any>>({});
   const [savedSessions, setSavedSessions] = useState<any[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [selectedQuestionnaires, setSelectedQuestionnaires] = useState<string[] | null>(null);
   const [reportTab, setReportTab] = useState(activeSubTab);
   const [conditionsFilter, setConditionsFilter] = useState('wszystkie');
   const [benchmarkGroup, setBenchmarkGroup] = useState('wszyscy');
@@ -985,7 +1000,10 @@ const AthleteProfile = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Six Sigma Questionnaire */}
-                <Card className={`cursor-pointer transition-all ${taskStatus.six_sigma === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                <Card 
+                  className={`cursor-pointer transition-all ${taskStatus.six_sigma === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}
+                  onClick={() => setActiveTask('kwestionariusz')}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-slate-900">Six Sigma</h3>
@@ -995,7 +1013,6 @@ const AthleteProfile = () => {
                     <Button 
                       size="sm" 
                       className="w-full"
-                      onClick={() => setActiveTask('kwestionariusz')}
                     >
                       {taskStatus.six_sigma === 'completed' ? 'Powtórz' : 'Rozpocznij'}
                     </Button>
@@ -1003,92 +1020,77 @@ const AthleteProfile = () => {
                 </Card>
 
                 {/* HRV Baseline */}
-                <Card className={`cursor-pointer transition-all ${taskStatus.hrv_baseline === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                <Card 
+                  className={`cursor-pointer transition-all ${taskStatus.hrv_baseline === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}
+                  onClick={() => setActiveTask('hrv_baseline')}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-slate-900">HRV Baseline</h3>
                       {taskStatus.hrv_baseline === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                     </div>
                     <p className="text-sm text-slate-600 mb-4">Zmienność rytmu serca - stan bazowy</p>
-                    <Button 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => setActiveTask('hrv_baseline')}
-                    >
-                      {taskStatus.hrv_baseline === 'completed' ? 'Powtórz' : 'Rozpocznij'}
-                    </Button>
+                    <Button size="sm" className="w-full">{taskStatus.hrv_baseline === 'completed' ? 'Powtórz' : 'Rozpocznij'}</Button>
                   </CardContent>
                 </Card>
 
                 {/* Scan */}
-                <Card className={`cursor-pointer transition-all ${taskStatus.scan === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                <Card 
+                  className={`cursor-pointer transition-all ${taskStatus.scan === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}
+                  onClick={() => setActiveTask('scan')}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-slate-900">Sigma Scan</h3>
                       {taskStatus.scan === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                     </div>
                     <p className="text-sm text-slate-600 mb-4">Test skanowania wzrokowego</p>
-                    <Button 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => setActiveTask('scan')}
-                    >
-                      {taskStatus.scan === 'completed' ? 'Powtórz' : 'Rozpocznij'}
-                    </Button>
+                    <Button size="sm" className="w-full">{taskStatus.scan === 'completed' ? 'Powtórz' : 'Rozpocznij'}</Button>
                   </CardContent>
                 </Card>
 
                 {/* Focus */}
-                <Card className={`cursor-pointer transition-all ${taskStatus.focus === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                <Card 
+                  className={`cursor-pointer transition-all ${taskStatus.focus === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}
+                  onClick={() => setActiveTask('focus')}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-slate-900">Sigma Focus</h3>
                       {taskStatus.focus === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                     </div>
                     <p className="text-sm text-slate-600 mb-4">Test koncentracji</p>
-                    <Button 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => setActiveTask('focus')}
-                    >
-                      {taskStatus.focus === 'completed' ? 'Powtórz' : 'Rozpocznij'}
-                    </Button>
+                    <Button size="sm" className="w-full">{taskStatus.focus === 'completed' ? 'Powtórz' : 'Rozpocznij'}</Button>
                   </CardContent>
                 </Card>
 
                 {/* Memo */}
-                <Card className={`cursor-pointer transition-all ${taskStatus.memo === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                <Card 
+                  className={`cursor-pointer transition-all ${taskStatus.memo === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}
+                  onClick={() => setActiveTask('memo')}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-slate-900">Sigma Memo</h3>
                       {taskStatus.memo === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                     </div>
                     <p className="text-sm text-slate-600 mb-4">Test pamięci roboczej 2-Back</p>
-                    <Button 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => setActiveTask('memo')}
-                    >
-                      {taskStatus.memo === 'completed' ? 'Powtórz' : 'Rozpocznij'}
-                    </Button>
+                    <Button size="sm" className="w-full">{taskStatus.memo === 'completed' ? 'Powtórz' : 'Rozpocznij'}</Button>
                   </CardContent>
                 </Card>
 
                 {/* Feedback */}
-                <Card className={`cursor-pointer transition-all ${taskStatus.feedback === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                <Card 
+                  className={`cursor-pointer transition-all ${taskStatus.feedback === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}
+                  onClick={() => setActiveTask('feedback')}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-slate-900">Sigma Feedback</h3>
                       {taskStatus.feedback === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                     </div>
                     <p className="text-sm text-slate-600 mb-4">Twoja refleksja po dzisiejszych wyzwaniach</p>
-                    <Button 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => setActiveTask('feedback')}
-                    >
-                      {taskStatus.feedback === 'completed' ? 'Edytuj' : 'Wypełnij'}
-                    </Button>
+                    <Button size="sm" className="w-full">{taskStatus.feedback === 'completed' ? 'Edytuj' : 'Wypełnij'}</Button>
                   </CardContent>
                 </Card>
               </div>

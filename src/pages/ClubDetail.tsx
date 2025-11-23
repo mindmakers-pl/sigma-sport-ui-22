@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, Plus, ArrowLeft, Search, Trophy, TrendingUp, TrendingDown, Calendar as CalendarIcon, Target, ClipboardList, Dumbbell, CheckCircle2, Clock, BookOpen, Archive, X } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import DisciplineSelector from "@/components/DisciplineSelector";
@@ -25,7 +25,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import SessionWizardNew from "@/components/SessionWizardNew";
+
 import ScanGame from "@/components/games/ScanGame";
 import FocusGame from "@/components/games/FocusGame";
 import ControlGame from "@/components/games/ControlGame";
@@ -60,12 +60,13 @@ const ClubDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") || "zawodnicy";
   
   // Supabase hooks
   const { clubs, loading: clubsLoading, addClub, updateClub } = useClubs();
   const { athletes: allAthletes, loading: athletesLoading, addAthlete, archiveAthletes, restoreAthletes, refetch: refetchAthletes } = useAthletes();
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeWizardAthleteId, setActiveWizardAthleteId] = useState<string | null>(null);
   const [selectedM1, setSelectedM1] = useState("m1-oct");
   const [selectedM2, setSelectedM2] = useState("m2-nov");
   const [isAddAthleteDialogOpen, setIsAddAthleteDialogOpen] = useState(false);
@@ -282,20 +283,6 @@ const ClubDetail = () => {
     setSelectedAthletes([]);
   };
 
-  const handleSaveSession = (results: any) => {
-    console.log("Sesja zapisana:", results);
-    setActiveWizardAthleteId(null);
-  };
-
-  if (activeWizardAthleteId) {
-    return (
-      <SessionWizardNew
-        athleteId={activeWizardAthleteId}
-        onClose={() => setActiveWizardAthleteId(null)}
-        onSaveSession={handleSaveSession}
-      />
-    );
-  }
 
   return (
     <div>
@@ -322,7 +309,7 @@ const ClubDetail = () => {
       </div>
 
       {/* Zakładki */}
-      <Tabs defaultValue="zawodnicy" className="w-full" id="club-tabs">
+      <Tabs value={tab} onValueChange={(value) => setSearchParams({ tab: value })} className="w-full" id="club-tabs">
         <TabsList>
           <TabsTrigger value="zawodnicy">Lista zawodników</TabsTrigger>
           <TabsTrigger value="sigma-teams">Sigma Teams</TabsTrigger>

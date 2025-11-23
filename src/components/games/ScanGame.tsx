@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 import { useTrainings } from "@/hooks/useTrainings";
-import { determineGameContext } from "@/utils/gameContext";
+import { determineGameContext, getGameBackPath } from "@/utils/gameContext";
 import { useToast } from "@/hooks/use-toast";
 import { HRVInputFields } from "@/components/game-shared/HRVInputFields";
 
@@ -47,6 +47,27 @@ const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode }:
   
   const [manualRMSSD, setManualRMSSD] = useState<string>("");
   const [manualHR, setManualHR] = useState<string>("");
+
+  // Unified exit handler
+  const handleExit = () => {
+    if (onGoToCockpit) {
+      onGoToCockpit();
+    } else {
+      navigate(getGameBackPath(athleteId, mode, isLibrary));
+    }
+  };
+
+  // ESC key handler
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleExit();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [handleExit]);
 
   // Generate random grid
   const generateGrid = () => {
@@ -163,16 +184,14 @@ const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode }:
 
   return (
     <div className="min-h-screen bg-slate-900 p-4">
-      {mode === "training" && onGoToCockpit && (
-        <Button 
-          variant="ghost" 
-          className="text-white hover:bg-slate-800 mb-4"
-          onClick={onGoToCockpit}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Powrót
-        </Button>
-      )}
+      <Button 
+        variant="ghost" 
+        className="text-white hover:text-white hover:bg-slate-800 mb-4 absolute top-4 left-4 z-50"
+        onClick={handleExit}
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Powrót
+      </Button>
       
       <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
         {gameState === "ready" && (
@@ -306,7 +325,7 @@ const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode }:
                 <Button 
                   size="lg"
                   className="w-full"
-                  onClick={() => navigate('/biblioteka?tab=wyzwania')}
+                  onClick={handleExit}
                 >
                   Zakończ
                 </Button>
@@ -349,7 +368,7 @@ const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode }:
                     size="lg"
                     variant="outline"
                     className="flex-1"
-                    onClick={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
+                    onClick={handleExit}
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Zakończ
@@ -388,7 +407,7 @@ const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode }:
                           title: "Sukces",
                           description: "Trening został zapisany",
                         });
-                        navigate(`/zawodnicy/${athleteId}?tab=trening`);
+                        handleExit();
                       }
                     }}
                   >

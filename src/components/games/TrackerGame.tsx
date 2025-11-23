@@ -1,9 +1,10 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTrackerGame } from "@/hooks/useTrackerGame";
-import { determineGameContext } from "@/utils/gameContext";
+import { determineGameContext, getGameBackPath } from "@/utils/gameContext";
 import { useTrainings } from "@/hooks/useTrainings";
 import { useToast } from "@/hooks/use-toast";
 import { HRVInputFields } from "@/components/game-shared/HRVInputFields";
@@ -33,31 +34,44 @@ const TrackerGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode
 
   const TARGET_BALLS = 4;
 
+  // Unified exit handler
+  const handleExit = () => {
+    if (onGoToCockpit) {
+      onGoToCockpit();
+    } else {
+      navigate(getGameBackPath(athleteId, mode, isLibrary));
+    }
+  };
+
+  // ESC key handler
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleExit();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [handleExit]);
+
   const handleSaveAndContinue = () => {
     const payload = { gameData: { level, finalScore, mistakes }, hrvData: hrvInput };
     if (onComplete) {
       onComplete(payload);
-    } else {
-      navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-    }
-  };
-
-  const handleGoBackToCockpit = () => {
-    if (onGoToCockpit) {
-      onGoToCockpit();
-    } else {
-      navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-900 p-4">
-      {!onComplete && (
-        <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Powrót
-        </Button>
-      )}
+      <Button 
+        variant="ghost" 
+        className="text-white hover:text-white hover:bg-slate-800 mb-4 absolute top-4 left-4 z-50"
+        onClick={handleExit}
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Powrót
+      </Button>
       
       <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
         {gameState === 'ready' && (
@@ -128,9 +142,9 @@ const TrackerGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode
                   isLibrary={isLibrary}
                   isMeasurement={isMeasurement}
                   isTraining={isTraining}
-                  onLibraryComplete={() => navigate('/biblioteka?tab=wyzwania')}
+                  onLibraryComplete={handleExit}
                   onMeasurementComplete={handleSaveAndContinue}
-                  onTrainingEnd={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
+                  onTrainingEnd={handleExit}
                   onTrainingSave={async () => {
                     const payload = { 
                       gameData: { level, finalScore, mistakes }, 
@@ -155,7 +169,7 @@ const TrackerGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode
                         title: "Sukces",
                         description: "Trening został zapisany",
                       });
-                      navigate(`/zawodnicy/${athleteId}?tab=trening`);
+                      handleExit();
                     }
                   }}
                 />

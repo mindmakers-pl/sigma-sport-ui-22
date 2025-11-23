@@ -1,10 +1,12 @@
+import { useEffect } from "react";
 import { useBackGame } from "@/hooks/useBackGame";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTrainings } from "@/hooks/useTrainings";
 import { useToast } from "@/hooks/use-toast";
-import { determineGameContext } from "@/utils/gameContext";
+import { determineGameContext, getGameBackPath } from "@/utils/gameContext";
 import { HRVInputFields } from "@/components/game-shared/HRVInputFields";
 import { GameResultsButtons } from "@/components/game-shared/GameResultsButtons";
 
@@ -37,13 +39,22 @@ const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps)
     handleResponse,
   } = useBackGame();
 
-  const handleGoBack = () => {
-    if (athleteId) {
-      navigate(`/zawodnicy/${athleteId}?tab=trening`);
-    } else {
-      navigate("/biblioteka");
-    }
+  // Unified exit handler
+  const handleExit = () => {
+    navigate(getGameBackPath(athleteId, mode, isLibrary));
   };
+
+  // ESC key handler
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleExit();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [handleExit]);
 
   const handleSaveAndContinue = async () => {
     if (!results) return;
@@ -108,12 +119,12 @@ const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps)
           description: "Wynik treningu został zapisany",
         });
         console.log('💾 Sigma Memo: Zapisano do Supabase');
-        navigate(`/zawodnicy/${athleteId}?tab=trening`);
+        handleExit();
       }
     } else {
       // Measurement mode: pass to wizard
       console.log('📊 Sigma Memo: Measurement mode results logged');
-      handleGoBack();
+      handleExit();
     }
   };
 
@@ -147,6 +158,14 @@ const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps)
   if (gameState === 'ready') {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-8">
+        <Button 
+          variant="ghost" 
+          className="text-white hover:text-white hover:bg-slate-800 mb-4 absolute top-4 left-4 z-50"
+          onClick={handleExit}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Powrót
+        </Button>
         <Card className="max-w-2xl w-full p-8 space-y-6 bg-slate-900 border-slate-800">
             <div className="space-y-4">
               <h1 className="text-2xl font-semibold text-white">Sigma Memo</h1>
@@ -271,9 +290,9 @@ const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps)
             isLibrary={isLibrary}
             isMeasurement={isMeasurement}
             isTraining={isTraining}
-            onLibraryComplete={() => navigate('/biblioteka?tab=wyzwania')}
+            onLibraryComplete={handleExit}
             onMeasurementComplete={handleSaveAndContinue}
-            onTrainingEnd={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
+            onTrainingEnd={handleExit}
             onTrainingSave={handleSaveAndContinue}
           />
         </Card>
