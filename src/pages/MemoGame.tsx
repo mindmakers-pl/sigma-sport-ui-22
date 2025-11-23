@@ -63,8 +63,22 @@ const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
       ...(manualHRV.hr && { memo_hr_bpm: parseFloat(manualHRV.hr) }),
     };
 
+    console.log('🎮 Sigma Memo wyniki:', {
+      mode: mode || 'training',
+      accuracy: gameData.memo_accuracy_pct,
+      medianRT: gameData.memo_median_rt_ms,
+      hits: gameData.memo_hits,
+      misses: gameData.memo_misses,
+      falseAlarms: gameData.memo_false_alarms,
+      correctRejections: gameData.memo_correct_rejections,
+      dPrime: gameData.memo_d_prime,
+      responseBias: gameData.memo_response_bias,
+      trialsCount: gameData.memo_trials.length
+    });
+
     // Training mode: save to athlete_trainings or use onComplete
     if (onComplete) {
+      console.log('✅ Sigma Memo: Calling onComplete with data');
       onComplete(gameData);
     } else if (athleteId) {
       const existingTrainings = JSON.parse(localStorage.getItem('athlete_trainings') || '[]');
@@ -76,10 +90,11 @@ const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
         results: { memo: gameData },
       };
       localStorage.setItem('athlete_trainings', JSON.stringify([...existingTrainings, newTraining]));
+      console.log('💾 Sigma Memo: Zapisano do athlete_trainings');
       navigate(`/zawodnicy/${athleteId}?tab=trening`);
     } else {
       // Measurement mode: pass to wizard
-      console.log('Sigma Memo Results:', gameData);
+      console.log('📊 Sigma Memo: Measurement mode results logged');
       handleGoBack();
     }
   };
