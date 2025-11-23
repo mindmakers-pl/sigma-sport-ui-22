@@ -993,6 +993,36 @@ const AthleteProfile = () => {
                   Zakończ i Zapisz Sesję
                 </Button>
               </div>
+
+              {/* Debug Panel - tylko w dev */}
+              {import.meta.env.DEV && (
+                <div className="mt-6 p-4 bg-slate-100 border-2 border-slate-300 rounded-lg">
+                  <h3 className="text-sm font-bold text-slate-900 mb-3">🔧 Debug Panel (dev only)</h3>
+                  
+                  <div className="space-y-3 text-xs font-mono">
+                    <div>
+                      <div className="font-semibold text-slate-700 mb-1">Current Session ID:</div>
+                      <div className="bg-white p-2 rounded border border-slate-200">
+                        {currentSessionId || 'null'}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="font-semibold text-slate-700 mb-1">Task Status:</div>
+                      <div className="bg-white p-2 rounded border border-slate-200">
+                        <pre className="whitespace-pre-wrap">{JSON.stringify(taskStatus, null, 2)}</pre>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="font-semibold text-slate-700 mb-1">Session Results:</div>
+                      <div className="bg-white p-2 rounded border border-slate-200 max-h-48 overflow-y-auto">
+                        <pre className="whitespace-pre-wrap">{JSON.stringify(sessionResults, null, 2)}</pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
