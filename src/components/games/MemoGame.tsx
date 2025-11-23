@@ -14,9 +14,10 @@ interface MemoGameProps {
   athleteId?: string;
   mode?: 'measurement' | 'training';
   onComplete?: (data: any) => void;
+  onGoToCockpit?: () => void;
 }
 
-const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps) => {
+const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete, onGoToCockpit }: MemoGameProps) => {
   const navigate = useNavigate();
   const { athleteId: athleteIdParam } = useParams();
   const athleteId = athleteIdProp || athleteIdParam;
@@ -41,7 +42,11 @@ const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps)
 
   // Unified exit handler
   const handleExit = () => {
-    navigate(getGameBackPath(athleteId, mode, isLibrary));
+    if (onGoToCockpit) {
+      onGoToCockpit();
+    } else {
+      navigate(getGameBackPath(athleteId, mode, isLibrary));
+    }
   };
 
   // ESC key handler
@@ -62,68 +67,45 @@ const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps)
     const gameData = {
       memo_accuracy_pct: Math.round(results.accuracy),
       memo_median_rt_ms: Math.round(results.medianRT),
-      memo_hits: results.hits,
-      memo_misses: results.misses,
-      memo_false_alarms: results.falseAlarms,
-      memo_correct_rejections: results.correctRejections,
-      memo_d_prime: parseFloat(results.dPrime.toFixed(2)),
-      memo_response_bias: parseFloat(results.responseBias.toFixed(2)),
+      memo_total_trials: trialHistory.length,
+      memo_correct_responses: results.hits,
       memo_trials: trialHistory.filter(t => t.trialIndex >= 2).map(trial => ({
-        trial_index: trial.trialIndex,
-        position: trial.position,
-        is_target: trial.isTarget,
-        is_lure: trial.isLure,
-        user_responded: trial.userResponded,
-        reaction_time_ms: trial.reactionTime,
-        correct: trial.correct,
-        timestamp: trial.timestamp,
+        trial: trial.trialIndex,
+        rt: trial.reactionTime || 0,
+        isCorrect: trial.correct,
+        isError: !trial.correct,
       })),
-      ...(manualHRV.rmssd && { memo_rmssd_ms: parseFloat(manualHRV.rmssd) }),
-      ...(manualHRV.hr && { memo_hr_bpm: parseFloat(manualHRV.hr) }),
+      memo_rmssd_ms: manualHRV.rmssd ? parseFloat(manualHRV.rmssd) : null,
+      memo_hr_bpm: manualHRV.hr ? parseFloat(manualHRV.hr) : null,
+      memo_game_completed_at: new Date().toISOString(),
     };
 
-    console.log('🎮 Sigma Memo wyniki:', {
-      mode: mode || 'training',
-      accuracy: gameData.memo_accuracy_pct,
-      medianRT: gameData.memo_median_rt_ms,
-      hits: gameData.memo_hits,
-      misses: gameData.memo_misses,
-      falseAlarms: gameData.memo_false_alarms,
-      correctRejections: gameData.memo_correct_rejections,
-      dPrime: gameData.memo_d_prime,
-      responseBias: gameData.memo_response_bias,
-      trialsCount: gameData.memo_trials.length
-    });
+    if (!athleteId) {
+      console.log('📊 Sigma Memo: Library mode - no save');
+      handleExit();
+      return;
+    }
 
-    // Training mode: save to Supabase or use onComplete
-    if (onComplete) {
-      console.log('✅ Sigma Memo: Calling onComplete with data');
-      onComplete(gameData);
-    } else if (athleteId) {
-      const { error } = await addTraining({
-        athlete_id: athleteId,
-        task_type: 'memo',
-        date: new Date().toISOString(),
-        results: gameData
+    const { error } = await addTraining({
+      athlete_id: athleteId,
+      task_type: 'memo',
+      date: new Date().toISOString(),
+      results: gameData
+    });
+    
+    if (error) {
+      console.error('❌ MemoGame training save error:', error);
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zapisać wyniku treningu",
+        variant: "destructive",
       });
-      
-      if (error) {
-        toast({
-          title: "Błąd",
-          description: "Nie udało się zapisać wyniku treningu",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Sukces",
-          description: "Wynik treningu został zapisany",
-        });
-        console.log('💾 Sigma Memo: Zapisano do Supabase');
-        handleExit();
-      }
     } else {
-      // Measurement mode: pass to wizard
-      console.log('📊 Sigma Memo: Measurement mode results logged');
+      console.log('✅ MemoGame training saved to Supabase');
+      toast({
+        title: "Sukces",
+        description: "Wynik treningu został zapisany",
+      });
       handleExit();
     }
   };

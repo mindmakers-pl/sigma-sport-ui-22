@@ -146,25 +146,32 @@ const TrackerGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode
                   onMeasurementComplete={handleSaveAndContinue}
                   onTrainingEnd={handleExit}
                   onTrainingSave={async () => {
-                    const payload = { 
-                      gameData: { level, finalScore, mistakes }, 
-                      hrvData: hrvInput 
+                    const gameData = { 
+                      tracker_level: level,
+                      tracker_final_score_correct: finalScore.correct,
+                      tracker_final_score_total: finalScore.total,
+                      tracker_mistakes: mistakes,
+                      tracker_rmssd_ms: null,
+                      tracker_avg_hr_bpm: hrvInput ? parseFloat(hrvInput) : null,
+                      tracker_game_completed_at: new Date().toISOString(),
                     };
                     
                     const { error } = await addTraining({
                       athlete_id: athleteId!,
                       task_type: 'tracker',
                       date: new Date().toISOString(),
-                      results: payload
+                      results: gameData
                     });
                     
                     if (error) {
+                      console.error('❌ TrackerGame training save error:', error);
                       toast({
                         title: "Błąd",
                         description: "Nie udało się zapisać treningu",
                         variant: "destructive",
                       });
                     } else {
+                      console.log('✅ TrackerGame training saved to Supabase');
                       toast({
                         title: "Sukces",
                         description: "Trening został zapisany",
