@@ -30,6 +30,7 @@ import { useSessions } from "@/hooks/useSessions";
 import { useTrainings } from "@/hooks/useTrainings";
 import { useClubs } from "@/hooks/useClubs";
 import { useToast } from "@/hooks/use-toast";
+import { validateTaskData } from "@/schemas/sessionSchemas";
 
 const AthleteProfile = () => {
   const { id } = useParams();
@@ -46,7 +47,7 @@ const AthleteProfile = () => {
   
   // Supabase hooks
   const { athletes: allAthletes, updateAthlete, refetch: refetchAthletes } = useAthletes();
-  const { sessions, addSession, updateSession, refetch: refetchSessions } = useSessions(id);
+  const { sessions, loading, addSession, updateSession, refetch: refetchSessions } = useSessions(id);
   const { trainings, addTraining, refetch: refetchTrainings } = useTrainings(id);
   const { clubs } = useClubs();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -93,14 +94,14 @@ const AthleteProfile = () => {
   const [benchmarkAge, setBenchmarkAge] = useState('14-16');
   
   const [manualInputMode, setManualInputMode] = useState({
-    kwestionariusz: false,
+    six_sigma: false,
     hrv_baseline: false,
     sigma_move: false,
     hrv_training: false
   });
   
   const [inputValues, setInputValues] = useState({
-    kwestionariusz: '',
+    six_sigma: '',
     hrv_baseline: '',
     sigma_move: '',
     hrv_training: ''
@@ -185,157 +186,133 @@ const AthleteProfile = () => {
 
   // Session Resume: Check for in-progress session when entering measurement tab
   useEffect(() => {
-    if (activeTab === 'dodaj-pomiar' && sessions.length > 0) {
-      const inProgressSession = sessions.find(s => s.in_progress === true);
-      
-      if (inProgressSession) {
-        console.log('🔄 Found in-progress session:', inProgressSession.id);
-        setCurrentSessionId(inProgressSession.id);
-        setSessionResults(inProgressSession.results || {});
-        
-        // Update task status from saved results
-        const newStatus = { ...taskStatus };
-        if (inProgressSession.results?.six_sigma) newStatus.six_sigma = 'completed';
-        if (inProgressSession.results?.hrv_baseline) newStatus.hrv_baseline = 'completed';
-        if (inProgressSession.results?.scan) newStatus.scan = 'completed';
-        if (inProgressSession.results?.focus) newStatus.focus = 'completed';
-        if (inProgressSession.results?.memo) newStatus.memo = 'completed';
-        if (inProgressSession.results?.feedback) newStatus.feedback = 'completed';
-        setTaskStatus(newStatus);
-        
-        console.log('✅ Session resumed with status:', newStatus);
-      }
+    // Wait for sessions to load and check activeTab
+    if (activeTab !== 'dodaj-pomiar' || loading || sessions.length === 0) {
+      return;
     }
-  }, [activeTab, sessions]);
+
+    const inProgressSession = sessions.find(s => s.in_progress === true);
+    
+    if (inProgressSession) {
+      console.log('🔄 Found in-progress session:', inProgressSession.id);
+      setCurrentSessionId(inProgressSession.id);
+      setSessionResults(inProgressSession.results || {});
+      
+      // Update task status from saved results
+      const newStatus = { ...taskStatus };
+      if (inProgressSession.results?.six_sigma) newStatus.six_sigma = 'completed';
+      if (inProgressSession.results?.hrv_baseline) newStatus.hrv_baseline = 'completed';
+      if (inProgressSession.results?.scan) newStatus.scan = 'completed';
+      if (inProgressSession.results?.focus) newStatus.focus = 'completed';
+      if (inProgressSession.results?.memo) newStatus.memo = 'completed';
+      if (inProgressSession.results?.feedback) newStatus.feedback = 'completed';
+      setTaskStatus(newStatus);
+      
+      console.log('✅ Session resumed with status:', newStatus);
+    }
+  }, [activeTab, sessions, loading]);
 
   const handleMeasurementTaskComplete = async (taskName: string, data: any) => {
     console.log(`✅ Measurement task "${taskName}" completed:`, data);
     
-    // Transform kwestionariusz data to six_sigma format if needed
-    let transformedResults = { ...sessionResults };
-    
-    if (taskName === 'kwestionariusz' && data.responses) {
-      // Transform questionnaire responses to six_sigma format
-      const responses = data.responses;
+    try {
+      // Validate task data before proceeding
+      const validation = validateTaskData(taskName, data);
+      if (!validation.success) {
+        console.error('❌ Validation failed:', validation.error);
+        toast({
+          title: "Błąd walidacji",
+          description: validation.error || "Dane są nieprawidłowe",
+          variant: "destructive",
+        });
+        return;
+      }
       
-      // Calculate competency scores (6 competencies)
-      const competencies = ['scan', 'focus', 'control', 'track', 'back', 'memo'];
-      const competencyScores = competencies.map(comp => {
-        const compResponses = responses.filter((r: any) => r.competency === comp);
-        const rawScore = compResponses.reduce((sum: number, r: any) => sum + r.value, 0);
-        const maxScore = compResponses.length * 5; // Each question max is 5
-        return {
-          competency: comp,
-          rawScore,
-          maxScore,
-          normalizedScore: maxScore > 0 ? rawScore / maxScore : 0
-        };
-      });
+      // Use validated data
+      const validatedData = validation.data;
       
-      // Calculate overall score
-      const totalRaw = competencyScores.reduce((sum, c) => sum + c.rawScore, 0);
-      const totalMax = competencyScores.reduce((sum, c) => sum + c.maxScore, 0);
-      const overallScore = totalMax > 0 ? totalRaw / totalMax : 0;
-      
-      // Save as six_sigma (not kwestionariusz)
-      transformedResults.six_sigma = {
-        overallScore,
-        competencyScores,
-        responses,
-        completedAt: data.completedAt,
-        modifierScores: data.modifierScores || [],
-        validation: data.validation || {
-          isValid: true,
-          warnings: [],
-          flags: {
-            straightLining: false,
-            reverseInconsistency: false,
-            speedingDetected: false
-          }
-        }
-      };
-    } else if (taskName === 'focus' && data.focus_accuracy_pct !== undefined) {
       // Transform focus data to include both formats
-      transformedResults.focus = {
-        ...data,
-        accuracy: data.focus_accuracy_pct, // Add shorthand for display
-        totalTrials: data.focus_total_trials,
-        correctCount: data.focus_correct_count,
-        coachReport: data.focus_coach_report
-      };
-    } else {
-      transformedResults[taskName] = data;
-    }
-    
-    // Update task status (use six_sigma for display)
-    const statusKey = taskName === 'kwestionariusz' ? 'six_sigma' : taskName;
-    const updatedStatus = { ...taskStatus, [statusKey]: 'completed' };
-    
-    setTaskStatus(updatedStatus);
-    setSessionResults(transformedResults);
-    
-    // Auto-save to Supabase after each task
-    if (currentSessionId) {
-      const { error } = await updateSession(currentSessionId, {
-        results: transformedResults,
-        conditions: measurementConditions,
-      });
+      let transformedResults = { ...sessionResults };
       
-      if (error) {
-        toast({
-          title: "Błąd",
-          description: "Nie udało się zapisać wyniku",
-          variant: "destructive",
-        });
+      if (taskName === 'focus' && validatedData.focus_accuracy_pct !== undefined) {
+        transformedResults.focus = {
+          ...validatedData,
+          accuracy: validatedData.focus_accuracy_pct,
+          totalTrials: validatedData.focus_total_trials,
+          correctCount: validatedData.focus_correct_count,
+        };
       } else {
-        await refetchSessions();
+        transformedResults[taskName] = validatedData;
       }
-    } else {
-      const { data: newSession, error } = await addSession({
-        athlete_id: id!,
-        date: new Date().toISOString(),
-        results: transformedResults,
-        conditions: measurementConditions,
-        in_progress: true,
-      });
       
-      if (error) {
-        toast({
-          title: "Błąd",
-          description: "Nie udało się utworzyć sesji",
-          variant: "destructive",
-        });
-      } else if (newSession) {
-        setCurrentSessionId(newSession.id);
-        await refetchSessions();
-      }
-    }
-    
-    console.log(`📊 Task status updated:`, updatedStatus);
-    
-    // Find current task in sequence
-    const currentIndex = MEASUREMENT_SEQUENCE.indexOf(taskName as any);
-    
-    if (currentIndex !== -1 && currentIndex < MEASUREMENT_SEQUENCE.length - 1) {
-      // Advance to next task
-      const nextTask = MEASUREMENT_SEQUENCE[currentIndex + 1];
-      setActiveTask(nextTask);
-      setCurrentMeasurementIndex(currentIndex + 1);
-      console.log(`➡️ Advancing to next task: ${nextTask} (index ${currentIndex + 1})`);
-    } else {
-      // Sequence complete
-      setActiveTask(null);
-      setCurrentView('kokpit');
-      setCurrentMeasurementIndex(null);
+      // Update task status
+      const updatedStatus = { ...taskStatus, [taskName]: 'completed' };
       
-      // Mark session as complete
+      setTaskStatus(updatedStatus);
+      setSessionResults(transformedResults);
+      
+      // Auto-save to Supabase after each task
       if (currentSessionId) {
-        await updateSession(currentSessionId, { 
-          in_progress: false,
-          completed_at: new Date().toISOString()
+        const { error } = await updateSession(currentSessionId, {
+          results: transformedResults,
+          conditions: measurementConditions,
         });
-        console.log('✅ Measurement session complete');
+        
+        if (error) {
+          throw new Error(error);
+        } else {
+          await refetchSessions();
+        }
+      } else {
+        const { data: newSession, error } = await addSession({
+          athlete_id: id!,
+          date: new Date().toISOString(),
+          results: transformedResults,
+          conditions: measurementConditions,
+          in_progress: true,
+        });
+        
+        if (error) {
+          throw new Error(error);
+        } else if (newSession) {
+          setCurrentSessionId(newSession.id);
+          await refetchSessions();
+        }
       }
+      
+      console.log(`📊 Task status updated:`, updatedStatus);
+      
+      // Find current task in sequence
+      const currentIndex = MEASUREMENT_SEQUENCE.indexOf(taskName as any);
+      
+      if (currentIndex !== -1 && currentIndex < MEASUREMENT_SEQUENCE.length - 1) {
+        // Advance to next task
+        const nextTask = MEASUREMENT_SEQUENCE[currentIndex + 1];
+        setActiveTask(nextTask);
+        setCurrentMeasurementIndex(currentIndex + 1);
+        console.log(`➡️ Advancing to next task: ${nextTask} (index ${currentIndex + 1})`);
+      } else {
+        // Sequence complete
+        setActiveTask(null);
+        setCurrentView('kokpit');
+        setCurrentMeasurementIndex(null);
+        
+        // Mark session as complete
+        if (currentSessionId) {
+          await updateSession(currentSessionId, { 
+            in_progress: false,
+            completed_at: new Date().toISOString()
+          });
+          console.log('✅ Measurement session complete');
+        }
+      }
+    } catch (error: any) {
+      console.error('❌ handleMeasurementTaskComplete error:', error);
+      toast({
+        title: "Błąd zapisu",
+        description: error?.message || "Nie udało się zapisać wyniku. Spróbuj ponownie.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -1923,23 +1900,52 @@ const AthleteProfile = () => {
                   onGoToCockpit={() => setActiveTask(null)}
                 />
               )}
-              {activeTask === 'kwestionariusz' && (
+              {activeTask === 'six_sigma' && (
                 <>
                   {!selectedQuestionnaires ? (
                     <QuestionnaireSelector
-                      onComplete={(ids) => setSelectedQuestionnaires(ids)}
-                      onCancel={() => setActiveTask(null)}
+                      onComplete={(ids) => {
+                        if (!ids || ids.length === 0) {
+                          toast({
+                            title: "Błąd",
+                            description: "Nie wybrano żadnego kwestionariusza",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        setSelectedQuestionnaires(ids);
+                      }}
+                      onCancel={() => {
+                        setActiveTask(null);
+                        setSelectedQuestionnaires(null);
+                      }}
                     />
                   ) : (
                     <QuestionnaireRunner
                       questionnaireIds={selectedQuestionnaires}
                       onComplete={(data) => {
-                        handleMeasurementTaskComplete('kwestionariusz', data);
-                        setSelectedQuestionnaires(null);
+                        try {
+                          if (!data || !data.responses || data.responses.length === 0) {
+                            throw new Error("Brak danych kwestionariusza");
+                          }
+                          handleMeasurementTaskComplete('six_sigma', data);
+                          setSelectedQuestionnaires(null);
+                        } catch (error: any) {
+                          console.error('❌ Questionnaire completion error:', error);
+                          toast({
+                            title: "Błąd",
+                            description: error?.message || "Nie udało się zapisać kwestionariusza",
+                            variant: "destructive",
+                          });
+                        }
                       }}
                       onCancel={() => {
                         setSelectedQuestionnaires(null);
                         setActiveTask(null);
+                        toast({
+                          title: "Anulowano",
+                          description: "Kwestionariusz nie został wypełniony",
+                        });
                       }}
                     />
                   )}

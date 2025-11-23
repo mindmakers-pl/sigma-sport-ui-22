@@ -28,17 +28,19 @@ import SessionDetail from "./pages/SessionDetail";
 import TrainingDetail from "./pages/TrainingDetail";
 import ProgressReport from "./pages/ProgressReport";
 import SixSigmaReport from "./pages/SixSigmaReport";
+import ErrorBoundary from "./components/ErrorBoundary";
 const queryClient = new QueryClient();
 
 const App = () => {
   // Mock data removed - generate manually via debug panel if needed
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
           <Routes>
             <Route path="/landing" element={<Index />} />
             <Route path="/" element={<AppLayoutNew><Dashboard /></AppLayoutNew>} />
@@ -75,6 +77,7 @@ const App = () => {
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
