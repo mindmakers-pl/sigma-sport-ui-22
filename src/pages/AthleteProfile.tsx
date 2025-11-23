@@ -43,8 +43,8 @@ const AthleteProfile = () => {
     kwestionariusz: 'pending',
     hrv_baseline: 'pending',
     scan: 'pending',
-    control: 'pending',
     focus: 'pending',
+    memo: 'pending',
     sigma_move: 'pending',
     hrv_training: 'pending'
   });
@@ -405,8 +405,8 @@ const AthleteProfile = () => {
       kwestionariusz: 'pending',
       hrv_baseline: 'pending',
       scan: 'pending',
-      control: 'pending',
       focus: 'pending',
+      memo: 'pending',
       sigma_move: 'pending',
       hrv_training: 'pending',
     });
@@ -897,24 +897,6 @@ const AthleteProfile = () => {
                   </CardContent>
                 </Card>
 
-                {/* Control */}
-                <Card className={`cursor-pointer transition-all ${taskStatus.control === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-slate-900">Sigma Control</h3>
-                      {taskStatus.control === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
-                    </div>
-                    <p className="text-sm text-slate-600 mb-4">Test kontroli impulsów</p>
-                    <Button 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => setCurrentView('playing_control')}
-                    >
-                      {taskStatus.control === 'completed' ? 'Powtórz' : 'Rozpocznij'}
-                    </Button>
-                  </CardContent>
-                </Card>
-
                 {/* Focus */}
                 <Card className={`cursor-pointer transition-all ${taskStatus.focus === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
                   <CardContent className="p-4">
@@ -929,6 +911,24 @@ const AthleteProfile = () => {
                       onClick={() => setCurrentView('playing_focus')}
                     >
                       {taskStatus.focus === 'completed' ? 'Powtórz' : 'Rozpocznij'}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Memo */}
+                <Card className={`cursor-pointer transition-all ${taskStatus.memo === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-slate-900">Sigma Memo</h3>
+                      {taskStatus.memo === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                    </div>
+                    <p className="text-sm text-slate-600 mb-4">Test pamięci roboczej 2-Back</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => setCurrentView('playing_memo')}
+                    >
+                      {taskStatus.memo === 'completed' ? 'Powtórz' : 'Rozpocznij'}
                     </Button>
                   </CardContent>
                 </Card>
