@@ -639,9 +639,13 @@ const Athletes = () => {
                   {paginatedAthletes.map((athlete) => {
                     const club = clubs.find(c => c.id === athlete.club_id);
                     return (
-                      <TableRow key={athlete.id}>
+                      <TableRow 
+                        key={athlete.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => navigate(`/zawodnicy/${athlete.id}`)}
+                      >
                         {isSelectionMode && (
-                          <TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
                             <Checkbox
                               checked={selectedAthletes.includes(athlete.id)}
                               onCheckedChange={() => toggleSelectAthlete(athlete.id)}
@@ -656,24 +660,14 @@ const Athletes = () => {
                         <TableCell>
                           {athlete.birth_date ? format(new Date(athlete.birth_date), "dd MMM yyyy", { locale: pl }) : 'N/A'}
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex gap-2 justify-end">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => navigate(`/zawodnicy/${athlete.id}`)}
-                            >
-                              <FileText className="h-4 w-4 mr-1" />
-                              Profil
-                            </Button>
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => navigate(`/zawodnicy/${athlete.id}?tab=dodaj-pomiar`)}
-                            >
-                              Pomiar
-                            </Button>
-                          </div>
+                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => navigate(`/zawodnicy/${athlete.id}?tab=dodaj-pomiar`)}
+                          >
+                            Pomiar
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
