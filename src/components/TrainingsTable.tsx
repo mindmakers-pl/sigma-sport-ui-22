@@ -38,11 +38,33 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
         metric3: { label: 'Koszt koncentracji', value: `+${Math.round(results.concentrationCost || 0)} ms`, key: 'cost' }
       };
     }
+    if (training.task_type === 'scan') {
+      return {
+        metric1: { label: 'Średni RT', value: results.scan_avg_rt_ms ? `${Math.round(results.scan_avg_rt_ms)} ms` : '-', key: 'avgRT' },
+        metric2: { label: 'Błędy', value: results.scan_error_count !== undefined ? results.scan_error_count : '-', key: 'errors' },
+        metric3: { label: 'Liczba prób', value: results.scan_max_number_reached || '-', key: 'trials' }
+      };
+    }
+    if (training.task_type === 'memo') {
+      return {
+        metric1: { label: 'Celność', value: results.memo_accuracy_pct ? `${Math.round(results.memo_accuracy_pct)}%` : '-', key: 'accuracy' },
+        metric2: { label: 'Mediana RT', value: results.memo_median_rt_ms ? `${Math.round(results.memo_median_rt_ms)} ms` : '-', key: 'medianRT' },
+        metric3: { label: 'Poprawne', value: results.memo_correct_responses || '-', key: 'correct' }
+      };
+    }
+    if (training.task_type === 'tracker') {
+      return {
+        metric1: { label: 'Wynik', value: results.tracker_final_score_correct !== undefined && results.tracker_final_score_total !== undefined 
+          ? `${results.tracker_final_score_correct}/${results.tracker_final_score_total}` : '-', key: 'score' },
+        metric2: { label: 'Poziom', value: results.tracker_level || '-', key: 'level' },
+        metric3: { label: 'Błędy', value: results.tracker_mistakes !== undefined ? results.tracker_mistakes : '-', key: 'mistakes' }
+      };
+    }
     if (training.task_type === 'control') {
       return {
-        metric1: { label: 'Wynik', value: results.score || '-', key: 'score' },
-        metric2: { label: 'Czas', value: results.time ? `${results.time}s` : '-', key: 'time' },
-        metric3: { label: 'Błędy', value: results.errors || '-', key: 'errors' }
+        metric1: { label: 'Trafienia', value: results.control_go_hits || '-', key: 'hits' },
+        metric2: { label: 'Błędy NoGo', value: results.control_nogo_errors || '-', key: 'errors' },
+        metric3: { label: 'Średni RT', value: results.control_avg_rt_ms ? `${Math.round(results.control_avg_rt_ms)} ms` : '-', key: 'avgRT' }
       };
     }
     if (training.task_type === 'move') {
