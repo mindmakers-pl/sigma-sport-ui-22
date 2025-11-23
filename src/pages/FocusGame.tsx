@@ -612,48 +612,57 @@ export default function FocusGame({
                 <p className="text-green-400 text-sm">✓ Zapisaliśmy Twój wynik</p>
               </div>}
 
-            <div className="flex gap-3">
-              <Button size="lg" variant="outline" className="flex-1" onClick={() => {
-                if (onGoToCockpit) {
-                  onGoToCockpit();
-                } else {
-                  navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-                }
-              }}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
+            {athleteId ? (
+              // Training mode with athlete - show both buttons
+              <div className="flex gap-3">
+                <Button size="lg" variant="outline" className="flex-1" onClick={() => {
+                  if (onGoToCockpit) {
+                    onGoToCockpit();
+                  } else {
+                    navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                  }
+                }}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Zakończ
+                </Button>
+                <Button size="lg" className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => {
+                  const gameData = {
+                    accuracy: accuracy,
+                    totalTrials: TOTAL_TRIALS,
+                    correctCount: correctCount,
+                    coachReport: coachReport,
+                    focus_trials: results,
+                    focus_median_congruent_ms: medianCongruent,
+                    focus_median_incongruent_ms: medianIncongruent,
+                    focus_concentration_cost_ms: concentrationCost,
+                    focus_accuracy_pct: accuracy,
+                    focus_correct_count: correctCount,
+                    focus_total_trials: TOTAL_TRIALS,
+                    focus_valid_trials: validTrials.length,
+                    focus_coach_report: coachReport,
+                    focus_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
+                    focus_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null
+                  };
+                  
+                  if (onComplete) {
+                    onComplete(gameData);
+                  } else {
+                    navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                  }
+                }}>
+                  Następne Wyzwanie
+                </Button>
+              </div>
+            ) : (
+              // Library/demo mode without athlete - only show Finish button
+              <Button 
+                size="lg"
+                className="w-full"
+                onClick={() => navigate('/biblioteka')}
+              >
                 Zakończ
               </Button>
-              <Button size="lg" className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => {
-                const gameData = {
-                  accuracy: accuracy,
-                  totalTrials: TOTAL_TRIALS,
-                  correctCount: correctCount,
-                  coachReport: coachReport,
-                  focus_trials: results,
-                  focus_median_congruent_ms: medianCongruent,
-                  focus_median_incongruent_ms: medianIncongruent,
-                  focus_concentration_cost_ms: concentrationCost,
-                  focus_accuracy_pct: accuracy,
-                  focus_correct_count: correctCount,
-                  focus_total_trials: TOTAL_TRIALS,
-                  focus_valid_trials: validTrials.length,
-                  focus_coach_report: coachReport,
-                  focus_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
-                  focus_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null
-                };
-                
-                console.log('🎮 Sigma Focus wyniki:', gameData);
-                console.log('✅ Sigma Focus: Calling onComplete with data');
-                
-                if (onComplete) {
-                  onComplete(gameData);
-                } else {
-                  navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-                }
-              }}>
-                Następne Wyzwanie
-              </Button>
-            </div>
+            )}
           </CardContent>
         </Card>
         

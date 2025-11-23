@@ -318,70 +318,78 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
                 </div>
               )}
 
-              <div className="flex gap-3">
+              {athleteId ? (
+                // Training mode with athlete - show both buttons
+                <div className="flex gap-3">
+                  <Button 
+                    size="lg"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      const result = calculateResult();
+                      const gameData = {
+                        scan_max_number_reached: result.maxNumber,
+                        scan_duration_s: result.duration,
+                        scan_correct_clicks: result.correctClicks,
+                        scan_error_clicks: result.errorClicks,
+                        scan_skipped_numbers: result.skippedNumbers,
+                        scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
+                        scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
+                        scan_raw_clicks: clickHistory
+                      };
+                      
+                      if (onGoToCockpit) {
+                        onGoToCockpit();
+                      } else {
+                        navigate(`/zawodnicy/${athleteId}?tab=trening`);
+                      }
+                    }}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Zakończ
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    onClick={() => {
+                      const result = calculateResult();
+                      const gameData = {
+                        scan_max_number_reached: result.maxNumber,
+                        scan_duration_s: result.duration,
+                        scan_correct_clicks: result.correctClicks,
+                        scan_error_clicks: result.errorClicks,
+                        scan_skipped_numbers: result.skippedNumbers,
+                        scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
+                        scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
+                        scan_raw_clicks: clickHistory
+                      };
+                      
+                      if (onComplete) {
+                        onComplete(gameData);
+                      } else {
+                        navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
+                      }
+                    }}
+                  >
+                    Następne Wyzwanie
+                  </Button>
+                </div>
+              ) : (
+                // Library/demo mode without athlete - only show Finish button
                 <Button 
                   size="lg"
-                  variant="outline"
-                  className="flex-1"
+                  className="w-full"
                   onClick={() => {
-                    const result = calculateResult();
-                    const gameData = {
-                      scan_max_number_reached: result.maxNumber,
-                      scan_duration_s: result.duration,
-                      scan_correct_clicks: result.correctClicks,
-                      scan_error_clicks: result.errorClicks,
-                      scan_skipped_numbers: result.skippedNumbers,
-                      scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
-                      scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
-                      scan_raw_clicks: clickHistory
-                    };
-                    
-                    console.log('🎮 Sigma Scan wyniki:', gameData);
-                    console.log('✅ Sigma Scan: Calling onComplete with data');
-                    
-                    if (onComplete) {
-                      onComplete(gameData);
-                    }
-                    
                     if (onGoToCockpit) {
                       onGoToCockpit();
-                    } else if (athleteId) {
-                      navigate(`/zawodnicy/${athleteId}?tab=trening`);
+                    } else {
+                      navigate('/biblioteka');
                     }
                   }}
                 >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
                   Zakończ
                 </Button>
-                <Button 
-                  size="lg" 
-                  className="flex-1 bg-green-600 hover:bg-green-700"
-                  onClick={() => {
-                    const result = calculateResult();
-                    const gameData = {
-                      scan_max_number_reached: result.maxNumber,
-                      scan_duration_s: result.duration,
-                      scan_correct_clicks: result.correctClicks,
-                      scan_error_clicks: result.errorClicks,
-                      scan_skipped_numbers: result.skippedNumbers,
-                      scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
-                      scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
-                      scan_raw_clicks: clickHistory
-                    };
-                    
-                    console.log('🎮 Sigma Scan wyniki:', gameData);
-                    console.log('✅ Sigma Scan: Calling onComplete with data');
-                    
-                    if (onComplete) {
-                      onComplete(gameData);
-                    } else {
-                      navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-                    }
-                  }}
-                >
-                  Następne Wyzwanie
-                </Button>
-              </div>
+              )}
             </CardContent>
           </Card>
         )}
