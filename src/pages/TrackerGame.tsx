@@ -112,10 +112,21 @@ const TrackerGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: Tracke
                   <Input type="text" value={hrvInput} onChange={(e) => setHrvInput(e.target.value)} placeholder="np. 65" className="bg-slate-700 border-slate-600 text-white mt-2" />
                 </div>
                 
-                <div className="flex gap-4">
-                  <Button variant="outline" className="flex-1" onClick={handleGoBackToCockpit}>Wróć do kokpitu</Button>
-                  <Button className="flex-1" onClick={handleSaveAndContinue}>Zapisz i idź dalej</Button>
-                </div>
+                {athleteId ? (
+                  // Training mode with athlete - show both buttons
+                  <div className="flex gap-4">
+                    <Button variant="outline" className="flex-1" onClick={handleGoBackToCockpit}>Wróć do kokpitu</Button>
+                    <Button className="flex-1" onClick={handleSaveAndContinue}>Zapisz i idź dalej</Button>
+                  </div>
+                ) : (
+                  // Library/demo mode without athlete - only show Finish button
+                  <Button 
+                    className="w-full"
+                    onClick={() => navigate('/biblioteka')}
+                  >
+                    Zakończ
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>

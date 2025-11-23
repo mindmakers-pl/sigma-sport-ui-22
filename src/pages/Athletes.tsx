@@ -155,8 +155,8 @@ const Athletes = () => {
   const hasActiveFilters = filterClub !== "all" || filterDiscipline !== "all";
 
   const handleAddAthlete = async () => {
-    if (!newAthlete.firstName.trim() || !newAthlete.lastName.trim() || !newAthlete.clubId) {
-      toast.error("Wypełnij wszystkie wymagane pola");
+    if (!newAthlete.firstName.trim() || !newAthlete.lastName.trim()) {
+      toast.error("Wypełnij wszystkie wymagane pola (imię i nazwisko)");
       return;
     }
 
@@ -166,7 +166,7 @@ const Athletes = () => {
       gender: newAthlete.gender || undefined,
       email: newAthlete.email || undefined,
       phone: newAthlete.phone || undefined,
-      club_id: newAthlete.clubId,
+      club_id: newAthlete.clubId || undefined,
       coach: newAthlete.coach || undefined,
       discipline: newAthlete.discipline || undefined,
       birth_date: newAthlete.birthDate?.toISOString(),
@@ -206,8 +206,7 @@ const Athletes = () => {
   };
 
   const isFormValid = newAthlete.firstName.trim() !== "" && 
-                      newAthlete.lastName.trim() !== "" && 
-                      newAthlete.clubId !== "";
+                      newAthlete.lastName.trim() !== "";
 
   if (loading || clubsLoading) {
     return (
@@ -294,7 +293,7 @@ const Athletes = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="club" className="text-slate-900 font-semibold">
-                      Klub <span className="text-red-500">*</span>
+                      Klub
                     </Label>
                     <Select
                       value={newAthlete.clubId}

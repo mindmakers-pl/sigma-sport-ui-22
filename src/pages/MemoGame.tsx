@@ -283,23 +283,35 @@ const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
             </div>
           </div>
 
-          <div className="flex gap-4">
+          {athleteId ? (
+            // Training mode with athlete - show both buttons
+            <div className="flex gap-4">
+              <Button 
+                variant="outline"
+                onClick={handleGoBack}
+                className="flex-1"
+                size="lg"
+              >
+                Zakończ
+              </Button>
+              <Button 
+                onClick={handleSaveAndContinue}
+                className="flex-1"
+                size="lg"
+              >
+                Następne Wyzwanie
+              </Button>
+            </div>
+          ) : (
+            // Library/demo mode without athlete - only show Finish button
             <Button 
-              variant="outline"
-              onClick={handleGoBack}
-              className="flex-1"
+              onClick={() => navigate('/biblioteka')}
+              className="w-full"
               size="lg"
             >
               Zakończ
             </Button>
-            <Button 
-              onClick={handleSaveAndContinue}
-              className="flex-1"
-              size="lg"
-            >
-              Następne Wyzwanie
-            </Button>
-          </div>
+          )}
 
           <p className="text-center text-sm text-slate-400">
             Wynik został zapisany
