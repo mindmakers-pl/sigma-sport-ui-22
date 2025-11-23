@@ -17,6 +17,7 @@ import ScanGame from "@/components/games/ScanGame";
 import ControlGame from "@/components/games/ControlGame";
 import FocusGame from "@/components/games/FocusGame";
 import MemoGame from "@/components/games/MemoGame";
+import TrackerGame from "@/components/games/TrackerGame";
 import SigmaFeedbackForm from "@/components/forms/SigmaFeedbackForm";
 import Kwestionariusz from "@/components/forms/Kwestionariusz";
 import HRVBaselineForm from "@/components/forms/HRVBaselineForm";
@@ -317,47 +318,13 @@ const AthleteProfile = () => {
   };
 
   const handleTrainingTaskComplete = async (data: any) => {
-    const taskName = currentView
-      .replace('showing_', '')
-      .replace('playing_', '')
-      .replace('measuring_', '');
+    console.log('🎮 Training task complete - data received:', data);
     
-    // Check if this is a training session
-    const currentTrainingStr = localStorage.getItem('current_training');
-    if (currentTrainingStr && currentView.startsWith('playing_')) {
-      // This is a training session - save to Supabase
-      const currentTraining = JSON.parse(currentTrainingStr);
-      
-      const { error } = await addTraining({
-        athlete_id: id!,
-        task_type: taskName,
-        date: new Date().toISOString(),
-        results: {
-          ...currentTraining,
-          results: data,
-          completedAt: new Date().toISOString()
-        }
-      });
-      
-      if (error) {
-        toast({
-          title: "Błąd",
-          description: "Nie udało się zapisać treningu",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Sukces",
-          description: "Trening został zapisany",
-        });
-        await refetchTrainings();
-      }
-      
-      localStorage.removeItem('current_training');
-      console.log('Trening zapisany do Supabase');
-      setCurrentView('kokpit');
-      return;
-    }
+    // Games now handle their own save logic via GameResultsButtons
+    // This handler is just for backward compatibility with old training forms
+    await refetchTrainings();
+    setCurrentView('trening');
+    setSearchParams({ tab: 'trening' });
   };
 
   const handleSaveSessionFromWizard = async (wizardResults: any) => {
@@ -1184,17 +1151,8 @@ const AthleteProfile = () => {
                       size="sm" 
                       className="w-full"
                       onClick={() => {
-                        const training = {
-                          id: `training_scan_${Date.now()}`,
-                          athlete_id: id,
-                          athlete_name: athlete.name,
-                          game_type: 'scan',
-                          game_name: 'Sigma Scan',
-                          date: new Date().toISOString(),
-                          results: {}
-                        };
-                        localStorage.setItem('current_training', JSON.stringify(training));
                         setCurrentView('playing_scan');
+                        setSearchParams({ tab: 'trening' });
                       }}
                     >
                       Zagraj
@@ -1210,7 +1168,10 @@ const AthleteProfile = () => {
                     <Button 
                       size="sm" 
                       className="w-full"
-                      onClick={() => setCurrentView('playing_control')}
+                      onClick={() => {
+                        setCurrentView('playing_control');
+                        setSearchParams({ tab: 'trening' });
+                      }}
                     >
                       Zagraj
                     </Button>
@@ -1226,17 +1187,8 @@ const AthleteProfile = () => {
                       size="sm" 
                       className="w-full"
                       onClick={() => {
-                        const training = {
-                          id: `training_focus_${Date.now()}`,
-                          athlete_id: id,
-                          athlete_name: athlete.name,
-                          game_type: 'focus',
-                          game_name: 'Sigma Focus',
-                          date: new Date().toISOString(),
-                          results: {}
-                        };
-                        localStorage.setItem('current_training', JSON.stringify(training));
                         setCurrentView('playing_focus');
+                        setSearchParams({ tab: 'trening' });
                       }}
                     >
                       Zagraj
@@ -1253,17 +1205,26 @@ const AthleteProfile = () => {
                       size="sm" 
                       className="w-full"
                       onClick={() => {
-                        const training = {
-                          id: `training_memo_${Date.now()}`,
-                          athlete_id: id,
-                          athlete_name: athlete.name,
-                          game_type: 'memo',
-                          game_name: 'Sigma Memo',
-                          date: new Date().toISOString(),
-                          results: {}
-                        };
-                        localStorage.setItem('current_training', JSON.stringify(training));
                         setCurrentView('playing_memo');
+                        setSearchParams({ tab: 'trening' });
+                      }}
+                    >
+                      Zagraj
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Tracker */}
+                <Card className="bg-slate-50 hover:bg-slate-100 border-slate-200 cursor-pointer transition-all">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-slate-900 mb-2">Sigma Tracker</h3>
+                    <p className="text-sm text-slate-600 mb-4">Trening śledzenia obiektów</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => {
+                        setCurrentView('playing_tracker');
+                        setSearchParams({ tab: 'trening' });
                       }}
                     >
                       Zagraj
@@ -1991,19 +1952,59 @@ const AthleteProfile = () => {
           )}
 
           {currentView === 'playing_scan' && (
-            <ScanGame onComplete={handleTrainingTaskComplete} />
+            <ScanGame 
+              athleteId={id}
+              mode="training"
+              onGoToCockpit={() => {
+                setCurrentView('trening');
+                setSearchParams({ tab: 'trening' });
+              }}
+              onComplete={handleTrainingTaskComplete}
+            />
           )}
 
           {currentView === 'playing_control' && (
-            <ControlGame onComplete={handleTrainingTaskComplete} />
+            <ControlGame 
+              athleteId={id}
+              mode="training"
+              onGoToCockpit={() => {
+                setCurrentView('trening');
+                setSearchParams({ tab: 'trening' });
+              }}
+              onComplete={handleTrainingTaskComplete}
+            />
           )}
 
           {currentView === 'playing_focus' && (
-            <FocusGame onComplete={handleTrainingTaskComplete} />
+            <FocusGame 
+              athleteId={id}
+              mode="training"
+              onGoToCockpit={() => {
+                setCurrentView('trening');
+                setSearchParams({ tab: 'trening' });
+              }}
+              onComplete={handleTrainingTaskComplete}
+            />
           )}
 
           {currentView === 'playing_memo' && (
-            <MemoGame onComplete={handleTrainingTaskComplete} />
+            <MemoGame 
+              athleteId={id}
+              mode="training"
+              onComplete={handleTrainingTaskComplete}
+            />
+          )}
+
+          {currentView === 'playing_tracker' && (
+            <TrackerGame 
+              athleteId={id}
+              mode="training"
+              onGoToCockpit={() => {
+                setCurrentView('trening');
+                setSearchParams({ tab: 'trening' });
+              }}
+              onComplete={handleTrainingTaskComplete}
+            />
           )}
 
           {currentView === 'training_move' && (
