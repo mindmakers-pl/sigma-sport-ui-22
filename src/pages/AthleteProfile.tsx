@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,6 +54,13 @@ const AthleteProfile = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "informacje";
   const activeSubTab = searchParams.get("subtab") || "sigma-score";
+  
+  // Ensure tab parameter is always in URL
+  React.useEffect(() => {
+    if (!searchParams.get('tab')) {
+      setSearchParams({ tab: 'informacje' }, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   
   const [sessionA, setSessionA] = useState("baseline-m1");
   const [sessionB, setSessionB] = useState("ewaluacja-m7");
