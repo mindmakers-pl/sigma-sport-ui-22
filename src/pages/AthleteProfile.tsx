@@ -221,6 +221,107 @@ const AthleteProfile = () => {
     setCurrentView('kokpit');
   };
 
+  const handleSaveSessionFromWizard = (wizardResults: any) => {
+    console.log('Otrzymano dane z wizard:', wizardResults);
+    
+    // Transform questionnaires data to Six Sigma format
+    let sixSigmaResults: any = null;
+    
+    if (wizardResults.questionnaires?.questionnaires) {
+      const scoredQuestionnaires = wizardResults.questionnaires.questionnaires;
+      
+      // Find Six Sigma full (6x6) questionnaire
+      const sixSigmaFull = scoredQuestionnaires.find((q: any) => 
+        q.questionnaireId === 'six_sigma_full'
+      );
+      
+      if (sixSigmaFull) {
+        // Transform scored questionnaire to session format
+        sixSigmaResults = {
+          version: "6x6+6",
+          questionnaireName: sixSigmaFull.questionnaireName,
+          completionDate: sixSigmaFull.completedAt,
+          completionTimeSeconds: 0, // TODO: track actual time
+          competencyScores: sixSigmaFull.competencyScores.map((comp: any) => ({
+            competency: comp.competencyId,
+            name: comp.competencyName,
+            rawScore: comp.rawScore,
+            maxScore: comp.maxPossibleScore,
+            normalizedScore: comp.normalizedScore / 100, // Convert from 0-100 to 0-1
+            interpretation: getScoreInterpretation(comp.normalizedScore)
+          })),
+          modifierScores: sixSigmaFull.modifierScores.map((mod: any) => ({
+            modifier: mod.modifierId,
+            name: mod.modifierName,
+            rawScore: mod.rawValue,
+            maxScore: 5,
+            normalizedScore: mod.normalizedScore / 100, // Convert from 0-100 to 0-1
+            impact: getModifierImpact(mod.normalizedScore)
+          })),
+          overallScore: sixSigmaFull.overallScore ? sixSigmaFull.overallScore / 100 : 0,
+          validation: sixSigmaFull.validation,
+          responses: sixSigmaFull.responses || [] // Include raw responses with metadata
+        };
+      }
+    }
+    
+    // Create or update session
+    const sessionId = currentSessionId || `session_${Date.now()}`;
+    const sessionData = {
+      id: sessionId,
+      athlete_id: id,
+      athlete_name: athlete?.name || 'Unknown',
+      date: new Date().toISOString(),
+      conditions: measurementConditions,
+      results: {
+        ...sessionResults,
+        ...wizardResults,
+        ...(sixSigmaResults && { six_sigma: sixSigmaResults })
+      },
+      taskStatus: {
+        ...taskStatus,
+        ...(sixSigmaResults && { six_sigma: 'completed' })
+      },
+      inProgress: false
+    };
+    
+    console.log('Zapisuję sesję:', sessionData);
+    
+    const existingSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
+    const sessionIndex = existingSessions.findIndex((s: any) => s.id === sessionId);
+    
+    if (sessionIndex !== -1) {
+      existingSessions[sessionIndex] = sessionData;
+    } else {
+      existingSessions.push(sessionData);
+    }
+    
+    localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
+    setSavedSessions(existingSessions.filter((s: any) => s.athlete_id === id));
+    
+    // Navigate to reports
+    setSearchParams({ tab: 'raporty' });
+    
+    // Reset wizard state
+    setCurrentSessionId(null);
+    setSessionResults({});
+  };
+  
+  // Helper functions for interpretation
+  const getScoreInterpretation = (normalizedScore: number): string => {
+    if (normalizedScore >= 80) return 'Wysoki';
+    if (normalizedScore >= 60) return 'Dobry';
+    if (normalizedScore >= 40) return 'Średni';
+    if (normalizedScore >= 20) return 'Niski';
+    return 'Bardzo niski';
+  };
+  
+  const getModifierImpact = (normalizedScore: number): 'positive' | 'neutral' | 'negative' => {
+    if (normalizedScore >= 60) return 'positive';
+    if (normalizedScore >= 40) return 'neutral';
+    return 'negative';
+  };
+
   const handleSaveSession = () => {
     if (!currentSessionId) return;
     
@@ -1445,7 +1546,7 @@ const AthleteProfile = () => {
             <SessionWizardNew
               athleteId={id || ''}
               onClose={() => setCurrentView('kokpit')}
-              onSaveSession={handleSaveSession}
+              onSaveSession={handleSaveSessionFromWizard}
             />
           )}
 

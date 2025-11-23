@@ -180,12 +180,34 @@ export default function SixSigmaReport() {
   const coachInsights = generateCoachInterpretation();
 
   const handleExportJSON = () => {
-    const dataStr = JSON.stringify(sixSigmaData, null, 2);
+    // JSON contains everything: raw responses, aggregated scores, validation
+    const exportData = {
+      metadata: {
+        sessionId: session.id,
+        athleteId: athlete.id,
+        athleteName: athlete.name,
+        date: new Date(session.date).toISOString(),
+        exportedAt: new Date().toISOString()
+      },
+      rawResponses: sixSigmaData.responses || [],
+      aggregates: {
+        competencyScores: sixSigmaData.competencyScores,
+        modifierScores: sixSigmaData.modifierScores,
+        overallScore: sixSigmaData.overallScore,
+        validation: sixSigmaData.validation
+      },
+      interpretation: {
+        athleteInsights,
+        coachInsights
+      }
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `six-sigma-${session.id}-${new Date().toISOString()}.json`;
+    link.download = `six-sigma-${session.id}-${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
