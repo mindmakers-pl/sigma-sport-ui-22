@@ -8,73 +8,45 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import BackButton from "@/components/BackButton";
+import { useTrainers } from "@/hooks/useTrainers";
+import { useAthletes } from "@/hooks/useAthletes";
+import { useClubs } from "@/hooks/useClubs";
 
 const AdminPanel = () => {
   const navigate = useNavigate();
-  const [trainers, setTrainers] = useState<any[]>([]);
-  const [allAthletes, setAllAthletes] = useState<any[]>([]);
-  const [allClubs, setAllClubs] = useState<any[]>([]);
+  const { trainers, addTrainer: addTrainerHook } = useTrainers();
+  const { athletes: allAthletes } = useAthletes();
+  const { clubs: allClubs } = useClubs();
   const [isAddTrainerOpen, setIsAddTrainerOpen] = useState(false);
   const [newTrainer, setNewTrainer] = useState({ email: "", name: "", phone: "" });
 
   useEffect(() => {
-    // Ustaw rolę na admina gdy wchodzimy do panelu
+    // Set admin role when entering panel (temporary UI state)
     localStorage.setItem("userRole", "admin");
     window.dispatchEvent(new Event('storage'));
-    
-    // Załaduj trenerów
-    const storedTrainers = localStorage.getItem('trainers');
-    if (storedTrainers) {
-      setTrainers(JSON.parse(storedTrainers));
-    } else {
-      // Inicjalizuj z kontem iwan.nylypiuk@mindmakers.pl
-      const initialTrainers = [{
-        id: "trainer-1",
-        email: "iwan.nylypiuk@mindmakers.pl",
-        name: "Iwan Nylypiuk",
-        phone: "",
-        role: "trainer",
-        createdAt: new Date().toISOString()
-      }];
-      localStorage.setItem('trainers', JSON.stringify(initialTrainers));
-      setTrainers(initialTrainers);
-    }
-
-    // Załaduj wszystkich zawodników ze wszystkich kont trenerów
-    const athletes = localStorage.getItem('athletes');
-    if (athletes) {
-      setAllAthletes(JSON.parse(athletes));
-    }
-
-    // Załaduj wszystkie kluby
-    const clubs = localStorage.getItem('clubs');
-    if (clubs) {
-      setAllClubs(JSON.parse(clubs));
-    }
   }, []);
 
-  const handleAddTrainer = () => {
+  const handleAddTrainer = async () => {
     if (!newTrainer.email || !newTrainer.name) {
       toast.error("Wypełnij wymagane pola");
       return;
     }
 
-    // Sprawdź czy trener już istnieje
+    // Check if trainer already exists
     if (trainers.some(t => t.email === newTrainer.email)) {
       toast.error("Trener o tym adresie email już istnieje");
       return;
     }
 
-    const trainer = {
-      id: `trainer-${Date.now()}`,
+    const { error } = await addTrainerHook({
       ...newTrainer,
-      role: "trainer",
-      createdAt: new Date().toISOString()
-    };
+      role: "trainer"
+    });
 
-    const updatedTrainers = [...trainers, trainer];
-    setTrainers(updatedTrainers);
-    localStorage.setItem('trainers', JSON.stringify(updatedTrainers));
+    if (error) {
+      toast.error("Nie udało się dodać trenera");
+      return;
+    }
     
     toast.success("Trener został dodany");
     setIsAddTrainerOpen(false);

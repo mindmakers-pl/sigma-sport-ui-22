@@ -15,6 +15,7 @@ import { pl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import DisciplineSelectorMultiple from "@/components/DisciplineSelectorMultiple";
+import { useClubs } from "@/hooks/useClubs";
 
 interface Coach {
   name: string;
@@ -67,30 +68,37 @@ const ClubManagement = () => {
     sigmaTeamsSprints?: boolean;
   }>({});
 
-  useEffect(() => {
-    // Pobierz dane klubu z localStorage
-    const storedClubs = localStorage.getItem('clubs');
-    if (storedClubs) {
-      const clubs: Club[] = JSON.parse(storedClubs);
-      const club = clubs.find(c => c.id === parseInt(id || '0'));
-      if (club) {
-        setClubData(club);
-      }
-    }
-  }, [id]);
+  const { clubs, updateClub: updateClubHook } = useClubs();
 
-  const handleSave = () => {
+  useEffect(() => {
+    const club = clubs.find(c => c.id === id);
+    if (club) {
+      // Transform Supabase club to component format
+      setClubData({
+        ...club,
+        id: parseInt(club.id),
+        coaches: club.coaches as Coach[] || []
+      } as any);
+    }
+  }, [id, clubs]);
+
+  const handleSave = async () => {
     if (!clubData) return;
 
-    const storedClubs = localStorage.getItem('clubs');
-    if (storedClubs) {
-      const clubs: Club[] = JSON.parse(storedClubs);
-      const updatedClubs = clubs.map(c => c.id === clubData.id ? clubData : c);
-      localStorage.setItem('clubs', JSON.stringify(updatedClubs));
-      toast.success("Dane klubu zostały zapisane");
-      // Przekieruj do strony klubu
-      navigate(`/kluby/${id}`);
+    const { error } = await updateClubHook(id!, {
+      name: clubData.name,
+      city: clubData.city,
+      disciplines: clubData.disciplines,
+      coaches: clubData.coaches
+    });
+
+    if (error) {
+      toast.error("Nie udało się zapisać zmian");
+      return;
     }
+
+    toast.success("Dane klubu zostały zapisane");
+    navigate(`/kluby/${id}`);
   };
 
   const handleAddCoach = () => {
