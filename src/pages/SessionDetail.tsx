@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2, XCircle, Loader2, Brain } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { useToast } from "@/hooks/use-toast";
 export default function SessionDetail() {
   const {
     athleteId,
@@ -16,6 +17,9 @@ export default function SessionDetail() {
   const taskView = searchParams.get("task") || "overview";
   const [session, setSession] = useState<any>(null);
   const [athlete, setAthlete] = useState<any>(null);
+  const [sigmaInterpretation, setSigmaInterpretation] = useState<any>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const { toast } = useToast();
   useEffect(() => {
     // Load session data
     const sessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
@@ -33,6 +37,64 @@ export default function SessionDetail() {
       </div>;
   }
   const completedTasks = Object.entries(session.taskStatus).filter(([_, status]) => status === 'completed').map(([task]) => task);
+  
+  const generateSigmaScore = async () => {
+    setIsGenerating(true);
+    
+    const sessionData = {
+      athlete: {
+        id: athleteId,
+        age: athlete.age || 13,
+        sport: athlete.sport || "Unknown"
+      },
+      questionnaire: {
+        six_sigma_scores: session.results.six_sigma?.scores || {},
+        mood_modifiers: session.results.six_sigma?.moodModifiers || {}
+      },
+      cognitive: {
+        focus: session.results.focus,
+        scan: session.results.scan,
+        memo: session.results.memo
+      },
+      hrv: {
+        rMSSD: session.results.hrv_baseline?.rMSSD,
+        HR: session.results.hrv_baseline?.HR
+      },
+      feedback: session.results.feedback
+    };
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-sigma-score`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({ sessionData })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setSigmaInterpretation(data.interpretation);
+      toast({
+        title: "Interpretacja wygenerowana",
+        description: "Analiza AI została pomyślnie utworzona"
+      });
+    } catch (error) {
+      console.error('Failed to generate Sigma Score:', error);
+      toast({
+        title: "Błąd",
+        description: "Nie udało się wygenerować interpretacji",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleExportJSON = () => {
     const dataStr = JSON.stringify(session, null, 2);
     const dataBlob = new Blob([dataStr], {
@@ -72,7 +134,8 @@ export default function SessionDetail() {
       { id: 'scan', name: 'Sigma Scan', resultKey: 'scan', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=scan` },
       { id: 'focus', name: 'Sigma Focus', resultKey: 'focus', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=focus` },
       { id: 'memo', name: 'Sigma Memo', resultKey: 'memo', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=memo` },
-      { id: 'feedback', name: 'Sigma Feedback', resultKey: 'feedback', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=feedback` }
+      { id: 'feedback', name: 'Sigma Feedback', resultKey: 'feedback', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=feedback` },
+      { id: 'sigma_score', name: 'Sigma Score', resultKey: 'sigma_score_interpretation', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=sigma_score` }
     ];
 
     return <div className="p-8 max-w-6xl mx-auto">
@@ -1221,6 +1284,214 @@ export default function SessionDetail() {
           </TabsContent>
         </Tabs>
       </div>;
+  }
+
+  // Sigma Score Intelligence view
+  if (taskView === "sigma_score") {
+    return (
+      <div className="p-8 max-w-6xl mx-auto">
+        <Button 
+          variant="ghost" 
+          className="mb-4" 
+          onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=overview`)}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Powrót do podsumowania
+        </Button>
+
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-slate-900 mb-2 flex items-center gap-3">
+            <Brain className="h-8 w-8 text-primary" />
+            Sigma Score Intelligence
+          </h2>
+          <p className="text-slate-600">
+            {athlete.name} • {new Date(session.date).toLocaleDateString('pl-PL')}
+          </p>
+        </div>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Interpretacja AI sesji pomiarowej</CardTitle>
+            <p className="text-sm text-slate-600">
+              Holistyczna analiza wyników kwestionariuszy, gier poznawczych, HRV i feedbacku zawodnika
+            </p>
+          </CardHeader>
+          <CardContent>
+            {!sigmaInterpretation ? (
+              <div className="text-center py-12">
+                <Brain className="h-16 w-16 mx-auto mb-4 text-slate-300" />
+                <p className="text-slate-600 mb-6">
+                  Wygeneruj interpretację AI dla tej sesji pomiarowej
+                </p>
+                <Button 
+                  onClick={generateSigmaScore} 
+                  disabled={isGenerating}
+                  size="lg"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Generowanie...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="h-5 w-5 mr-2" />
+                      Wygeneruj Sigma Score
+                    </>
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Overall Assessment */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 p-6 rounded-lg">
+                  <h3 className="font-bold text-lg text-slate-900 mb-3">Ogólna ocena</h3>
+                  <p className="text-slate-700 leading-relaxed">
+                    {sigmaInterpretation.overall_assessment}
+                  </p>
+                </div>
+
+                {/* Key Observations */}
+                {sigmaInterpretation.key_observations?.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Kluczowe obserwacje</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {sigmaInterpretation.key_observations.map((obs: any, idx: number) => (
+                        <div key={idx} className="border-l-4 border-primary pl-4">
+                          <h4 className="font-semibold text-slate-900 mb-1">{obs.competency}</h4>
+                          <p className="text-sm text-slate-700 mb-2">{obs.finding}</p>
+                          <p className="text-xs text-slate-600 italic">
+                            Dowód: {obs.evidence}
+                          </p>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Recommendations */}
+                {sigmaInterpretation.recommendations?.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Rekomendacje treningowe</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {sigmaInterpretation.recommendations.map((rec: any, idx: number) => (
+                        <div key={idx} className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                          <h4 className="font-semibold text-green-900 mb-2">{rec.competency}</h4>
+                          <p className="text-sm text-green-800 mb-2">{rec.action}</p>
+                          <p className="text-xs text-green-700">Dlaczego: {rec.why}</p>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Contextual Factors */}
+                {sigmaInterpretation.contextual_factors?.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Czynniki kontekstowe</CardTitle>
+                      <p className="text-sm text-slate-600">
+                        Modyfikatory środowiskowe i stanowe
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {sigmaInterpretation.contextual_factors.map((factor: any, idx: number) => (
+                        <div key={idx} className="bg-amber-50 border border-amber-200 p-3 rounded">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="outline">{factor.modifier}</Badge>
+                            <span className="text-sm text-slate-700">{factor.impact}</span>
+                          </div>
+                          <p className="text-xs text-slate-600 ml-2">{factor.recommendation}</p>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Attention Areas for Coach */}
+                {sigmaInterpretation.attention_areas?.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Obszary wymagające uwagi trenera</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {sigmaInterpretation.attention_areas.map((area: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="text-red-500 mt-1">⚠️</span>
+                            <span className="text-sm text-slate-700">{area}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Convergence Analysis */}
+                {sigmaInterpretation.convergence_analysis && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Analiza zbieżności</CardTitle>
+                      <p className="text-sm text-slate-600">
+                        Porównanie samooceny vs. wyników poznawczych
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-slate-50 p-4 rounded-lg">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Badge 
+                            variant={
+                              sigmaInterpretation.convergence_analysis.alignment_score === 'high' 
+                                ? 'default' 
+                                : sigmaInterpretation.convergence_analysis.alignment_score === 'medium'
+                                ? 'secondary'
+                                : 'destructive'
+                            }
+                          >
+                            {sigmaInterpretation.convergence_analysis.alignment_score === 'high' 
+                              ? 'Wysoka zbieżność' 
+                              : sigmaInterpretation.convergence_analysis.alignment_score === 'medium'
+                              ? 'Średnia zbieżność'
+                              : 'Niska zbieżność'}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-slate-700">
+                          {sigmaInterpretation.convergence_analysis.notes}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <div className="flex justify-end">
+                  <Button 
+                    variant="outline"
+                    onClick={generateSigmaScore}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Regenerowanie...
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="h-4 w-4 mr-2" />
+                        Regeneruj interpretację
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   // Fallback for other tasks
