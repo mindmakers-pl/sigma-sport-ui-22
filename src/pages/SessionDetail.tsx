@@ -71,7 +71,8 @@ export default function SessionDetail() {
       { id: 'hrv_baseline', name: 'HRV Baseline', resultKey: 'hrv_baseline', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=hrv_baseline` },
       { id: 'scan', name: 'Sigma Scan', resultKey: 'scan', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=scan` },
       { id: 'focus', name: 'Sigma Focus', resultKey: 'focus', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=focus` },
-      { id: 'memo', name: 'Sigma Memo', resultKey: 'memo', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=memo` }
+      { id: 'memo', name: 'Sigma Memo', resultKey: 'memo', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=memo` },
+      { id: 'feedback', name: 'Sigma Feedback', resultKey: 'feedback', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=feedback` }
     ];
 
     return <div className="p-8 max-w-6xl mx-auto">
@@ -104,7 +105,7 @@ export default function SessionDetail() {
                 {session.conditions}
               </Badge>
               <Badge variant="outline" className="text-sm">
-                {completedTasks.length}/5 testów
+                {completedTasks.length}/6 testów
               </Badge>
               <Badge variant="outline" className="text-sm">
                 {new Date(session.date).toLocaleDateString('pl-PL')}
@@ -1069,6 +1070,144 @@ export default function SessionDetail() {
                     <Download className="h-6 w-6" />
                     <span>Pobierz CSV</span>
                     <span className="text-xs text-slate-500">Dane prób</span>
+                  </Button>
+                  
+                  <Button variant="outline" className="h-24 flex-col gap-2" disabled>
+                    <Download className="h-6 w-6" />
+                    <span>Pobierz PDF</span>
+                    <span className="text-xs text-slate-500">Wkrótce</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>;
+  }
+
+  // Sigma Feedback detailed view
+  if (taskView === "feedback" && session.results.feedback) {
+    const feedbackData = session.results.feedback;
+    
+    return <div className="p-8 max-w-6xl mx-auto">
+        <Button variant="ghost" className="mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=overview`)}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Powrót do podsumowania
+        </Button>
+
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">
+            Sigma Feedback
+          </h2>
+          <p className="text-slate-600">
+            {athlete.name} • {new Date(session.date).toLocaleDateString('pl-PL')}
+          </p>
+        </div>
+
+        <Tabs defaultValue="player" className="w-full">
+          <div className="mb-6">
+            <TabsList>
+              <TabsTrigger value="player">Dla Zawodnika</TabsTrigger>
+              <TabsTrigger value="coach">Dla Trenera</TabsTrigger>
+              <TabsTrigger value="export">Eksport Danych</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="player" className="space-y-6">
+            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+              <CardContent className="pt-6">
+                <h3 className="font-bold text-lg text-slate-900 mb-3">Twoja refleksja</h3>
+                <p className="text-slate-700 leading-relaxed">
+                  Poniżej znajdują się Twoje odpowiedzi na pytania dotyczące dzisiejszych wyzwań. Ta refleksja pomaga lepiej zrozumieć, co wpływa na Twoje wyniki.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>{feedbackData.question1}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-slate-50 p-6 rounded-lg">
+                  <p className="text-slate-800 leading-relaxed whitespace-pre-wrap">
+                    {feedbackData.answer1}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>{feedbackData.question2}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-slate-50 p-6 rounded-lg">
+                  <p className="text-slate-800 leading-relaxed whitespace-pre-wrap">
+                    {feedbackData.answer2}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="coach" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Odpowiedzi zawodnika</CardTitle>
+                <p className="text-sm text-slate-600">Refleksja po wykonaniu testów</p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-3">{feedbackData.question1}</h4>
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <p className="text-slate-800 leading-relaxed whitespace-pre-wrap">
+                      {feedbackData.answer1}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-3">{feedbackData.question2}</h4>
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <p className="text-slate-800 leading-relaxed whitespace-pre-wrap">
+                      {feedbackData.answer2}
+                    </p>
+                  </div>
+                </div>
+
+                <Card className="bg-amber-50 border-amber-200">
+                  <CardContent className="pt-6">
+                    <h4 className="font-semibold text-amber-900 mb-2">Wskazówki dla trenera</h4>
+                    <ul className="text-sm text-amber-800 space-y-2 list-disc list-inside">
+                      <li>Zwróć uwagę na czynniki zewnętrzne wymienione przez zawodnika (sen, stres, zmęczenie)</li>
+                      <li>Oceń czy zawodnik ma świadomość własnych ograniczeń i potencjału</li>
+                      <li>Wykorzystaj te odpowiedzi do rozmowy o przygotowaniu mentalnym</li>
+                      <li>Jeśli zawodnik identyfikuje problemy ze snem lub stresem, rozważ interwencję</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="export" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Eksport Danych</CardTitle>
+                <p className="text-sm text-slate-600">Pobierz odpowiedzi w różnych formatach</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button variant="outline" className="h-24 flex-col gap-2" onClick={handleExportJSON}>
+                    <Download className="h-6 w-6" />
+                    <span>Pobierz JSON</span>
+                    <span className="text-xs text-slate-500">Pełne dane sesji</span>
+                  </Button>
+                  
+                  <Button variant="outline" className="h-24 flex-col gap-2" disabled>
+                    <Download className="h-6 w-6" />
+                    <span>Pobierz CSV</span>
+                    <span className="text-xs text-slate-500">Wkrótce</span>
                   </Button>
                   
                   <Button variant="outline" className="h-24 flex-col gap-2" disabled>
