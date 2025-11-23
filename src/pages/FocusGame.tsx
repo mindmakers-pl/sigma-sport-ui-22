@@ -535,7 +535,7 @@ export default function FocusGame({
         <Card className="max-w-4xl w-full border-slate-700 bg-slate-800 animate-scale-in">
           <CardContent className="pt-6 space-y-6">
             <h2 
-              className="text-2xl font-bold text-white text-center mb-6"
+              className="text-xl font-semibold text-white text-center mb-6"
             >
               Wynik wyzwania Sigma Focus
             </h2>

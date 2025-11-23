@@ -168,7 +168,7 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
         {gameState === "ready" && (
           <Card className="max-w-2xl w-full border-slate-700 bg-slate-800 animate-scale-in">
             <CardContent className="pt-6 space-y-6">
-              <h1 className="text-3xl font-bold text-white text-center mb-4">Siatka Koncentracji</h1>
+              <h1 className="text-2xl font-semibold text-white text-center mb-4">Siatka Koncentracji</h1>
               
               <div className="bg-slate-700/50 p-6 rounded-lg space-y-4 text-slate-200">
                 <p className="text-lg leading-relaxed">
@@ -246,7 +246,7 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
         {gameState === "finished" && (
           <Card className="max-w-lg w-full border-slate-700 bg-slate-800 animate-scale-in">
             <CardContent className="pt-6 text-center space-y-6">
-              <h2 className="text-2xl font-bold text-white">Wynik Siatki Koncentracji</h2>
+              <h2 className="text-xl font-semibold text-white">Wynik Siatki Koncentracji</h2>
               
               <div className="space-y-4 py-4">
                 <div className="bg-slate-700/50 p-6 rounded-lg">

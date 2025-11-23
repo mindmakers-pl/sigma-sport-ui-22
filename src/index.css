@@ -17,24 +17,24 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 215 25% 12%;
 
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 158 100% 57%;
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 220 13% 91%;
-    --secondary-foreground: 215 25% 12%;
+    --secondary: 240 50% 96%;
+    --secondary-foreground: 240 50% 30%;
 
     --muted: 220 13% 91%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 160 84% 39%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 158 100% 57%;
+    --accent-foreground: 222 47% 11%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 160 84% 39%;
+    --ring: 158 100% 57%;
 
     --radius: 0.5rem;
 
@@ -45,7 +45,7 @@ All colors MUST be HSL.
     --sidebar-accent: 220 13% 91%;
     --sidebar-accent-foreground: 215 25% 12%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 160 84% 39%;
+    --sidebar-ring: 158 100% 57%;
   }
 
   .dark {
@@ -58,24 +58,24 @@ All colors MUST be HSL.
     --popover: 215 28% 17%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 158 100% 57%;
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 215 20% 25%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 50% 20%;
+    --secondary-foreground: 240 50% 96%;
 
     --muted: 215 20% 25%;
     --muted-foreground: 217 11% 65%;
 
-    --accent: 160 84% 39%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 158 100% 57%;
+    --accent-foreground: 222 47% 11%;
 
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 215 20% 25%;
     --input: 215 20% 25%;
-    --ring: 160 84% 39%;
+    --ring: 158 100% 57%;
     
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 210 40% 98%;
@@ -84,7 +84,7 @@ All colors MUST be HSL.
     --sidebar-accent: 215 20% 25%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 215 20% 25%;
-    --sidebar-ring: 160 84% 39%;
+    --sidebar-ring: 158 100% 57%;
   }
 }
 
@@ -96,6 +96,15 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground font-sans;
     font-family: 'Inter', sans-serif;
+    font-weight: 400;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+  }
+  
+  strong, b {
+    font-weight: 600;
   }
 }
 

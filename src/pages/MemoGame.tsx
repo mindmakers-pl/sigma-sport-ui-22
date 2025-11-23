@@ -116,8 +116,8 @@ const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-8">
         <Card className="max-w-2xl w-full p-8 space-y-6 bg-slate-900 border-slate-800">
             <div className="space-y-4">
-              <h1 className="text-3xl font-bold text-white">Sigma Memo</h1>
-              <p className="text-lg text-slate-400">
+              <h1 className="text-2xl font-semibold text-white">Sigma Memo</h1>
+              <p className="text-base text-slate-400">
                 Test pamięci roboczej typu 2-Back
               </p>
             </div>
@@ -213,8 +213,8 @@ const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
         <div className="flex-1 flex items-center justify-center p-8">
           <Card className="max-w-2xl w-full p-8 space-y-6 bg-slate-900 border-slate-800">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-white">Wyniki Sigma Memo</h2>
-              <p className="text-slate-400">Test pamięci roboczej 2-Back</p>
+              <h2 className="text-xl font-semibold text-white">Wyniki Sigma Memo</h2>
+              <p className="text-slate-400 text-sm">Test pamięci roboczej 2-Back</p>
             </div>
 
             {/* Athlete view - simple metrics */}
