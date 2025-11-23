@@ -90,12 +90,9 @@ export default function SessionDetail() {
           </Badge>
         </div>
 
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Podsumowanie Sesji</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
               <div>
                 <p className="text-sm text-slate-600 mb-1">Status</p>
                 <p className="text-lg font-semibold">
@@ -121,58 +118,67 @@ export default function SessionDetail() {
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Wykonane Testy</CardTitle>
-            <p className="text-sm text-slate-600">Kliknij test, aby zobaczyć szczegółowy raport</p>
-          </CardHeader>
-          <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Six Sigma tile if available */}
-              {session.results.six_sigma && (
-                <Card 
-                  className="border-slate-200 hover:border-primary/50 transition-colors cursor-pointer bg-slate-50 hover:bg-slate-100" 
-                  onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}/six-sigma`)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <h3 className="font-semibold text-slate-900">Six Sigma</h3>
-                        <p className="text-sm text-slate-600">Psychometria • 6x6+6</p>
-                      </div>
+              {/* Six Sigma tile */}
+              <Card 
+                className={`border-slate-200 transition-colors ${
+                  session.results.six_sigma 
+                    ? 'hover:border-primary/50 cursor-pointer bg-slate-50 hover:bg-slate-100' 
+                    : 'bg-slate-100 opacity-60'
+                }`}
+                onClick={() => session.results.six_sigma && navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}/six-sigma`)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Six Sigma</h3>
+                      <p className="text-sm text-slate-600">Psychometria • 6x6+6</p>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-              
-              {completedTasks.map(task => {
-              const taskNames: Record<string, string> = {
-                kwestionariusz: "Kwestionariusz",
-                hrv_baseline: "HRV Baseline",
-                scan: "Sigma Scan",
-                control: "Sigma Control",
-                focus: "Sigma Focus",
-                sigma_move: "Sigma Move",
-                hrv_training: "HRV Training"
-              };
-              return <Card key={task} className="border-slate-200 hover:border-primary/50 transition-colors cursor-pointer bg-slate-50 hover:bg-slate-100" onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=${task}`)}>
+                    <Badge variant={session.results.six_sigma ? "default" : "secondary"}>
+                      {session.results.six_sigma ? "Zrealizowany" : "Niezrealizowany"}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* All other tasks */}
+              {(['kwestionariusz', 'hrv_baseline', 'scan', 'control', 'focus', 'sigma_move', 'hrv_training'] as const).map(task => {
+                const taskNames: Record<string, string> = {
+                  kwestionariusz: "Kwestionariusz",
+                  hrv_baseline: "HRV Baseline",
+                  scan: "Sigma Scan",
+                  control: "Sigma Control",
+                  focus: "Sigma Focus",
+                  sigma_move: "Sigma Move",
+                  hrv_training: "HRV Training"
+                };
+                const isCompleted = completedTasks.includes(task);
+                return (
+                  <Card 
+                    key={task}
+                    className={`border-slate-200 transition-colors ${
+                      isCompleted 
+                        ? 'hover:border-primary/50 cursor-pointer bg-slate-50 hover:bg-slate-100' 
+                        : 'bg-slate-100 opacity-60'
+                    }`}
+                    onClick={() => isCompleted && navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=${task}`)}
+                  >
                     <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-between gap-3">
                         <div>
                           <h3 className="font-semibold text-slate-900">
                             {taskNames[task]}
                           </h3>
-                          <p className="text-sm text-slate-600">
-                            Kliknij, aby zobaczyć szczegóły
-                          </p>
                         </div>
+                        <Badge variant={isCompleted ? "default" : "secondary"}>
+                          {isCompleted ? "Zrealizowany" : "Niezrealizowany"}
+                        </Badge>
                       </div>
                     </CardContent>
-                  </Card>;
-            })}
+                  </Card>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
