@@ -309,11 +309,8 @@ export const mockCompletedSession = {
     six_sigma: 'completed',
     hrv_baseline: 'pending',
     scan: 'completed',
-    control: 'pending',
     focus: 'completed',
-    memo: 'completed',
-    sigma_move: 'pending',
-    hrv_training: 'pending'
+    memo: 'completed'
   },
   inProgress: false
 };

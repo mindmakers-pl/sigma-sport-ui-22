@@ -70,11 +70,8 @@ export default function SessionDetail() {
       { id: 'six_sigma', name: 'Six Sigma', resultKey: 'six_sigma', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}/six-sigma` },
       { id: 'hrv_baseline', name: 'HRV Baseline', resultKey: 'hrv_baseline', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=hrv_baseline` },
       { id: 'scan', name: 'Sigma Scan', resultKey: 'scan', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=scan` },
-      { id: 'control', name: 'Sigma Control', resultKey: 'control', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=control` },
       { id: 'focus', name: 'Sigma Focus', resultKey: 'focus', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=focus` },
-      { id: 'memo', name: 'Sigma Memo', resultKey: 'memo', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=memo` },
-      { id: 'sigma_move', name: 'Sigma Move', resultKey: 'sigma_move', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=sigma_move` },
-      { id: 'hrv_training', name: 'HRV Training', resultKey: 'hrv_training', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=hrv_training` }
+      { id: 'memo', name: 'Sigma Memo', resultKey: 'memo', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=memo` }
     ];
 
     return <div className="p-8 max-w-6xl mx-auto">
@@ -107,7 +104,7 @@ export default function SessionDetail() {
                 {session.conditions}
               </Badge>
               <Badge variant="outline" className="text-sm">
-                {completedTasks.length}/8 testów
+                {completedTasks.length}/5 testów
               </Badge>
               <Badge variant="outline" className="text-sm">
                 {new Date(session.date).toLocaleDateString('pl-PL')}
