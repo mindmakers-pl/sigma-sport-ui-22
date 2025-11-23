@@ -14,16 +14,251 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      athletes: {
+        Row: {
+          archived: boolean | null
+          archived_at: string | null
+          birth_date: string | null
+          birth_year: number | null
+          club_id: string | null
+          coach: string | null
+          created_at: string | null
+          discipline: string | null
+          email: string | null
+          first_name: string
+          gender: string | null
+          id: string
+          last_name: string
+          notes: string | null
+          parent_email: string | null
+          parent_first_name: string | null
+          parent_last_name: string | null
+          parent_phone: string | null
+          phone: string | null
+        }
+        Insert: {
+          archived?: boolean | null
+          archived_at?: string | null
+          birth_date?: string | null
+          birth_year?: number | null
+          club_id?: string | null
+          coach?: string | null
+          created_at?: string | null
+          discipline?: string | null
+          email?: string | null
+          first_name: string
+          gender?: string | null
+          id?: string
+          last_name: string
+          notes?: string | null
+          parent_email?: string | null
+          parent_first_name?: string | null
+          parent_last_name?: string | null
+          parent_phone?: string | null
+          phone?: string | null
+        }
+        Update: {
+          archived?: boolean | null
+          archived_at?: string | null
+          birth_date?: string | null
+          birth_year?: number | null
+          club_id?: string | null
+          coach?: string | null
+          created_at?: string | null
+          discipline?: string | null
+          email?: string | null
+          first_name?: string
+          gender?: string | null
+          id?: string
+          last_name?: string
+          notes?: string | null
+          parent_email?: string | null
+          parent_first_name?: string | null
+          parent_last_name?: string | null
+          parent_phone?: string | null
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athletes_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clubs: {
+        Row: {
+          city: string | null
+          coaches: Json | null
+          created_at: string | null
+          disciplines: string[] | null
+          id: string
+          members_count: number | null
+          name: string
+        }
+        Insert: {
+          city?: string | null
+          coaches?: Json | null
+          created_at?: string | null
+          disciplines?: string[] | null
+          id?: string
+          members_count?: number | null
+          name: string
+        }
+        Update: {
+          city?: string | null
+          coaches?: Json | null
+          created_at?: string | null
+          disciplines?: string[] | null
+          id?: string
+          members_count?: number | null
+          name?: string
+        }
+        Relationships: []
+      }
+      session_tasks: {
+        Row: {
+          created_at: string | null
+          id: string
+          session_id: string
+          task_data: Json
+          task_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          session_id: string
+          task_data: Json
+          task_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          session_id?: string
+          task_data?: Json
+          task_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_tasks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          athlete_id: string
+          completed_at: string | null
+          conditions: string | null
+          created_at: string | null
+          date: string
+          id: string
+          in_progress: boolean | null
+        }
+        Insert: {
+          athlete_id: string
+          completed_at?: string | null
+          conditions?: string | null
+          created_at?: string | null
+          date: string
+          id?: string
+          in_progress?: boolean | null
+        }
+        Update: {
+          athlete_id?: string
+          completed_at?: string | null
+          conditions?: string | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          in_progress?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainings: {
+        Row: {
+          athlete_id: string
+          created_at: string | null
+          date: string
+          id: string
+          results: Json
+          task_type: string
+        }
+        Insert: {
+          athlete_id: string
+          created_at?: string | null
+          date: string
+          id?: string
+          results: Json
+          task_type: string
+        }
+        Update: {
+          athlete_id?: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          results?: Json
+          task_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainings_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "coach" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +385,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "coach", "viewer"],
+    },
   },
 } as const
