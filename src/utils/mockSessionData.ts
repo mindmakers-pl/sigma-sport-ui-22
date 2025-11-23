@@ -327,7 +327,21 @@ export const loadMockSessionsToStorage = (athleteId: string, athleteName: string
           hasReverseInconsistency: false,
           isValid: true,
           warnings: []
-        }
+        },
+        responses: [
+          { questionId: 'act_1', questionText: 'Kiedy wychodzę na trening, czuję w ciele energię i gotowość.', competency: 'activation', domain: 'body', isReverse: false, isKeyIndicator: true, value: 4 },
+          { questionId: 'act_2', questionText: 'Przed ważnym startem mam nogi jak z waty i czuję się słaby/a.', competency: 'activation', domain: 'body', isReverse: true, isKeyIndicator: false, value: 2 },
+          { questionId: 'con_1', questionText: 'Kiedy sędzia podejmie złą decyzję, potrafię zachować spokój i nie dyskutować.', competency: 'control', domain: 'behavior', isReverse: false, isKeyIndicator: true, value: 3 },
+          { questionId: 'con_2', questionText: 'Gdy tracę punkt, czuję złość i trudno mi się opanować.', competency: 'control', domain: 'thoughts', isReverse: true, isKeyIndicator: false, value: 3 },
+          { questionId: 'res_1', questionText: 'Po błędzie potrafię szybko się otrząsnąć i wrócić do gry.', competency: 'reset', domain: 'behavior', isReverse: false, isKeyIndicator: true, value: 4 },
+          { questionId: 'res_2', questionText: 'Gdy popełnię błąd, długo o nim myślę i to mi przeszkadza.', competency: 'reset', domain: 'thoughts', isReverse: true, isKeyIndicator: false, value: 2 },
+          { questionId: 'foc_1', questionText: 'Potrafię skupić się na treningu nawet gdy dookoła jest hałas.', competency: 'focus', domain: 'behavior', isReverse: false, isKeyIndicator: true, value: 5 },
+          { questionId: 'foc_2', questionText: 'Łatwo się rozpraszam podczas ważnych momentów w meczu.', competency: 'focus', domain: 'thoughts', isReverse: true, isKeyIndicator: false, value: 1 },
+          { questionId: 'conf_1', questionText: 'Wierzę, że dam radę wykonać trudne zadanie na treningu.', competency: 'confidence', domain: 'thoughts', isReverse: false, isKeyIndicator: true, value: 3 },
+          { questionId: 'conf_2', questionText: 'Przed ważnym meczem martwię się, że zawiodę.', competency: 'confidence', domain: 'thoughts', isReverse: true, isKeyIndicator: false, value: 3 },
+          { questionId: 'det_1', questionText: 'Gdy jest ciężko, nie poddaję się i walczę do końca.', competency: 'determination', domain: 'behavior', isReverse: false, isKeyIndicator: true, value: 4 },
+          { questionId: 'det_2', questionText: 'Gdy coś mi nie wychodzi, szybko się zniechęcam.', competency: 'determination', domain: 'thoughts', isReverse: true, isKeyIndicator: false, value: 2 }
+        ]
       };
 
       updated = true;
