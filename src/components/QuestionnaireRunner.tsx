@@ -66,11 +66,33 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
     if (currentQuestionIndex < randomizedQuestions.length - 1) {
       setTimeout(() => setCurrentQuestionIndex(prev => prev + 1), 300);
     } else {
-      // Questionnaire completed - score it
-      const responses: QuestionnaireResponse[] = Object.entries(newAnswers).map(([questionId, value]) => ({
-        questionId,
-        value
-      }));
+      // Questionnaire completed - score it with enriched metadata
+      const responses: QuestionnaireResponse[] = Object.entries(newAnswers).map(([questionId, value]) => {
+        // Find the original question to get metadata
+        const question = allQuestions.find(q => q.id === questionId);
+        
+        // Find which competency this question belongs to
+        let competencyId = '';
+        questionnaire.competencies.forEach(comp => {
+          if (comp.questions.find(q => q.id === questionId)) {
+            competencyId = comp.id;
+          }
+        });
+        
+        // Check if it's a modifier question
+        const isModifier = questionnaire.modifiers?.find(m => m.id === questionId);
+        
+        return {
+          questionId,
+          value,
+          questionText: question?.text || isModifier?.question || '',
+          competency: competencyId || (isModifier ? 'modifier' : ''),
+          domain: question?.domain,
+          type: question?.type,
+          isKeyIndicator: question?.isKeyIndicator,
+          weight: question?.weight
+        };
+      });
 
       const scored = scoreQuestionnaire(questionnaire, responses);
       const newCompleted = [...completedQuestionnaires, scored];

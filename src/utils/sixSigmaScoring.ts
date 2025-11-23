@@ -6,6 +6,13 @@ import { SixSigmaQuestionnaire, SixSigmaQuestion, SixSigmaCompetency } from "@/d
 export interface QuestionnaireResponse {
   questionId: string;
   value: number; // 1-5 on Likert scale
+  // Optional metadata - enriched by QuestionnaireRunner
+  questionText?: string;
+  competency?: string;
+  domain?: 'thoughts' | 'body' | 'behavior';
+  type?: 'direct' | 'reverse';
+  isKeyIndicator?: boolean;
+  weight?: number;
 }
 
 export interface CompetencyScore {
