@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { determineGameContext } from "@/utils/gameContext";
+import { useTrainings } from "@/hooks/useTrainings";
+import { useToast } from "@/hooks/use-toast";
 interface FocusGameProps {
   athleteId?: string;
   onComplete?: (data: any) => void;
@@ -212,6 +215,9 @@ export default function FocusGame({
   const navigate = useNavigate();
   const { athleteId: athleteIdParam } = useParams();
   const athleteId = athleteIdProp || athleteIdParam;
+  const { addTraining } = useTrainings(athleteId);
+  const { toast } = useToast();
+  const { isLibrary, isMeasurement, isTraining } = determineGameContext(athleteId, mode);
 
   // Mock results for demonstration
   const mockResults: TrialResult[] = Array.from({
@@ -609,53 +615,7 @@ export default function FocusGame({
               </div>
             </div>
 
-            {mode === "measurement" && <div className="pt-2 pb-2 border-t border-slate-700">
-                <p className="text-green-400 text-sm">✓ Zapisaliśmy Twój wynik</p>
-              </div>}
-
-            {athleteId ? (
-              // Training mode with athlete - show both buttons
-              <div className="flex gap-3">
-                <Button size="lg" variant="outline" className="flex-1" onClick={() => {
-                  if (onGoToCockpit) {
-                    onGoToCockpit();
-                  } else {
-                    navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-                  }
-                }}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Zakończ
-                </Button>
-                <Button size="lg" className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => {
-                  const gameData = {
-                    accuracy: accuracy,
-                    totalTrials: TOTAL_TRIALS,
-                    correctCount: correctCount,
-                    coachReport: coachReport,
-                    focus_trials: results,
-                    focus_median_congruent_ms: medianCongruent,
-                    focus_median_incongruent_ms: medianIncongruent,
-                    focus_concentration_cost_ms: concentrationCost,
-                    focus_accuracy_pct: accuracy,
-                    focus_correct_count: correctCount,
-                    focus_total_trials: TOTAL_TRIALS,
-                    focus_valid_trials: validTrials.length,
-                    focus_coach_report: coachReport,
-                    focus_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
-                    focus_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null
-                  };
-                  
-                  if (onComplete) {
-                    onComplete(gameData);
-                  } else {
-                    navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
-                  }
-                }}>
-                  Następne Wyzwanie
-                </Button>
-              </div>
-            ) : (
-              // Library/demo mode without athlete - only show Finish button
+            {isLibrary && (
               <Button 
                 size="lg"
                 className="w-full"
@@ -663,6 +623,103 @@ export default function FocusGame({
               >
                 Zakończ
               </Button>
+            )}
+
+            {isMeasurement && (
+              <>
+                <div className="pt-2 pb-2 border-t border-slate-700">
+                  <p className="text-green-400 text-sm">✓ Zapisaliśmy Twój wynik</p>
+                </div>
+                <Button 
+                  size="lg" 
+                  className="w-full bg-green-600 hover:bg-green-700"
+                  onClick={() => {
+                    const gameData = {
+                      accuracy: accuracy,
+                      totalTrials: TOTAL_TRIALS,
+                      correctCount: correctCount,
+                      coachReport: coachReport,
+                      focus_trials: results,
+                      focus_median_congruent_ms: medianCongruent,
+                      focus_median_incongruent_ms: medianIncongruent,
+                      focus_concentration_cost_ms: concentrationCost,
+                      focus_accuracy_pct: accuracy,
+                      focus_correct_count: correctCount,
+                      focus_total_trials: TOTAL_TRIALS,
+                      focus_valid_trials: validTrials.length,
+                      focus_coach_report: coachReport,
+                      focus_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
+                      focus_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null
+                    };
+                    
+                    if (onComplete) {
+                      onComplete(gameData);
+                    }
+                  }}
+                >
+                  Następne Wyzwanie
+                </Button>
+              </>
+            )}
+
+            {isTraining && (
+              <div className="flex gap-3">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Zakończ
+                </Button>
+                <Button 
+                  size="lg" 
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  onClick={async () => {
+                    const gameData = {
+                      accuracy: accuracy,
+                      totalTrials: TOTAL_TRIALS,
+                      correctCount: correctCount,
+                      coachReport: coachReport,
+                      focus_trials: results,
+                      focus_median_congruent_ms: medianCongruent,
+                      focus_median_incongruent_ms: medianIncongruent,
+                      focus_concentration_cost_ms: concentrationCost,
+                      focus_accuracy_pct: accuracy,
+                      focus_correct_count: correctCount,
+                      focus_total_trials: TOTAL_TRIALS,
+                      focus_valid_trials: validTrials.length,
+                      focus_coach_report: coachReport,
+                      focus_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
+                      focus_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null
+                    };
+                    
+                    const { error } = await addTraining({
+                      athlete_id: athleteId!,
+                      task_type: 'focus',
+                      date: new Date().toISOString(),
+                      results: gameData
+                    });
+                    
+                    if (error) {
+                      toast({
+                        title: "Błąd",
+                        description: "Nie udało się zapisać treningu",
+                        variant: "destructive",
+                      });
+                    } else {
+                      toast({
+                        title: "Sukces",
+                        description: "Trening został zapisany",
+                      });
+                      navigate(`/zawodnicy/${athleteId}?tab=trening`);
+                    }
+                  }}
+                >
+                  Zapisz trening
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>

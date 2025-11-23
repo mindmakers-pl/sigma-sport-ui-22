@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Scatter, ScatterChart, ZAxis } from "recharts";
 import { useControlGame } from "@/hooks/useControlGame";
+import { determineGameContext } from "@/utils/gameContext";
+import { useTrainings } from "@/hooks/useTrainings";
+import { useToast } from "@/hooks/use-toast";
 
 interface ControlGameProps {
   athleteId?: string;
@@ -17,6 +20,9 @@ const ControlGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode
   const navigate = useNavigate();
   const { athleteId: athleteIdParam } = useParams();
   const athleteId = athleteIdProp || athleteIdParam;
+  const { addTraining } = useTrainings(athleteId);
+  const { toast } = useToast();
+  const { isLibrary, isMeasurement, isTraining } = determineGameContext(athleteId, mode);
   
   const {
     gameState,
@@ -202,20 +208,75 @@ const ControlGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode
                   <Input type="text" value={manualHRV} onChange={(e) => setManualHRV(e.target.value)} placeholder="np. 65" className="bg-slate-700 border-slate-600 text-white" />
                 </div>
                 
-                {athleteId ? (
-                  // Training mode with athlete - show both buttons
-                  <div className="flex gap-4">
-                    <Button variant="outline" className="flex-1" onClick={handleGoBackToCockpit}>Wróć do kokpitu</Button>
-                    <Button className="flex-1" onClick={handleSaveAndContinue}>Zapisz i idź dalej</Button>
-                  </div>
-                ) : (
-                  // Library/demo mode without athlete - only show Finish button
+                {isLibrary && (
                   <Button 
                     className="w-full"
                     onClick={() => navigate('/biblioteka?tab=wyzwania')}
                   >
                     Zakończ
                   </Button>
+                )}
+
+                {isMeasurement && (
+                  <Button 
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={handleSaveAndContinue}
+                  >
+                    Następne Wyzwanie
+                  </Button>
+                )}
+
+                {isTraining && (
+                  <div className="flex gap-4">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1" 
+                      onClick={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
+                    >
+                      Zakończ
+                    </Button>
+                    <Button 
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                      onClick={async () => {
+                        const payload = {
+                          gameData: {
+                            avgRT: calculateAverageRT(),
+                            minRT: calculateMinRT(),
+                            maxRT: calculateMaxRT(),
+                            goHits: results.goHits,
+                            goMisses: results.goMisses,
+                            noGoErrors: results.noGoErrors,
+                            trialHistory,
+                            reactionTimes
+                          },
+                          hrvData: manualHRV
+                        };
+                        
+                        const { error } = await addTraining({
+                          athlete_id: athleteId!,
+                          task_type: 'control',
+                          date: new Date().toISOString(),
+                          results: payload
+                        });
+                        
+                        if (error) {
+                          toast({
+                            title: "Błąd",
+                            description: "Nie udało się zapisać treningu",
+                            variant: "destructive",
+                          });
+                        } else {
+                          toast({
+                            title: "Sukces",
+                            description: "Trening został zapisany",
+                          });
+                          navigate(`/zawodnicy/${athleteId}?tab=trening`);
+                        }
+                      }}
+                    >
+                      Zapisz trening
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>

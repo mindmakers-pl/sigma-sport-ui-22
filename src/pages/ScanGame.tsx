@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 import { useTrainings } from "@/hooks/useTrainings";
+import { determineGameContext } from "@/utils/gameContext";
+import { useToast } from "@/hooks/use-toast";
 
 type GameState = "ready" | "playing" | "finished";
 
@@ -28,7 +30,9 @@ const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode = 
   const navigate = useNavigate();
   const { athleteId: athleteIdParam } = useParams();
   const athleteId = athleteIdProp || athleteIdParam;
-  const { trainings } = useTrainings(athleteId);
+  const { trainings, addTraining } = useTrainings(athleteId);
+  const { toast } = useToast();
+  const { isLibrary, isMeasurement, isTraining } = determineGameContext(athleteId, mode);
   
   const [gameState, setGameState] = useState<GameState>("ready");
   const [gridNumbers, setGridNumbers] = useState<number[]>([]);
@@ -314,45 +318,24 @@ const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode = 
                 </div>
               </div>
 
-              {mode === "measurement" && (
-                <div className="pt-2 pb-2 border-t border-slate-700">
-                  <p className="text-green-400 text-sm">✓ Zapisaliśmy Twój wynik</p>
-                </div>
+              {isLibrary && (
+                <Button 
+                  size="lg"
+                  className="w-full"
+                  onClick={() => navigate('/biblioteka?tab=wyzwania')}
+                >
+                  Zakończ
+                </Button>
               )}
 
-              {athleteId ? (
-                // Training mode with athlete - show both buttons
-                <div className="flex gap-3">
-                  <Button 
-                    size="lg"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => {
-                      const result = calculateResult();
-                      const gameData = {
-                        scan_max_number_reached: result.maxNumber,
-                        scan_duration_s: result.duration,
-                        scan_correct_clicks: result.correctClicks,
-                        scan_error_clicks: result.errorClicks,
-                        scan_skipped_numbers: result.skippedNumbers,
-                        scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
-                        scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
-                        scan_raw_clicks: clickHistory
-                      };
-                      
-                      if (onGoToCockpit) {
-                        onGoToCockpit();
-                      } else {
-                        navigate(`/zawodnicy/${athleteId}?tab=trening`);
-                      }
-                    }}
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Zakończ
-                  </Button>
+              {isMeasurement && (
+                <>
+                  <div className="pt-2 pb-2 border-t border-slate-700">
+                    <p className="text-green-400 text-sm">✓ Zapisaliśmy Twój wynik</p>
+                  </div>
                   <Button 
                     size="lg" 
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    className="w-full bg-green-600 hover:bg-green-700"
                     onClick={() => {
                       const result = calculateResult();
                       const gameData = {
@@ -368,29 +351,66 @@ const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode = 
                       
                       if (onComplete) {
                         onComplete(gameData);
-                      } else {
-                        navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
                       }
                     }}
                   >
                     Następne Wyzwanie
                   </Button>
+                </>
+              )}
+
+              {isTraining && (
+                <div className="flex gap-3">
+                  <Button 
+                    size="lg"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Zakończ
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    onClick={async () => {
+                      const result = calculateResult();
+                      const gameData = {
+                        scan_max_number_reached: result.maxNumber,
+                        scan_duration_s: result.duration,
+                        scan_correct_clicks: result.correctClicks,
+                        scan_error_clicks: result.errorClicks,
+                        scan_skipped_numbers: result.skippedNumbers,
+                        scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
+                        scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
+                        scan_raw_clicks: clickHistory
+                      };
+                      
+                      const { error } = await addTraining({
+                        athlete_id: athleteId!,
+                        task_type: 'scan',
+                        date: new Date().toISOString(),
+                        results: gameData
+                      });
+                      
+                      if (error) {
+                        toast({
+                          title: "Błąd",
+                          description: "Nie udało się zapisać treningu",
+                          variant: "destructive",
+                        });
+                      } else {
+                        toast({
+                          title: "Sukces",
+                          description: "Trening został zapisany",
+                        });
+                        navigate(`/zawodnicy/${athleteId}?tab=trening`);
+                      }
+                    }}
+                  >
+                    Zapisz trening
+                  </Button>
                 </div>
-              ) : (
-                // Library/demo mode without athlete - only show Finish button
-                <Button 
-                  size="lg"
-                  className="w-full"
-                  onClick={() => {
-                  if (onGoToCockpit) {
-                    onGoToCockpit();
-                  } else {
-                    navigate('/biblioteka?tab=wyzwania');
-                  }
-                  }}
-                >
-                  Zakończ
-                </Button>
               )}
             </CardContent>
           </Card>
