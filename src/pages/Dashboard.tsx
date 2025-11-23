@@ -1,37 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Activity, TrendingUp, Users, Award, Plus, UserPlus, Building2, PlayCircle, Lightbulb } from "lucide-react";
+import { Activity, TrendingUp, Users, Building2, PlayCircle, Lightbulb, Loader2, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import BackButton from "@/components/BackButton";
+import { useAthletes } from "@/hooks/useAthletes";
+import { useClubs } from "@/hooks/useClubs";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [searchAthlete, setSearchAthlete] = useState("");
+  
+  const { athletes, loading: athletesLoading } = useAthletes();
+  const { clubs, loading: clubsLoading } = useClubs();
   
   // Ustaw rolę na trenera gdy wchodzimy do dashboardu
   useState(() => {
     localStorage.setItem("userRole", "trainer");
     window.dispatchEvent(new Event('storage'));
   });
-  
-  // Pobierz dane z localStorage
-  const clubs = (() => {
-    const stored = localStorage.getItem('clubs');
-    if (stored) {
-      return JSON.parse(stored);
-    }
-    return [];
-  })();
-
-  const athletes = (() => {
-    const stored = localStorage.getItem('athletes');
-    if (stored) {
-      return JSON.parse(stored);
-    }
-    return [];
-  })();
 
   const stats = [
     {
@@ -70,15 +58,20 @@ const Dashboard = () => {
     { text: "Maria Kowalczyk - nowy rekord w wyzwaniu Sigma Focus", time: "5 godzin temu" },
   ];
 
-  const myClubs = clubs.slice(0, 3).map((club: any) => ({
-    name: club.name,
-    members: club.members || 0,
-    id: club.id
-  }));
+  const myClubs = clubs.slice(0, 3);
 
-  const filteredAthletes = athletes.filter((a: any) => 
-    a.name.toLowerCase().includes(searchAthlete.toLowerCase())
-  );
+  const filteredAthletes = athletes.filter(a => {
+    const fullName = `${a.first_name} ${a.last_name}`.toLowerCase();
+    return fullName.includes(searchAthlete.toLowerCase());
+  });
+
+  if (athletesLoading || clubsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -143,7 +136,7 @@ const Dashboard = () => {
                       className="p-2 hover:bg-muted cursor-pointer"
                       onClick={() => navigate(`/zawodnicy/${athlete.id}?tab=dodaj-pomiar`)}
                     >
-                      {athlete.name}
+                      {athlete.first_name} {athlete.last_name}
                     </div>
                   ))}
                 </div>
@@ -227,7 +220,7 @@ const Dashboard = () => {
                       <Building2 className="h-5 w-5 text-primary" />
                       <div className="flex-1">
                         <p className="font-medium">{club.name}</p>
-                        <p className="text-sm text-muted-foreground">Zawodnicy: {club.members}</p>
+                        <p className="text-sm text-muted-foreground">Zawodnicy: {club.members_count || 0}</p>
                       </div>
                     </div>
                   </div>
