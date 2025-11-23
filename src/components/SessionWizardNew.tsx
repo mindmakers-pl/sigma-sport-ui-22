@@ -1,9 +1,9 @@
 import { useState } from "react";
 import QuestionnaireSelector from "@/components/QuestionnaireSelector";
 import QuestionnaireRunner from "@/components/QuestionnaireRunner";
-import ScanGame from "@/pages/ScanGame";
-import FocusGame from "@/pages/FocusGame";
-import MemoGame from "@/pages/MemoGame";
+import ScanGame from "@/components/games/ScanGame";
+import FocusGame from "@/components/games/FocusGame";
+import MemoGame from "@/components/games/MemoGame";
 import SigmaFeedbackForm from "@/components/forms/SigmaFeedbackForm";
 import HRVBaselineForm from "@/components/forms/HRVBaselineForm";
 import { useToast } from "@/hooks/use-toast";

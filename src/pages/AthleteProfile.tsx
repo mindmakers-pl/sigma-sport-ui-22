@@ -13,17 +13,16 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, CheckCircle2, Lightbulb } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts";
 import { Progress } from "@/components/ui/progress";
-import ScanGame from "./ScanGame";
-import ControlGame from "./ControlGame";
-import FocusGame from "./FocusGame";
-import MemoGame from "./MemoGame";
+import ScanGame from "@/components/games/ScanGame";
+import ControlGame from "@/components/games/ControlGame";
+import FocusGame from "@/components/games/FocusGame";
+import MemoGame from "@/components/games/MemoGame";
 import SigmaFeedbackForm from "@/components/forms/SigmaFeedbackForm";
 import Kwestionariusz from "@/components/forms/Kwestionariusz";
 import HRVBaselineForm from "@/components/forms/HRVBaselineForm";
 import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
 import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
 import TrainingsTable from "@/components/TrainingsTable";
-import MeasurementSessionWizard from "@/components/MeasurementSessionWizard";
 import { useAthletes } from "@/hooks/useAthletes";
 import { useSessions } from "@/hooks/useSessions";
 import { useTrainings } from "@/hooks/useTrainings";
@@ -1836,11 +1835,57 @@ const AthleteProfile = () => {
           </div>
           
           {activeTask && (
-            <MeasurementSessionWizard
-              taskType={activeTask as any}
-              onComplete={handleMeasurementTaskComplete}
-              onCancel={() => setActiveTask(null)}
-            />
+            <>
+              {activeTask === 'scan' && (
+                <ScanGame
+                  athleteId={id}
+                  mode="measurement"
+                  onComplete={(data) => handleMeasurementTaskComplete('scan', data)}
+                  onGoToCockpit={() => setActiveTask(null)}
+                />
+              )}
+              {activeTask === 'focus' && (
+                <FocusGame
+                  athleteId={id}
+                  mode="measurement"
+                  onComplete={(data) => handleMeasurementTaskComplete('focus', data)}
+                  onGoToCockpit={() => setActiveTask(null)}
+                />
+              )}
+              {activeTask === 'memo' && (
+                <MemoGame
+                  athleteId={id}
+                  mode="measurement"
+                  onComplete={(data) => handleMeasurementTaskComplete('memo', data)}
+                />
+              )}
+              {activeTask === 'control' && (
+                <ControlGame
+                  athleteId={id}
+                  mode="measurement"
+                  onComplete={(data) => handleMeasurementTaskComplete('control', data)}
+                  onGoToCockpit={() => setActiveTask(null)}
+                />
+              )}
+              {activeTask === 'kwestionariusz' && (
+                <Kwestionariusz
+                  onComplete={(data) => handleMeasurementTaskComplete('kwestionariusz', data)}
+                  onGoToCockpit={() => setActiveTask(null)}
+                />
+              )}
+              {activeTask === 'hrv_baseline' && (
+                <HRVBaselineForm
+                  onComplete={(data) => handleMeasurementTaskComplete('hrv_baseline', data)}
+                  onGoToCockpit={() => setActiveTask(null)}
+                />
+              )}
+              {activeTask === 'feedback' && (
+                <SigmaFeedbackForm
+                  onComplete={(data) => handleMeasurementTaskComplete('feedback', data)}
+                  onGoToCockpit={() => setActiveTask(null)}
+                />
+              )}
+            </>
           )}
         </DialogContent>
       </Dialog>

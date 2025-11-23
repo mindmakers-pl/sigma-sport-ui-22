@@ -26,9 +26,9 @@ import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, BarC
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import SessionWizardNew from "@/components/SessionWizardNew";
-import ScanGame from "@/pages/ScanGame";
-import FocusGame from "@/pages/FocusGame";
-import ControlGame from "@/pages/ControlGame";
+import ScanGame from "@/components/games/ScanGame";
+import FocusGame from "@/components/games/FocusGame";
+import ControlGame from "@/components/games/ControlGame";
 import {
   Accordion,
   AccordionContent,
