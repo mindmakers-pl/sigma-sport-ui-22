@@ -197,91 +197,85 @@ const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
 
   if (gameState === 'finished' && results) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col">
-        <div className="p-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleGoBack}
-            className="gap-2 text-slate-400 hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Powrót
-          </Button>
-        </div>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-8">
+        <Card className="max-w-2xl w-full p-8 space-y-6 bg-slate-900 border-slate-800">
+          <div className="text-center space-y-2">
+            <h2 className="text-xl font-semibold text-white">Wyniki Sigma Memo</h2>
+            <p className="text-slate-400 text-sm">Test pamięci roboczej 2-Back</p>
+          </div>
 
-        <div className="flex-1 flex items-center justify-center p-8">
-          <Card className="max-w-2xl w-full p-8 space-y-6 bg-slate-900 border-slate-800">
-            <div className="text-center space-y-2">
-              <h2 className="text-xl font-semibold text-white">Wyniki Sigma Memo</h2>
-              <p className="text-slate-400 text-sm">Test pamięci roboczej 2-Back</p>
+          {/* Athlete view - simple metrics */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-slate-800/50 p-6 rounded-lg text-center">
+              <div className="text-4xl font-bold text-primary">
+                {isNaN(results.accuracy) ? '0' : Math.round(results.accuracy)}%
+              </div>
+              <div className="text-sm text-slate-400 mt-2">
+                Celność
+              </div>
             </div>
 
-            {/* Athlete view - simple metrics */}
+            <div className="bg-slate-800/50 p-6 rounded-lg text-center">
+              <div className="text-4xl font-bold text-primary">
+                {Math.round(results.medianRT) || 0}
+              </div>
+              <div className="text-sm text-slate-400 mt-2">
+                Czas reakcji (ms)
+              </div>
+            </div>
+          </div>
+
+          {/* HRV Data Input */}
+          <div className="space-y-4 pt-4 border-t border-slate-800">
+            <h3 className="font-semibold text-white">Dane HRV (opcjonalne)</h3>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-800/50 p-6 rounded-lg text-center">
-                <div className="text-4xl font-bold text-primary">
-                  {isNaN(results.accuracy) ? '0' : Math.round(results.accuracy)}%
-                </div>
-                <div className="text-sm text-slate-400 mt-2">
-                  Celność
-                </div>
+              <div>
+                <Label htmlFor="rmssd" className="text-slate-300">rMSSD (ms)</Label>
+                <Input
+                  id="rmssd"
+                  type="number"
+                  placeholder="np. 45"
+                  value={manualHRV.rmssd}
+                  onChange={(e) => setManualHRV(prev => ({ ...prev, rmssd: e.target.value }))}
+                  className="bg-slate-800 border-slate-700 text-white"
+                />
               </div>
-
-              <div className="bg-slate-800/50 p-6 rounded-lg text-center">
-                <div className="text-4xl font-bold text-primary">
-                  {Math.round(results.medianRT) || 0}
-                </div>
-                <div className="text-sm text-slate-400 mt-2">
-                  Czas reakcji (ms)
-                </div>
-              </div>
-            </div>
-
-            {/* HRV Data Input */}
-            <div className="space-y-4 pt-4 border-t border-slate-800">
-              <h3 className="font-semibold text-white">Dane HRV (opcjonalne)</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="rmssd" className="text-slate-300">rMSSD (ms)</Label>
-                  <Input
-                    id="rmssd"
-                    type="number"
-                    placeholder="np. 45"
-                    value={manualHRV.rmssd}
-                    onChange={(e) => setManualHRV(prev => ({ ...prev, rmssd: e.target.value }))}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="hr" className="text-slate-300">HR (bpm)</Label>
-                  <Input
-                    id="hr"
-                    type="number"
-                    placeholder="np. 72"
-                    value={manualHRV.hr}
-                    onChange={(e) => setManualHRV(prev => ({ ...prev, hr: e.target.value }))}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="hr" className="text-slate-300">HR (bpm)</Label>
+                <Input
+                  id="hr"
+                  type="number"
+                  placeholder="np. 72"
+                  value={manualHRV.hr}
+                  onChange={(e) => setManualHRV(prev => ({ ...prev, hr: e.target.value }))}
+                  className="bg-slate-800 border-slate-700 text-white"
+                />
               </div>
             </div>
+          </div>
 
-            <div className="flex gap-4">
-              <Button 
-                onClick={handleSaveAndContinue}
-                className="flex-1"
-                size="lg"
-              >
-                Zakończ
-              </Button>
-            </div>
+          <div className="flex gap-4">
+            <Button 
+              variant="outline"
+              onClick={handleGoBack}
+              className="flex-1"
+              size="lg"
+            >
+              Zakończ
+            </Button>
+            <Button 
+              onClick={handleSaveAndContinue}
+              className="flex-1"
+              size="lg"
+            >
+              Następne Wyzwanie
+            </Button>
+          </div>
 
-            <p className="text-center text-sm text-slate-400">
-              Wynik został zapisany
-            </p>
-          </Card>
-        </div>
+          <p className="text-center text-sm text-slate-400">
+            Wynik został zapisany
+          </p>
+        </Card>
       </div>
     );
   }

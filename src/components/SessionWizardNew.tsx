@@ -182,6 +182,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
       case 'scan':
         return (
           <ScanGame 
+            mode="measurement"
             onComplete={(data) => handleStepComplete('scan', data)}
             onGoToCockpit={handleReturnToCockpit}
           />
@@ -190,6 +191,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
       case 'focus':
         return (
           <FocusGame 
+            mode="measurement"
             onComplete={(data) => handleStepComplete('focus', data)}
             onGoToCockpit={handleReturnToCockpit}
           />

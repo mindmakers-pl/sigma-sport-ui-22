@@ -153,7 +153,7 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
 
   return (
     <div className="min-h-screen bg-slate-900 p-4">
-      {onGoToCockpit && (
+      {mode === "training" && onGoToCockpit && (
         <Button 
           variant="ghost" 
           className="text-white hover:bg-slate-800 mb-4"
