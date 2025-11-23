@@ -52,10 +52,18 @@ import {
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { allSprints, exerciseLibrary, getExerciseById, sigmaGoDemoTraining, type Meeting, type Sprint } from "@/data/libraryData";
+import { useClubs } from "@/hooks/useClubs";
+import { useAthletes } from "@/hooks/useAthletes";
+import { useToast } from "@/hooks/use-toast";
 
 const ClubDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { toast } = useToast();
+  
+  // Supabase hooks
+  const { clubs, loading: clubsLoading, addClub, updateClub } = useClubs();
+  const { athletes: allAthletes, loading: athletesLoading, addAthlete, archiveAthletes, restoreAthletes, refetch: refetchAthletes } = useAthletes();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeWizardAthleteId, setActiveWizardAthleteId] = useState<string | null>(null);
   const [selectedM1, setSelectedM1] = useState("m1-oct");
@@ -93,27 +101,13 @@ const ClubDetail = () => {
   const [sigmaTeamsTab, setSigmaTeamsTab] = useState("sigma-go");
   const [isPlayingGame, setIsPlayingGame] = useState(false);
 
-  // Pobierz dane klubu z localStorage
-  const getClubData = () => {
-    const storedClubs = localStorage.getItem('clubs');
-    if (storedClubs) {
-      const clubs = JSON.parse(storedClubs);
-      return clubs.find((c: any) => c.id === parseInt(id || "1")) || {
-        id: parseInt(id || "1"),
-        name: "KS Górnik",
-        city: "Zabrze",
-        membersCount: 12,
-      };
-    }
-    return {
-      id: parseInt(id || "1"),
-      name: "KS Górnik",
-      city: "Zabrze",
-      membersCount: 12,
-    };
+  // Pobierz dane klubu z Supabase
+  const club = clubs.find((c) => c.id === id) || {
+    id: id || "",
+    name: "Nieznany klub",
+    city: "",
+    members_count: 0,
   };
-
-  const club = getClubData();
   
   // Refresh athletes when dialog opens
   useEffect(() => {
@@ -137,71 +131,56 @@ const ClubDetail = () => {
     }
   }, [isAddAthleteDialogOpen, club.name]);
 
-  // Pobierz zawodników klubu z localStorage
-  const getClubAthletes = () => {
-    const storedAthletes = localStorage.getItem('athletes');
-    if (storedAthletes) {
-      const allAthletes = JSON.parse(storedAthletes);
-      // Filtruj zawodników przypisanych do tego klubu
-      return allAthletes
-        .filter((athlete: any) => athlete.club === club.name)
-        .map((athlete: any) => ({
-          id: athlete.id,
-          name: athlete.name,
-          birthDate: athlete.birthYear ? `${athlete.birthYear}-01-01` : "N/A",
-          lastSession: "Brak danych",
-          archived: athlete.archived || false,
-          archivedAt: athlete.archivedAt || null,
-        }));
-    }
-    return [];
-  };
-
-  const [athletes, setAthletes] = useState(getClubAthletes());
-  
-  // Refresh athletes when needed
-  useEffect(() => {
-    setAthletes(getClubAthletes());
-  }, [club.name]);
+  // Filtruj zawodników przypisanych do tego klubu z Supabase
+  const athletes = allAthletes
+    .filter((athlete) => athlete.club_id === id)
+    .map((athlete) => ({
+      id: athlete.id,
+      name: `${athlete.last_name} ${athlete.first_name}`,
+      birthDate: athlete.birth_year ? `${athlete.birth_year}-01-01` : "N/A",
+      lastSession: "Brak danych",
+      archived: athlete.archived || false,
+      archivedAt: athlete.archived_at || null,
+    }));
   
   // Funkcja do dodawania zawodnika
-  const handleAddAthlete = () => {
-    const storedAthletes = localStorage.getItem('athletes');
-    const existingAthletes = storedAthletes ? JSON.parse(storedAthletes) : [];
-    
-    const newId = existingAthletes.length > 0 ? Math.max(...existingAthletes.map((a: any) => a.id)) + 1 : 1;
-    const fullName = `${newAthlete.lastName} ${newAthlete.firstName}`;
+  const handleAddAthlete = async () => {
     const birthYear = newAthlete.birthDate ? newAthlete.birthDate.getFullYear() : new Date().getFullYear();
     
-    const athleteToAdd = {
-      id: newId,
-      name: fullName,
-      firstName: newAthlete.firstName,
-      lastName: newAthlete.lastName,
+    const athleteData = {
+      first_name: newAthlete.firstName,
+      last_name: newAthlete.lastName,
       gender: newAthlete.gender,
-      club: newAthlete.club,
+      club_id: id!, // current club ID
       coach: newAthlete.coach,
       discipline: newAthlete.discipline,
-      birthYear: birthYear,
-      birthDate: newAthlete.birthDate?.toISOString(),
-      sessions: 0,
+      birth_year: birthYear,
+      birth_date: newAthlete.birthDate?.toISOString().split('T')[0],
       email: newAthlete.email,
       phone: newAthlete.phone,
       notes: newAthlete.notes,
-      parentFirstName: newAthlete.parentFirstName,
-      parentLastName: newAthlete.parentLastName,
-      parentPhone: newAthlete.parentPhone,
-      parentEmail: newAthlete.parentEmail,
-      createdAt: new Date().toISOString(),
+      parent_first_name: newAthlete.parentFirstName,
+      parent_last_name: newAthlete.parentLastName,
+      parent_phone: newAthlete.parentPhone,
+      parent_email: newAthlete.parentEmail,
     };
     
-    const updatedAthletes = [...existingAthletes, athleteToAdd];
-    localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
+    const { error } = await addAthlete(athleteData);
     
-    setIsAddAthleteDialogOpen(false);
-    
-    // Update athletes state
-    setAthletes(getClubAthletes());
+    if (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się dodać zawodnika",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Sukces",
+        description: "Zawodnik został dodany",
+      });
+      setIsAddAthleteDialogOpen(false);
+      await refetchAthletes();
+    }
   };
   
   const isFormValid = newAthlete.firstName.trim() !== "" && 
@@ -288,34 +267,44 @@ const ClubDetail = () => {
     );
   };
 
-  const handleArchiveSelected = () => {
-    const storedAthletes = localStorage.getItem('athletes');
-    const allAthletes = storedAthletes ? JSON.parse(storedAthletes) : [];
+  const handleArchiveSelected = async () => {
+    const { error } = await archiveAthletes(selectedAthletes);
     
-    const updatedAthletes = allAthletes.map((athlete: any) => 
-      selectedAthletes.includes(athlete.id.toString()) 
-        ? { ...athlete, archived: true, archivedAt: new Date().toISOString() }
-        : athlete
-    );
-    localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
-    setAthletes(getClubAthletes());
-    setSelectedAthletes([]);
-    setIsSelectionMode(false);
+    if (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zarchiwizować zawodników",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Sukces",
+        description: "Zawodnicy zostali zarchiwizowani",
+      });
+      await refetchAthletes();
+      setSelectedAthletes([]);
+      setIsSelectionMode(false);
+    }
   };
 
-  const handleRestoreSelected = () => {
-    const storedAthletes = localStorage.getItem('athletes');
-    const allAthletes = storedAthletes ? JSON.parse(storedAthletes) : [];
+  const handleRestoreSelected = async () => {
+    const { error } = await restoreAthletes(selectedAthletes);
     
-    const updatedAthletes = allAthletes.map((athlete: any) => 
-      selectedAthletes.includes(athlete.id.toString()) 
-        ? { ...athlete, archived: false, archivedAt: null }
-        : athlete
-    );
-    localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
-    setAthletes(getClubAthletes());
-    setSelectedAthletes([]);
-    setIsSelectionMode(false);
+    if (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się przywrócić zawodników",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Sukces",
+        description: "Zawodnicy zostali przywróceni",
+      });
+      await refetchAthletes();
+      setSelectedAthletes([]);
+      setIsSelectionMode(false);
+    }
   };
 
   const cancelSelectionMode = () => {
@@ -1761,15 +1750,15 @@ const ClubDetail = () => {
               <div className="space-y-4">
                 <div>
                   <span className="text-xs text-muted-foreground block mb-1">Osoba kontaktowa</span>
-                  <span className="font-semibold">{club.contactPerson || "Nie podano"}</span>
+                  <span className="font-semibold">{"Nie podano"}</span>
                 </div>
                 <div>
                   <span className="text-xs text-muted-foreground block mb-1">Email</span>
-                  <span className="font-semibold">{club.email || "Nie podano"}</span>
+                  <span className="font-semibold">{"Nie podano"}</span>
                 </div>
                 <div>
                   <span className="text-xs text-muted-foreground block mb-1">Telefon</span>
-                  <span className="font-semibold">{club.phone || "Nie podano"}</span>
+                  <span className="font-semibold">{"Nie podano"}</span>
                 </div>
               </div>
             </CardContent>
@@ -1804,74 +1793,11 @@ const ClubDetail = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {club.purchasedPrograms?.sigmaTeamsGo && (
-                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                    <div>
-                      <p className="font-semibold text-green-900 dark:text-green-100">Sigma Teams Go!</p>
-                      {club.purchasedPrograms.sigmaTeamsGoDate && (
-                        <p className="text-sm text-green-700 dark:text-green-300">
-                          Data zakupu: {format(new Date(club.purchasedPrograms.sigmaTeamsGoDate), "dd.MM.yyyy", { locale: pl })}
-                        </p>
-                      )}
-                    </div>
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  </div>
-                )}
-                
-                {club.purchasedPrograms?.sigmaTeamsSprints && club.purchasedPrograms.sigmaTeamsSprints.length > 0 && (
-                  <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-semibold text-blue-900 dark:text-blue-100">Sigma Teams Sprints</p>
-                      <CheckCircle2 className="h-5 w-5 text-blue-600" />
-                    </div>
-                    {club.purchasedPrograms.sigmaTeamsSprintsDate && (
-                      <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
-                        Data zakupu: {format(new Date(club.purchasedPrograms.sigmaTeamsSprintsDate), "dd.MM.yyyy", { locale: pl })}
-                      </p>
-                    )}
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {club.purchasedPrograms.sigmaTeamsSprints.map((module: string, index: number) => (
-                        <Badge key={index} variant="outline" className="bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700">
-                          {module}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {club.purchasedPrograms?.sigmaTeamsPro && (
-                  <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
-                    <div>
-                      <p className="font-semibold text-purple-900 dark:text-purple-100">Sigma Teams Pro</p>
-                      {club.purchasedPrograms.sigmaTeamsProDate && (
-                        <p className="text-sm text-purple-700 dark:text-purple-300">
-                          Data zakupu: {format(new Date(club.purchasedPrograms.sigmaTeamsProDate), "dd.MM.yyyy", { locale: pl })}
-                        </p>
-                      )}
-                    </div>
-                    <CheckCircle2 className="h-5 w-5 text-purple-600" />
-                  </div>
-                )}
-
-                {!club.purchasedPrograms?.sigmaTeamsGo && 
-                 !club.purchasedPrograms?.sigmaTeamsSprints?.length && 
-                 !club.purchasedPrograms?.sigmaTeamsPro && (
-                  <p className="text-muted-foreground">Brak zakupionych programów</p>
-                )}
+                <p className="text-muted-foreground">Brak zakupionych programów</p>
               </div>
             </CardContent>
           </Card>
 
-          {club.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Notatki</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground whitespace-pre-wrap">{club.notes}</p>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
       </Tabs>
     </div>

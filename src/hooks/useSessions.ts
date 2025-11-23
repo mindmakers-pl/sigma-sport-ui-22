@@ -9,6 +9,7 @@ export interface Session {
   in_progress?: boolean;
   completed_at?: string;
   created_at?: string;
+  results?: any; // JSONB field for session results
 }
 
 export const useSessions = (athleteId?: string) => {

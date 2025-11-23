@@ -30,6 +30,7 @@ export type Database = {
           id: string
           last_name: string
           notes: string | null
+          notes_history: Json | null
           parent_email: string | null
           parent_first_name: string | null
           parent_last_name: string | null
@@ -51,6 +52,7 @@ export type Database = {
           id?: string
           last_name: string
           notes?: string | null
+          notes_history?: Json | null
           parent_email?: string | null
           parent_first_name?: string | null
           parent_last_name?: string | null
@@ -72,6 +74,7 @@ export type Database = {
           id?: string
           last_name?: string
           notes?: string | null
+          notes_history?: Json | null
           parent_email?: string | null
           parent_first_name?: string | null
           parent_last_name?: string | null
@@ -159,6 +162,7 @@ export type Database = {
           date: string
           id: string
           in_progress: boolean | null
+          results: Json | null
         }
         Insert: {
           athlete_id: string
@@ -168,6 +172,7 @@ export type Database = {
           date: string
           id?: string
           in_progress?: boolean | null
+          results?: Json | null
         }
         Update: {
           athlete_id?: string
@@ -177,6 +182,7 @@ export type Database = {
           date?: string
           id?: string
           in_progress?: boolean | null
+          results?: Json | null
         }
         Relationships: [
           {

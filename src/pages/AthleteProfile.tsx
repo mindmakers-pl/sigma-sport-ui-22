@@ -24,10 +24,22 @@ import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
 import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
 import TrainingsTable from "@/components/TrainingsTable";
 import MeasurementSessionWizard from "@/components/MeasurementSessionWizard";
+import { useAthletes } from "@/hooks/useAthletes";
+import { useSessions } from "@/hooks/useSessions";
+import { useTrainings } from "@/hooks/useTrainings";
+import { useClubs } from "@/hooks/useClubs";
+import { useToast } from "@/hooks/use-toast";
 
 const AthleteProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Supabase hooks
+  const { athletes: allAthletes, updateAthlete, refetch: refetchAthletes } = useAthletes();
+  const { sessions, addSession, updateSession, refetch: refetchSessions } = useSessions(id);
+  const { trainings, addTraining, refetch: refetchTrainings } = useTrainings(id);
+  const { clubs } = useClubs();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "informacje";
   const activeSubTab = searchParams.get("subtab") || "sigma-score";
@@ -91,134 +103,65 @@ const AthleteProfile = () => {
     birthDate: undefined as Date | undefined,
   });
 
+  // Pobierz dane zawodnika z Supabase
+  const athleteData = allAthletes.find((a) => a.id === id);
+  const athlete = athleteData ? {
+    name: `${athleteData.last_name} ${athleteData.first_name}`,
+    club: clubs.find(c => c.id === athleteData.club_id)?.name || '',
+    clubId: athleteData.club_id,
+    coach: athleteData.coach || '',
+    discipline: athleteData.discipline || '',
+    email: athleteData.email || '',
+    phone: athleteData.phone || '',
+    birthYear: athleteData.birth_year,
+    birthDate: athleteData.birth_date,
+    notes: athleteData.notes || '',
+    notesHistory: (athleteData.notes_history as any[]) || [],
+    parentName: `${athleteData.parent_first_name || ''} ${athleteData.parent_last_name || ''}`.trim(),
+    parentPhone: athleteData.parent_phone || '',
+    parentEmail: athleteData.parent_email || '',
+    createdAt: athleteData.created_at,
+  } : {
+    name: "Nieznany zawodnik",
+    club: "",
+    clubId: null,
+    coach: "",
+    discipline: "",
+    email: "",
+    phone: "",
+    birthYear: 0,
+    birthDate: "",
+    notes: "",
+    notesHistory: [],
+    parentName: "",
+    parentPhone: "",
+    parentEmail: "",
+    createdAt: "",
+  };
+
   // Pobierz listę trenerów z klubu zawodnika
+  const clubData = clubs.find((c) => c.id === athlete.clubId);
   const getClubCoaches = () => {
-    const storedClubs = localStorage.getItem('clubs');
-    if (storedClubs) {
-      const clubs = JSON.parse(storedClubs);
-      const club = clubs.find((c: any) => c.name === athlete.club);
-      return club?.coaches || [];
-    }
-    return [];
+    return (clubData?.coaches as any[]) || [];
   };
-
-  // Pobierz dane zawodnika z localStorage lub użyj mock data
-  const getAthleteData = () => {
-    const storedAthletes = localStorage.getItem('athletes');
-    if (storedAthletes) {
-      const athletes = JSON.parse(storedAthletes);
-      const athlete = athletes.find((a: any) => a.id === parseInt(id || "1"));
-      if (athlete) {
-        return {
-          name: athlete.name,
-          club: athlete.club,
-          coach: athlete.coach,
-          discipline: athlete.discipline,
-          email: athlete.email,
-          phone: athlete.phone,
-          birthYear: athlete.birthYear,
-          birthDate: athlete.birthDate,
-          notes: athlete.notes,
-          notesHistory: athlete.notesHistory || [],
-          parentName: athlete.parentName || '',
-          parentPhone: athlete.parentPhone || '',
-          parentEmail: athlete.parentEmail || '',
-          createdAt: athlete.createdAt,
-        };
-      }
-    }
-    
-    // Fallback do mock data
-    const athleteData: Record<string, any> = {
-      "1": { name: "Kowalski Jan", club: "KS Górnik", coach: "", discipline: "Piłka nożna", birthYear: 2005, email: "jan.kowalski@example.com", phone: "+48 123 456 789", notes: "", notesHistory: [] },
-      "2": { name: "Nowak Anna", club: "MKS Cracovia", discipline: "Koszykówka", birthYear: 2004, birthDate: "2004-07-20", email: "anna.nowak@example.com", phone: "+48 234 567 890", notes: "", parentName: "", parentPhone: "", parentEmail: "", createdAt: "2024-01-16" },
-      "3": { name: "Wiśniewski Piotr", club: "KS Górnik", discipline: "Piłka nożna", birthYear: 2006, birthDate: "2006-11-10", email: "piotr.wisniewski@example.com", phone: "+48 345 678 901", notes: "", parentName: "", parentPhone: "", parentEmail: "", createdAt: "2024-01-17" },
-      "4": { name: "Kowalczyk Maria", club: "Wisła Kraków", discipline: "Siatkówka", birthYear: 2005, birthDate: "2005-05-05", email: "maria.kowalczyk@example.com", phone: "+48 456 789 012", notes: "", parentName: "", parentPhone: "", parentEmail: "", createdAt: "2024-01-18" },
-      "5": { name: "Zieliński Tomasz", club: "Legia Warszawa", discipline: "Piłka nożna", birthYear: 2003, birthDate: "2003-09-22", email: "tomasz.zielinski@example.com", phone: "+48 567 890 123", notes: "", parentName: "", parentPhone: "", parentEmail: "", createdAt: "2024-01-19" },
-    };
-    return athleteData[id || "1"] || { name: "Nieznany zawodnik", club: "Brak danych", discipline: "", email: "", phone: "", birthYear: 0, birthDate: "", notes: "", parentName: "", parentPhone: "", parentEmail: "", createdAt: "" };
-  };
-
-  const athlete = getAthleteData();
 
   // Sync reportTab with URL subtab parameter
   useEffect(() => {
     setReportTab(activeSubTab);
   }, [activeSubTab]);
 
-  // Load sessions on mount - no auto mock data generation
+  // Load sessions from Supabase
   useEffect(() => {
-    if (id) {
-      // Load sessions directly from localStorage
-      const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-      
-      // 🔧 One-time migration: normalize Six Sigma data structure for old sessions
-      let needsSave = false;
-      const migratedSessions = allSessions.map((session: any) => {
-        if (session.results?.six_sigma) {
-          const sixSigma = session.results.six_sigma;
-          let needsMigration = false;
-          const migratedSixSigma = { ...sixSigma };
-          
-          // Add validation if missing
-          if (!sixSigma.validation) {
-            console.log(`🔧 Migrating session ${session.id} - adding validation object`);
-            migratedSixSigma.validation = {
-              isValid: true,
-              warnings: [],
-              flags: {
-                straightLining: false,
-                reverseInconsistency: false,
-                speedingDetected: false
-              }
-            };
-            needsMigration = true;
-          }
-          
-          // Add competencyScores if missing
-          if (!sixSigma.competencyScores || !Array.isArray(sixSigma.competencyScores)) {
-            console.log(`🔧 Migrating session ${session.id} - adding empty competencyScores`);
-            migratedSixSigma.competencyScores = [];
-            needsMigration = true;
-          }
-          
-          // Add modifierScores if missing
-          if (!sixSigma.modifierScores || !Array.isArray(sixSigma.modifierScores)) {
-            console.log(`🔧 Migrating session ${session.id} - adding empty modifierScores`);
-            migratedSixSigma.modifierScores = [];
-            needsMigration = true;
-          }
-          
-          if (needsMigration) {
-            needsSave = true;
-            return {
-              ...session,
-              results: {
-                ...session.results,
-                six_sigma: migratedSixSigma
-              }
-            };
-          }
-        }
-        return session;
-      });
-      
-      // Save migrated sessions back to localStorage if any changes were made
-      if (needsSave) {
-        localStorage.setItem('athlete_sessions', JSON.stringify(migratedSessions));
-        console.log('✅ Migration complete - sessions normalized');
-      }
-      
-      const athleteSessions = migratedSessions
-        .filter((s: any) => String(s.athlete_id) === String(id))
+    if (sessions && sessions.length > 0) {
+      const athleteSessions = sessions
         .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setSavedSessions(athleteSessions);
       
       console.log(`📊 Loaded ${athleteSessions.length} sessions for athlete ${id}`);
     }
-  }, [id]);
+  }, [sessions, id]);
 
-  const handleMeasurementTaskComplete = (taskName: string, data: any) => {
+  const handleMeasurementTaskComplete = async (taskName: string, data: any) => {
     console.log(`✅ Measurement task "${taskName}" completed:`, data);
     
     // Transform kwestionariusz data to six_sigma format if needed
@@ -284,50 +227,51 @@ const AthleteProfile = () => {
     setTaskStatus(updatedStatus);
     setSessionResults(transformedResults);
     
-    // Auto-save to localStorage after each task
-    const sessionId = currentSessionId || `session_${Date.now()}`;
-    if (!currentSessionId) {
-      setCurrentSessionId(sessionId);
-    }
-    
-    const sessionData = {
-      id: sessionId,
-      athlete_id: id,
-      athlete_name: athlete?.name || 'Unknown',
-      date: new Date().toISOString(),
-      conditions: measurementConditions,
-      results: transformedResults,
-      taskStatus: updatedStatus,
-      inProgress: true // Sesja w trakcie
-    };
-
-    // Save or update session
-    const existingSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-    const sessionIndex = existingSessions.findIndex((s: any) => s.id === sessionId);
-    
-    if (sessionIndex !== -1) {
-      existingSessions[sessionIndex] = sessionData;
+    // Auto-save to Supabase after each task
+    if (currentSessionId) {
+      const { error } = await updateSession(currentSessionId, {
+        results: transformedResults,
+        conditions: measurementConditions,
+      });
+      
+      if (error) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się zapisać wyniku",
+          variant: "destructive",
+        });
+      } else {
+        await refetchSessions();
+      }
     } else {
-      existingSessions.push(sessionData);
+      const { data: newSession, error } = await addSession({
+        athlete_id: id!,
+        date: new Date().toISOString(),
+        results: transformedResults,
+        conditions: measurementConditions,
+        in_progress: true,
+      });
+      
+      if (error) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się utworzyć sesji",
+          variant: "destructive",
+        });
+      } else if (newSession) {
+        setCurrentSessionId(newSession.id);
+        await refetchSessions();
+      }
     }
-    
-    localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
-    
-    // Force refresh savedSessions with proper type handling
-    const athleteSessions = existingSessions
-      .filter((s: any) => String(s.athlete_id) === String(id))
-      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    setSavedSessions(athleteSessions);
     
     console.log(`📊 Task status updated:`, updatedStatus);
-    console.log(`💾 Session saved to localStorage (ID: ${sessionId})`);
     
     // Return to cockpit
     setActiveTask(null);
     setCurrentView('kokpit');
   };
 
-  const handleTrainingTaskComplete = (data: any) => {
+  const handleTrainingTaskComplete = async (data: any) => {
     const taskName = currentView
       .replace('showing_', '')
       .replace('playing_', '')
@@ -336,21 +280,36 @@ const AthleteProfile = () => {
     // Check if this is a training session
     const currentTrainingStr = localStorage.getItem('current_training');
     if (currentTrainingStr && currentView.startsWith('playing_')) {
-      // This is a training session - save separately
+      // This is a training session - save to Supabase
       const currentTraining = JSON.parse(currentTrainingStr);
-      const trainingRecord = {
-        ...currentTraining,
-        results: data,
-        completedAt: new Date().toISOString()
-      };
       
-      // Save to trainings list
-      const existingTrainings = JSON.parse(localStorage.getItem('athlete_trainings') || '[]');
-      existingTrainings.push(trainingRecord);
-      localStorage.setItem('athlete_trainings', JSON.stringify(existingTrainings));
+      const { error } = await addTraining({
+        athlete_id: id!,
+        task_type: taskName,
+        date: new Date().toISOString(),
+        results: {
+          ...currentTraining,
+          results: data,
+          completedAt: new Date().toISOString()
+        }
+      });
+      
+      if (error) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się zapisać treningu",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sukces",
+          description: "Trening został zapisany",
+        });
+        await refetchTrainings();
+      }
+      
       localStorage.removeItem('current_training');
-      
-      console.log('Trening zapisany:', trainingRecord);
+      console.log('Trening zapisany do Supabase');
       setCurrentView('kokpit');
       return;
     }
