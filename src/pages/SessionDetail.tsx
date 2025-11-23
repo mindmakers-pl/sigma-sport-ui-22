@@ -392,7 +392,7 @@ export default function SessionDetail() {
                     if (name === 'rt') return [`${value} ms`, 'Czas reakcji'];
                     return [value, name];
                   }} />
-                      <Line type="monotone" dataKey="rt" stroke="hsl(var(--primary))" strokeWidth={2} dot={(props: any) => {
+                  <Line type="monotone" dataKey="rt" stroke="hsl(var(--primary))" strokeWidth={2} dot={(props: any) => {
                     const {
                       cx,
                       cy,
@@ -400,9 +400,9 @@ export default function SessionDetail() {
                     } = props;
                     if (!cx || !cy) return null;
                     if (payload.isError) {
-                      return <circle cx={cx} cy={cy} r={5} fill="red" stroke="darkred" strokeWidth={2} />;
+                      return <circle key={`error-${payload.trial || `${cx}-${cy}`}`} cx={cx} cy={cy} r={5} fill="red" stroke="darkred" strokeWidth={2} />;
                     }
-                    return <circle cx={cx} cy={cy} r={2} fill="hsl(var(--primary))" />;
+                    return <circle key={`point-${payload.trial || `${cx}-${cy}`}`} cx={cx} cy={cy} r={2} fill="hsl(var(--primary))" />;
                   }} />
                     </LineChart>
                   </ResponsiveContainer> : <p className="text-slate-500">Brak danych do wyświetlenia krzywej.</p>}

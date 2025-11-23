@@ -574,7 +574,7 @@ export default function FocusGame({
                         const color = payload.type === 'CONGRUENT' ? '#22c55e' : '#ef4444';
                         const size = payload.isCorrect ? 4 : 6;
                         const opacity = payload.isCorrect ? 0.6 : 1;
-                        return <circle cx={cx} cy={cy} r={size} fill={color} opacity={opacity} stroke={payload.isCorrect ? 'none' : '#fbbf24'} strokeWidth={payload.isCorrect ? 0 : 2} />;
+                        return <circle key={`trial-${payload.trialNumber || `${cx}-${cy}`}`} cx={cx} cy={cy} r={size} fill={color} opacity={opacity} stroke={payload.isCorrect ? 'none' : '#fbbf24'} strokeWidth={payload.isCorrect ? 0 : 2} />;
                       }} name="Czas reakcji" />
                     </LineChart>
                   </ResponsiveContainer>

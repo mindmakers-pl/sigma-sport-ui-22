@@ -284,9 +284,9 @@ export default function TrainingDetail() {
                         const { cx, cy, payload } = props;
                         if (!cx || !cy) return null;
                         if (payload.isError) {
-                          return <circle cx={cx} cy={cy} r={5} fill="red" stroke="darkred" strokeWidth={2} />;
+                          return <circle key={`error-${payload.trial || `${cx}-${cy}`}`} cx={cx} cy={cy} r={5} fill="red" stroke="darkred" strokeWidth={2} />;
                         }
-                        return <circle cx={cx} cy={cy} r={2} fill="hsl(var(--primary))" />;
+                        return <circle key={`point-${payload.trial || `${cx}-${cy}`}`} cx={cx} cy={cy} r={2} fill="hsl(var(--primary))" />;
                       }}
                     />
                   </LineChart>
