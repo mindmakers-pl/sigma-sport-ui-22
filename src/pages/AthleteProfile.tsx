@@ -183,6 +183,31 @@ const AthleteProfile = () => {
     }
   }, [sessions, id]);
 
+  // Session Resume: Check for in-progress session when entering measurement tab
+  useEffect(() => {
+    if (activeTab === 'dodaj-pomiar' && sessions.length > 0) {
+      const inProgressSession = sessions.find(s => s.in_progress === true);
+      
+      if (inProgressSession) {
+        console.log('🔄 Found in-progress session:', inProgressSession.id);
+        setCurrentSessionId(inProgressSession.id);
+        setSessionResults(inProgressSession.results || {});
+        
+        // Update task status from saved results
+        const newStatus = { ...taskStatus };
+        if (inProgressSession.results?.six_sigma) newStatus.six_sigma = 'completed';
+        if (inProgressSession.results?.hrv_baseline) newStatus.hrv_baseline = 'completed';
+        if (inProgressSession.results?.scan) newStatus.scan = 'completed';
+        if (inProgressSession.results?.focus) newStatus.focus = 'completed';
+        if (inProgressSession.results?.memo) newStatus.memo = 'completed';
+        if (inProgressSession.results?.feedback) newStatus.feedback = 'completed';
+        setTaskStatus(newStatus);
+        
+        console.log('✅ Session resumed with status:', newStatus);
+      }
+    }
+  }, [activeTab, sessions]);
+
   const handleMeasurementTaskComplete = async (taskName: string, data: any) => {
     console.log(`✅ Measurement task "${taskName}" completed:`, data);
     
@@ -288,9 +313,30 @@ const AthleteProfile = () => {
     
     console.log(`📊 Task status updated:`, updatedStatus);
     
-    // Return to cockpit
-    setActiveTask(null);
-    setCurrentView('kokpit');
+    // Find current task in sequence
+    const currentIndex = MEASUREMENT_SEQUENCE.indexOf(taskName as any);
+    
+    if (currentIndex !== -1 && currentIndex < MEASUREMENT_SEQUENCE.length - 1) {
+      // Advance to next task
+      const nextTask = MEASUREMENT_SEQUENCE[currentIndex + 1];
+      setActiveTask(nextTask);
+      setCurrentMeasurementIndex(currentIndex + 1);
+      console.log(`➡️ Advancing to next task: ${nextTask} (index ${currentIndex + 1})`);
+    } else {
+      // Sequence complete
+      setActiveTask(null);
+      setCurrentView('kokpit');
+      setCurrentMeasurementIndex(null);
+      
+      // Mark session as complete
+      if (currentSessionId) {
+        await updateSession(currentSessionId, { 
+          in_progress: false,
+          completed_at: new Date().toISOString()
+        });
+        console.log('✅ Measurement session complete');
+      }
+    }
   };
 
   const handleTrainingTaskComplete = async (data: any) => {
@@ -1878,10 +1924,26 @@ const AthleteProfile = () => {
                 />
               )}
               {activeTask === 'kwestionariusz' && (
-                <Kwestionariusz
-                  onComplete={(data) => handleMeasurementTaskComplete('kwestionariusz', data)}
-                  onGoToCockpit={() => setActiveTask(null)}
-                />
+                <>
+                  {!selectedQuestionnaires ? (
+                    <QuestionnaireSelector
+                      onComplete={(ids) => setSelectedQuestionnaires(ids)}
+                      onCancel={() => setActiveTask(null)}
+                    />
+                  ) : (
+                    <QuestionnaireRunner
+                      questionnaireIds={selectedQuestionnaires}
+                      onComplete={(data) => {
+                        handleMeasurementTaskComplete('kwestionariusz', data);
+                        setSelectedQuestionnaires(null);
+                      }}
+                      onCancel={() => {
+                        setSelectedQuestionnaires(null);
+                        setActiveTask(null);
+                      }}
+                    />
+                  )}
+                </>
               )}
               {activeTask === 'hrv_baseline' && (
                 <HRVBaselineForm
