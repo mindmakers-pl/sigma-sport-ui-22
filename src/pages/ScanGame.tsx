@@ -20,6 +20,7 @@ interface ScanGameProps {
 }
 
 const GAME_DURATION = 60; // 60 seconds
+const GRID_SIZE = 64; // 8x8 grid (0-63)
 
 const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameProps) => {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
 
   // Generate random grid
   const generateGrid = () => {
-    const numbers = Array.from({ length: 100 }, (_, i) => i);
+    const numbers = Array.from({ length: GRID_SIZE }, (_, i) => i);
     // Fisher-Yates shuffle
     for (let i = numbers.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -107,7 +108,7 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
   const calculateResult = () => {
     // Find the highest correct sequential number
     let maxCorrect = -1;
-    for (let i = 0; i <= 99; i++) {
+    for (let i = 0; i < GRID_SIZE; i++) {
       if (selectedNumbers.has(i)) {
         maxCorrect = i;
       } else {
@@ -171,7 +172,7 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
               
               <div className="bg-slate-700/50 p-6 rounded-lg space-y-4 text-slate-200">
                 <p className="text-lg leading-relaxed">
-                  Przed Tobą tabela 10 na 10 pól, w których zapisane są różne dwucyfrowe liczby od <span className="font-bold text-white">00 do 99</span> (każda liczba dokładnie raz).
+                  Przed Tobą tabela 8 na 8 pól, w których zapisane są różne dwucyfrowe liczby od <span className="font-bold text-white">00 do 63</span> (każda liczba dokładnie raz).
                 </p>
                 <p className="text-lg leading-relaxed">
                   Twoim celem jest znaleźć <span className="font-bold text-green-400">jak najdłuższy ciąg kolejnych liczb</span> zaczynając od 00 i idąc w górę: 00, 01, 02, 03, itd.
@@ -217,7 +218,7 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
               </div>
             </div>
             
-            <div className="grid grid-cols-10 gap-2 bg-slate-800 p-4 rounded-lg">
+            <div className="grid grid-cols-8 gap-2 bg-slate-800 p-4 rounded-lg">
               {gridNumbers.map((number, index) => {
                 const isSelected = selectedNumbers.has(number);
                 return (
@@ -229,9 +230,9 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
                       bg-slate-700 hover:bg-slate-600
                       rounded
                       flex items-center justify-center
-                      text-2xl font-bold
+                      text-2xl
                       transition-all duration-150
-                      ${isSelected ? 'text-slate-500' : 'text-white'}
+                      ${isSelected ? 'text-slate-500' : 'text-slate-300'}
                     `}
                   >
                     {number.toString().padStart(2, '0')}
@@ -338,8 +339,6 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
                   onClick={() => {
                     const result = calculateResult();
                     const gameData = {
-                      gameName: "Sigma Scan",
-                      timestamp: Date.now(),
                       results: {
                         scan_max_number_reached: result.maxNumber,
                         scan_duration_s: result.duration,
