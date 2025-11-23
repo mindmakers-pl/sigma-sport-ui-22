@@ -7,36 +7,47 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, CheckCircle2, XCircle, Loader2, Brain } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { useToast } from "@/hooks/use-toast";
+import { useSessions } from "@/hooks/useSessions";
+import { useSessionTasks } from "@/hooks/useSessionTasks";
+import { useAthletes } from "@/hooks/useAthletes";
+
 export default function SessionDetail() {
-  const {
-    athleteId,
-    sessionId
-  } = useParams();
+  const { athleteId, sessionId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const taskView = searchParams.get("task") || "overview";
-  const [session, setSession] = useState<any>(null);
-  const [athlete, setAthlete] = useState<any>(null);
+  
+  // Supabase hooks
+  const { sessions, loading: sessionsLoading } = useSessions(athleteId);
+  const { tasks, loading: tasksLoading } = useSessionTasks(sessionId);
+  const { athletes, loading: athletesLoading } = useAthletes();
+  
   const [sigmaInterpretation, setSigmaInterpretation] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
-  useEffect(() => {
-    // Load session data
-    const sessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-    const foundSession = sessions.find((s: any) => s.id === sessionId);
-    setSession(foundSession);
-
-    // Load athlete data
-    const athletes = JSON.parse(localStorage.getItem('athletes') || '[]');
-    const foundAthlete = athletes.find((a: any) => a.id === parseInt(athleteId || "0"));
-    setAthlete(foundAthlete);
-  }, [athleteId, sessionId]);
-  if (!session || !athlete) {
+  
+  // Find session and athlete from Supabase data
+  const session = sessions.find(s => s.id === sessionId);
+  const athleteData = athletes.find(a => a.id === athleteId);
+  const athlete = athleteData ? {
+    name: `${athleteData.last_name} ${athleteData.first_name}`,
+    age: athleteData.birth_year ? new Date().getFullYear() - athleteData.birth_year : 13,
+    sport: athleteData.discipline || "Unknown"
+  } : null;
+  if (sessionsLoading || athletesLoading || tasksLoading) {
     return <div className="p-8">
         <p>Ładowanie...</p>
       </div>;
   }
-  const completedTasks = Object.entries(session.taskStatus).filter(([_, status]) => status === 'completed').map(([task]) => task);
+
+  if (!session || !athlete) {
+    return <div className="p-8">
+        <p>Nie znaleziono sesji lub zawodnika</p>
+      </div>;
+  }
+
+  // Determine completed tasks from session results
+  const completedTasks = session.results ? Object.keys(session.results) : [];
   
   const generateSigmaScore = async () => {
     setIsGenerating(true);

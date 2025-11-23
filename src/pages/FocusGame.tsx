@@ -219,25 +219,11 @@ export default function FocusGame({
   const { toast } = useToast();
   const { isLibrary, isMeasurement, isTraining } = determineGameContext(athleteId, mode);
 
-  // Mock results for demonstration
-  const mockResults: TrialResult[] = Array.from({
-    length: 80
-  }, (_, i) => ({
-    trialId: i + 1,
-    type: i % 2 === 0 ? 'CONGRUENT' : 'INCONGRUENT',
-    stimulusWord: WORDS[i % 4],
-    stimulusColor: COLORS[i % 4],
-    userAction: COLORS[i % 4],
-    isCorrect: Math.random() > 0.1,
-    // 90% accuracy
-    reactionTime: i % 2 === 0 ? 450 + Math.random() * 100 : 580 + Math.random() * 150,
-    timestamp: Date.now() + i * 3000
-  }));
   const [gameState, setGameState] = useState<"ready" | "playing" | "finished">("ready");
   const [phaseState, setPhaseState] = useState<"fixation" | "isi" | "stimulus">("fixation");
   const [trials, setTrials] = useState<Trial[]>([]);
   const [currentTrialIndex, setCurrentTrialIndex] = useState(0);
-  const [results, setResults] = useState<TrialResult[]>(mockResults);
+  const [results, setResults] = useState<TrialResult[]>([]);
   const [stimulusStartTime, setStimulusStartTime] = useState<number>(0);
   const [buttonsDisabled, setButtonsDisabled] = useState(true);
   const [manualRMSSD, setManualRMSSD] = useState("");

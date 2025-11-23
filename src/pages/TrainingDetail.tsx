@@ -1,5 +1,4 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,22 +6,28 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, Share2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { useTrainings } from "@/hooks/useTrainings";
 
 export default function TrainingDetail() {
   const { athleteId, trainingId } = useParams();
   const navigate = useNavigate();
-  const [training, setTraining] = useState<any>(null);
+  
+  // Fetch trainings from Supabase
+  const { trainings, loading } = useTrainings(athleteId);
+  const training = trainings.find(t => t.id === trainingId);
 
-  useEffect(() => {
-    const trainings = JSON.parse(localStorage.getItem('athlete_trainings') || '[]');
-    const found = trainings.find((t: any) => t.id === trainingId);
-    setTraining(found);
-  }, [trainingId]);
+  if (loading) {
+    return (
+      <div className="p-8">
+        <p>Ładowanie...</p>
+      </div>
+    );
+  }
 
   if (!training) {
     return (
       <div className="p-8">
-        <p>Ładowanie...</p>
+        <p>Nie znaleziono treningu</p>
       </div>
     );
   }
@@ -39,12 +44,12 @@ export default function TrainingDetail() {
   };
 
   const handleExportCSV = () => {
-    if (training.results.trials) {
-      const trials = training.results.trials;
+    if (training.results.focus_trials) {
+      const trials = training.results.focus_trials;
       const headers = ['trialId', 'type', 'stimulusWord', 'stimulusColor', 'userAction', 'isCorrect', 'reactionTime', 'timestamp'];
       const csvContent = [
         headers.join(','),
-        ...trials.map((t: any) => headers.map(h => t[h]).join(','))
+        ...trials.map((t: any) => headers.map(h => t[h] || '').join(','))
       ].join('\n');
       
       const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -58,7 +63,7 @@ export default function TrainingDetail() {
   };
 
   const results = training.results;
-  const coachReport = results.coachReport || {};
+  const coachReport = results.focus_coach_report || results.coachReport || {};
   
   // Extract metrics
   const overallMedianRT = Math.round(coachReport.overall?.medianRT || 0);
@@ -85,7 +90,7 @@ export default function TrainingDetail() {
   ];
 
   // Trial chart data
-  const rawTrials = results.trials || [];
+  const rawTrials = results.focus_trials || results.trials || [];
   const trialChartData = rawTrials.map((trial: any, index: number) => ({
     trial: index + 1,
     rt: trial.reactionTime,
@@ -116,10 +121,10 @@ export default function TrainingDetail() {
 
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-slate-900 mb-2">
-          Raport {training.game_name}
+          Raport treningowy - {training.task_type}
         </h2>
         <p className="text-slate-600">
-          {new Date(training.completedAt).toLocaleDateString('pl-PL', {
+          {new Date(training.date).toLocaleDateString('pl-PL', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
