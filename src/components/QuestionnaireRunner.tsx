@@ -23,6 +23,7 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
   const [showIntro, setShowIntro] = useState(true);
   const [showCompletion, setShowCompletion] = useState(false);
   const [completedQuestionnaires, setCompletedQuestionnaires] = useState<any[]>([]);
+  const [questionnaireStartTime, setQuestionnaireStartTime] = useState<number | null>(null);
 
   const getCurrentQuestionnaire = (): SixSigmaQuestionnaire | null => {
     const qId = questionnaireIds[currentQuestionnaireIndex];
@@ -67,6 +68,12 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
       setTimeout(() => setCurrentQuestionIndex(prev => prev + 1), 300);
     } else {
       // Questionnaire completed - score it with enriched metadata
+      const completionTimeSeconds = questionnaireStartTime 
+        ? Math.round((Date.now() - questionnaireStartTime) / 1000)
+        : undefined;
+      
+      console.log(`Kwestionariusz wypełniony w ${completionTimeSeconds}s`);
+      
       const responses: QuestionnaireResponse[] = Object.entries(newAnswers).map(([questionId, value]) => {
         // Find the original question to get metadata
         const question = allQuestions.find(q => q.id === questionId);
@@ -94,9 +101,11 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
         };
       });
 
-      const scored = scoreQuestionnaire(questionnaire, responses);
+      const scored = scoreQuestionnaire(questionnaire, responses, completionTimeSeconds);
       const newCompleted = [...completedQuestionnaires, scored];
       setCompletedQuestionnaires(newCompleted);
+      
+      console.log('Scored questionnaire with responses:', scored);
 
       // Check if more questionnaires to go
       if (currentQuestionnaireIndex < questionnaireIds.length - 1) {
@@ -105,6 +114,7 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
         setCurrentQuestionIndex(0);
         setAnswers({});
         setShowIntro(true);
+        setQuestionnaireStartTime(null); // Reset timer for next questionnaire
       } else {
         // All questionnaires completed
         setShowCompletion(true);
@@ -191,7 +201,10 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
                 </div>
               </div>
 
-              <Button onClick={() => setShowIntro(false)} className="w-full" size="lg">
+              <Button onClick={() => {
+                setShowIntro(false);
+                setQuestionnaireStartTime(Date.now()); // Start tracking time
+              }} className="w-full" size="lg">
                 GO!
               </Button>
             </CardContent>
