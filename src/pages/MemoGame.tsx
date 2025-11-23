@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTrainings } from "@/hooks/useTrainings";
 import { useToast } from "@/hooks/use-toast";
 import { determineGameContext } from "@/utils/gameContext";
@@ -17,8 +17,7 @@ interface MemoGameProps {
 
 const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps) => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const athleteIdParam = searchParams.get("athleteId");
+  const { athleteId: athleteIdParam } = useParams();
   const athleteId = athleteIdProp || athleteIdParam;
   const { addTraining } = useTrainings(athleteId || undefined);
   const { toast } = useToast();
