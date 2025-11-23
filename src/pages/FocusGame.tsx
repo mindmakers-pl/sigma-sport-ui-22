@@ -389,41 +389,8 @@ export default function FocusGame({
     console.log("=== SIGMA FOCUS - COACH REPORT ===");
     console.log(JSON.stringify(report, null, 2));
     
-    // Calculate display metrics (using filtered data)
-    const validTrials = filterTrials(finalResults);
-    const correctCount = validTrials.filter(r => r.isCorrect).length;
-    const accuracy = Math.round(correctCount / validTrials.length * 100);
-    
-    const congruentResults = validTrials.filter(r => r.type === 'CONGRUENT' && r.isCorrect).map(r => r.reactionTime);
-    const incongruentResults = validTrials.filter(r => r.type === 'INCONGRUENT' && r.isCorrect).map(r => r.reactionTime);
-    const medianCongruent = Math.round(calculateMedian(congruentResults));
-    const medianIncongruent = Math.round(calculateMedian(incongruentResults));
-    const concentrationCost = medianIncongruent - medianCongruent;
-    
-    const gameData = {
-      // Surowe dane z każdej próby
-      trials: finalResults,
-      
-      // Agregaty - kluczowe wskaźniki (z filtrowanych danych)
-      medianCongruent,
-      medianIncongruent,
-      concentrationCost,
-      accuracy,
-      correctCount,
-      totalTrials: TOTAL_TRIALS,
-      validTrials: validTrials.length,
-      
-      // Zaawansowane metryki trenera
-      coachReport: report,
-      
-      // Opcjonalne HRV (uzupełniane później manualnie)
-      rMSSD: null,
-      HR: null
-    };
-    
-    if (onComplete) {
-      onComplete(gameData);
-    }
+    // Don't auto-call onComplete here - let user see results first
+    // onComplete will be called when user clicks button
   };
   useEffect(() => {
     if (gameState === "playing" && currentTrialIndex === 0 && trials.length > 0) {
@@ -701,18 +668,22 @@ export default function FocusGame({
               </Button>
               <Button size="lg" className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => {
                 const gameData = {
-                  trials: results,
-                  medianCongruent,
-                  medianIncongruent,
-                  concentrationCost,
-                  accuracy,
-                  correctCount,
-                  totalTrials: TOTAL_TRIALS,
-                  validTrials: validTrials.length,
-                  coachReport: coachReport,
-                  rMSSD: manualRMSSD,
-                  HR: manualHR
+                  focus_trials: results,
+                  focus_median_congruent_ms: medianCongruent,
+                  focus_median_incongruent_ms: medianIncongruent,
+                  focus_concentration_cost_ms: concentrationCost,
+                  focus_accuracy_pct: accuracy,
+                  focus_correct_count: correctCount,
+                  focus_total_trials: TOTAL_TRIALS,
+                  focus_valid_trials: validTrials.length,
+                  focus_coach_report: coachReport,
+                  focus_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
+                  focus_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null
                 };
+                
+                console.log('🎮 Sigma Focus wyniki:', gameData);
+                console.log('✅ Sigma Focus: Calling onComplete with data');
+                
                 if (onComplete) {
                   onComplete(gameData);
                 } else {

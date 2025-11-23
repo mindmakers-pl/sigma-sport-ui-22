@@ -325,17 +325,18 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
                   onClick={() => {
                     const result = calculateResult();
                     const gameData = {
-                      results: {
-                        scan_max_number_reached: result.maxNumber,
-                        scan_duration_s: result.duration,
-                        scan_correct_clicks: result.correctClicks,
-                        scan_error_clicks: result.errorClicks,
-                        scan_skipped_numbers: result.skippedNumbers,
-                        scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
-                        scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
-                      },
-                      rawClicks: clickHistory
+                      scan_max_number_reached: result.maxNumber,
+                      scan_duration_s: result.duration,
+                      scan_correct_clicks: result.correctClicks,
+                      scan_error_clicks: result.errorClicks,
+                      scan_skipped_numbers: result.skippedNumbers,
+                      scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
+                      scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
+                      scan_raw_clicks: clickHistory
                     };
+                    
+                    console.log('🎮 Sigma Scan wyniki:', gameData);
+                    console.log('✅ Sigma Scan: Calling onComplete with data');
                     
                     if (onComplete) {
                       onComplete(gameData);
@@ -357,17 +358,18 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
                   onClick={() => {
                     const result = calculateResult();
                     const gameData = {
-                      results: {
-                        scan_max_number_reached: result.maxNumber,
-                        scan_duration_s: result.duration,
-                        scan_correct_clicks: result.correctClicks,
-                        scan_error_clicks: result.errorClicks,
-                        scan_skipped_numbers: result.skippedNumbers,
-                        scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
-                        scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
-                      },
-                      rawClicks: clickHistory
+                      scan_max_number_reached: result.maxNumber,
+                      scan_duration_s: result.duration,
+                      scan_correct_clicks: result.correctClicks,
+                      scan_error_clicks: result.errorClicks,
+                      scan_skipped_numbers: result.skippedNumbers,
+                      scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
+                      scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
+                      scan_raw_clicks: clickHistory
                     };
+                    
+                    console.log('🎮 Sigma Scan wyniki:', gameData);
+                    console.log('✅ Sigma Scan: Calling onComplete with data');
                     
                     if (onComplete) {
                       onComplete(gameData);
