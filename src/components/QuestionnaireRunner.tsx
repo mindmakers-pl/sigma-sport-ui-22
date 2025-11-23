@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -48,10 +48,9 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
     })) || [])
   ];
 
-  // Randomize questions
-  const [randomizedQuestions] = useState(() => {
+  const randomizedQuestions = useMemo(() => {
     return [...allQuestions].sort(() => Math.random() - 0.5);
-  });
+  }, [questionnaire.id]);
 
   const currentQuestion = randomizedQuestions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / randomizedQuestions.length) * 100;
