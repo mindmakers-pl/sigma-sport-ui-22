@@ -332,6 +332,17 @@ const AthleteProfile = () => {
       console.warn('⚠️ Brak danych kwestionariuszy w wizardResults');
     }
     
+    // Update taskStatus based on what was completed
+    const updatedTaskStatus = {
+      ...taskStatus,
+      ...(sixSigmaResults && { kwestionariusz: 'completed' }),
+      ...(wizardResults.scan && { scan: 'completed' }),
+      ...(wizardResults.focus && { focus: 'completed' }),
+      ...(wizardResults.memo && { memo: 'completed' }),
+      ...(wizardResults.feedback && { feedback: 'completed' }),
+      ...(wizardResults.hrv_baseline && { hrv_baseline: 'completed' })
+    };
+    
     // Create or update session
     const sessionId = currentSessionId || `session_${Date.now()}`;
     const sessionData = {
@@ -345,18 +356,16 @@ const AthleteProfile = () => {
         ...wizardResults,
         ...(sixSigmaResults && { six_sigma: sixSigmaResults })
       },
-      taskStatus: {
-        ...taskStatus,
-        ...(sixSigmaResults && { six_sigma: 'completed' })
-      },
-      inProgress: false
+      taskStatus: updatedTaskStatus,
+      inProgress: true // Pozostaje w trakcie - nie finalizujemy automatycznie
     };
     
     console.log('💾 Zapisuję sesję do localStorage:', {
       sessionId,
       hasSixSigma: !!sixSigmaResults,
       responsesCount: sixSigmaResults?.responses?.length || 0,
-      modifiersCount: sixSigmaResults?.modifierScores?.length || 0
+      modifiersCount: sixSigmaResults?.modifierScores?.length || 0,
+      updatedTaskStatus
     });
     
     const existingSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
@@ -374,14 +383,12 @@ const AthleteProfile = () => {
       .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setSavedSessions(athleteSessions);
     
-    console.log('✅ Sesja zapisana pomyślnie');
+    // Update local state
+    setTaskStatus(updatedTaskStatus);
+    setSessionResults(sessionData.results);
+    setCurrentSessionId(sessionId);
     
-    // Navigate to reports
-    setSearchParams({ tab: 'raporty' });
-    
-    // Reset wizard state
-    setCurrentSessionId(null);
-    setSessionResults({});
+    console.log('✅ Sesja zapisana pomyślnie, powrót do kokpitu');
   };
   
   // Helper functions for interpretation
@@ -866,7 +873,7 @@ const AthleteProfile = () => {
                 <Card className={`cursor-pointer transition-all ${taskStatus.kwestionariusz === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-slate-900">Kwestionariusz</h3>
+                      <h3 className="font-semibold text-slate-900">Six Sigma</h3>
                       {taskStatus.kwestionariusz === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                     </div>
                     <p className="text-sm text-slate-600 mb-4">Ocena psychometryczna</p>
@@ -875,7 +882,7 @@ const AthleteProfile = () => {
                       className="w-full"
                       onClick={() => setCurrentView('wizard')}
                     >
-                      Rozpocznij sesję
+                      {taskStatus.kwestionariusz === 'completed' ? 'Powtórz' : 'Rozpocznij'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -975,7 +982,6 @@ const AthleteProfile = () => {
                 <Button 
                   size="lg"
                   onClick={handleSaveSession}
-                  disabled={Object.values(taskStatus).every(status => status === 'pending')}
                 >
                   Zakończ i Zapisz Sesję
                 </Button>
