@@ -222,13 +222,14 @@ const AthleteProfile = () => {
   };
 
   const handleSaveSessionFromWizard = (wizardResults: any) => {
-    console.log('Otrzymano dane z wizard:', wizardResults);
+    console.log('🎯 Otrzymano dane z wizard:', wizardResults);
     
     // Transform questionnaires data to Six Sigma format
     let sixSigmaResults: any = null;
     
     if (wizardResults.questionnaires?.questionnaires) {
       const scoredQuestionnaires = wizardResults.questionnaires.questionnaires;
+      console.log('📊 Scored questionnaires:', scoredQuestionnaires);
       
       // Find Six Sigma full (6x6) questionnaire
       const sixSigmaFull = scoredQuestionnaires.find((q: any) => 
@@ -236,12 +237,21 @@ const AthleteProfile = () => {
       );
       
       if (sixSigmaFull) {
+        console.log('✅ Znaleziono Six Sigma Full:', {
+          completionTime: sixSigmaFull.completionTimeSeconds,
+          responsesCount: sixSigmaFull.responses?.length,
+          validation: sixSigmaFull.validation
+        });
+        
+        // Extract completion time from scored questionnaire
+        const completionTime = sixSigmaFull.completionTimeSeconds || 0;
+        
         // Transform scored questionnaire to session format
         sixSigmaResults = {
           version: "6x6+6",
           questionnaireName: sixSigmaFull.questionnaireName,
           completionDate: sixSigmaFull.completedAt,
-          completionTimeSeconds: 0, // TODO: track actual time
+          completionTimeSeconds: completionTime,
           competencyScores: sixSigmaFull.competencyScores.map((comp: any) => ({
             competency: comp.competencyId,
             name: comp.competencyName,
@@ -262,7 +272,17 @@ const AthleteProfile = () => {
           validation: sixSigmaFull.validation,
           responses: sixSigmaFull.responses || [] // Include raw responses with metadata
         };
+        
+        console.log('✅ Transformed Six Sigma results:', {
+          responsesCount: sixSigmaResults.responses.length,
+          completionTime: sixSigmaResults.completionTimeSeconds,
+          overallScore: sixSigmaResults.overallScore
+        });
+      } else {
+        console.warn('⚠️ Six Sigma Full nie znaleziony w questionnaires:', scoredQuestionnaires.map((q: any) => q.questionnaireId));
       }
+    } else {
+      console.warn('⚠️ Brak danych kwestionariuszy w wizardResults');
     }
     
     // Create or update session
@@ -285,7 +305,11 @@ const AthleteProfile = () => {
       inProgress: false
     };
     
-    console.log('Zapisuję sesję:', sessionData);
+    console.log('💾 Zapisuję sesję do localStorage:', {
+      sessionId,
+      hasSixSigma: !!sixSigmaResults,
+      responsesCount: sixSigmaResults?.responses?.length || 0
+    });
     
     const existingSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
     const sessionIndex = existingSessions.findIndex((s: any) => s.id === sessionId);
@@ -298,6 +322,8 @@ const AthleteProfile = () => {
     
     localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
     setSavedSessions(existingSessions.filter((s: any) => s.athlete_id === id));
+    
+    console.log('✅ Sesja zapisana pomyślnie');
     
     // Navigate to reports
     setSearchParams({ tab: 'raporty' });
@@ -1541,7 +1567,12 @@ const AthleteProfile = () => {
       <Dialog open={currentView !== 'kokpit'} onOpenChange={(open) => {
         if (!open) setCurrentView('kokpit');
       }}>
-        <DialogContent className="w-screen h-screen max-w-none p-0 border-0 bg-slate-900">
+        <DialogContent className="w-screen h-screen max-w-none p-0 border-0 bg-slate-900" aria-describedby="session-wizard-description">
+          <div className="sr-only">
+            <h2 id="session-wizard-title">Kreator sesji pomiarowej</h2>
+            <p id="session-wizard-description">Wypełnij kwestionariusze i wykonaj testy kognitywne</p>
+          </div>
+          
           {currentView === 'wizard' && (
             <SessionWizardNew
               athleteId={id || ''}

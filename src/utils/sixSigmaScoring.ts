@@ -47,6 +47,7 @@ export interface ScoredQuestionnaire {
   questionnaireId: string;
   questionnaireName: string;
   completedAt: string;
+  completionTimeSeconds?: number; // Time taken to complete in seconds
   responses: QuestionnaireResponse[];
   competencyScores: CompetencyScore[];
   modifierScores: ModifierScore[];
@@ -231,6 +232,7 @@ export function scoreQuestionnaire(
     questionnaireId: questionnaire.id,
     questionnaireName: questionnaire.name,
     completedAt: new Date().toISOString(),
+    completionTimeSeconds,
     responses,
     competencyScores,
     modifierScores,
