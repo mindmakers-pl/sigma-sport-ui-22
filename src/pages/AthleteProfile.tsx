@@ -151,7 +151,10 @@ const AthleteProfile = () => {
       const athleteName = athlete.name || 'Unknown';
       const sessions = loadMockSessionsToStorage(id, athleteName);
       const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-      setSavedSessions(allSessions.filter((s: any) => s.athlete_id === id));
+      const athleteSessions = allSessions
+        .filter((s: any) => s.athlete_id === id)
+        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setSavedSessions(athleteSessions);
     }
   }, [id, athlete.name]);
 
@@ -216,7 +219,10 @@ const AthleteProfile = () => {
     }
     
     localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
-    setSavedSessions(existingSessions.filter((s: any) => s.athlete_id === id));
+    const athleteSessions = existingSessions
+      .filter((s: any) => s.athlete_id === id)
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    setSavedSessions(athleteSessions);
     
     setCurrentView('kokpit');
   };
@@ -342,7 +348,10 @@ const AthleteProfile = () => {
     }
     
     localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
-    setSavedSessions(existingSessions.filter((s: any) => s.athlete_id === id));
+    const athleteSessions = existingSessions
+      .filter((s: any) => s.athlete_id === id)
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    setSavedSessions(athleteSessions);
     
     console.log('✅ Sesja zapisana pomyślnie');
     
@@ -379,7 +388,10 @@ const AthleteProfile = () => {
     if (sessionIndex !== -1) {
       existingSessions[sessionIndex].inProgress = false;
       localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
-      setSavedSessions(existingSessions.filter((s: any) => s.athlete_id === id));
+      const athleteSessions = existingSessions
+        .filter((s: any) => s.athlete_id === id)
+        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setSavedSessions(athleteSessions);
     }
 
     // Navigate to reports
@@ -999,7 +1011,19 @@ const AthleteProfile = () => {
                     <Button 
                       size="sm" 
                       className="w-full"
-                      onClick={() => setCurrentView('playing_scan')}
+                      onClick={() => {
+                        const training = {
+                          id: `training_scan_${Date.now()}`,
+                          athlete_id: id,
+                          athlete_name: athlete.name,
+                          game_type: 'scan',
+                          game_name: 'Sigma Scan',
+                          date: new Date().toISOString(),
+                          results: {}
+                        };
+                        localStorage.setItem('current_training', JSON.stringify(training));
+                        setCurrentView('playing_scan');
+                      }}
                     >
                       Zagraj
                     </Button>
@@ -1121,7 +1145,7 @@ const AthleteProfile = () => {
                             {session.results.scan && (
                               <div>
                                 <span className="text-xs text-slate-600 block mb-1">Sigma Scan</span>
-                                <span className="font-semibold text-lg">{session.results.scan.avgReactionTime}ms</span>
+                                <span className="font-semibold text-lg">{session.results.scan.scan_max_number_reached ?? session.results.scan.avgReactionTime ?? 'ms'}</span>
                               </div>
                             )}
                             {session.results.control && (
