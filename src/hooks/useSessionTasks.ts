@@ -5,7 +5,7 @@ export interface SessionTask {
   id: string;
   session_id: string;
   task_type: string;
-  task_data: any;
+  task_data: Record<string, any>;
   created_at?: string;
 }
 
@@ -29,7 +29,7 @@ export const useSessionTasks = (sessionId?: string) => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setTasks(data || []);
+      setTasks((data || []) as SessionTask[]);
     } catch (err: any) {
       setError(err.message);
       console.error('Error fetching session tasks:', err);
@@ -46,7 +46,7 @@ export const useSessionTasks = (sessionId?: string) => {
     try {
       const { data, error } = await supabase
         .from('session_tasks')
-        .insert([taskData])
+        .insert([taskData as any])
         .select()
         .single();
 
@@ -63,7 +63,7 @@ export const useSessionTasks = (sessionId?: string) => {
     try {
       const { data, error } = await supabase
         .from('session_tasks')
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single();

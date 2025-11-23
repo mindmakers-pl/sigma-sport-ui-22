@@ -9,7 +9,7 @@ export interface Session {
   in_progress?: boolean;
   completed_at?: string;
   created_at?: string;
-  results?: any; // JSONB field for session results
+  results?: Record<string, any>;
 }
 
 export const useSessions = (athleteId?: string) => {
@@ -32,7 +32,7 @@ export const useSessions = (athleteId?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setSessions(data || []);
+      setSessions((data || []) as Session[]);
     } catch (err: any) {
       setError(err.message);
       console.error('Error fetching sessions:', err);
@@ -49,7 +49,7 @@ export const useSessions = (athleteId?: string) => {
     try {
       const { data, error } = await supabase
         .from('sessions')
-        .insert([sessionData])
+        .insert([sessionData as any])
         .select()
         .single();
 
@@ -66,7 +66,7 @@ export const useSessions = (athleteId?: string) => {
     try {
       const { data, error } = await supabase
         .from('sessions')
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single();
