@@ -15,7 +15,80 @@ export default function SixSigmaReport() {
 
   useEffect(() => {
     const sessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-    const foundSession = sessions.find((s: any) => s.id === sessionId);
+    let foundSession = sessions.find((s: any) => s.id === sessionId);
+    
+    // 🔧 In-component migration for this specific session
+    if (foundSession && foundSession.results) {
+      let needsSave = false;
+      const results = foundSession.results;
+      
+      // Case 1: Has kwestionariusz but not six_sigma (old format)
+      if (results.kwestionariusz && !results.six_sigma) {
+        console.log(`🔧 Migrating session ${sessionId}: kwestionariusz → six_sigma`);
+        results.six_sigma = {
+          ...results.kwestionariusz,
+          validation: results.kwestionariusz.validation || {
+            isValid: true,
+            warnings: [],
+            flags: {
+              straightLining: false,
+              reverseInconsistency: false,
+              speedingDetected: false
+            }
+          },
+          competencyScores: results.kwestionariusz.competencyScores || [],
+          modifierScores: results.kwestionariusz.modifierScores || [],
+          overallScore: results.kwestionariusz.overallScore || 0
+        };
+        needsSave = true;
+      }
+      
+      // Case 2: Has six_sigma but missing fields
+      if (results.six_sigma) {
+        let migrated = false;
+        
+        if (!results.six_sigma.validation) {
+          console.log(`🔧 Adding validation to session ${sessionId}`);
+          results.six_sigma.validation = {
+            isValid: true,
+            warnings: [],
+            flags: {
+              straightLining: false,
+              reverseInconsistency: false,
+              speedingDetected: false
+            }
+          };
+          migrated = true;
+        }
+        
+        if (!results.six_sigma.competencyScores || !Array.isArray(results.six_sigma.competencyScores)) {
+          console.log(`🔧 Adding competencyScores to session ${sessionId}`);
+          results.six_sigma.competencyScores = [];
+          migrated = true;
+        }
+        
+        if (!results.six_sigma.modifierScores || !Array.isArray(results.six_sigma.modifierScores)) {
+          console.log(`🔧 Adding modifierScores to session ${sessionId}`);
+          results.six_sigma.modifierScores = [];
+          migrated = true;
+        }
+        
+        if (migrated) {
+          needsSave = true;
+        }
+      }
+      
+      // Save migrated session
+      if (needsSave) {
+        const sessionIndex = sessions.findIndex((s: any) => s.id === sessionId);
+        if (sessionIndex !== -1) {
+          sessions[sessionIndex] = foundSession;
+          localStorage.setItem('athlete_sessions', JSON.stringify(sessions));
+          console.log('✅ Session migrated and saved:', sessionId);
+        }
+      }
+    }
+    
     setSession(foundSession);
 
     const athletes = JSON.parse(localStorage.getItem('athletes') || '[]');
@@ -23,10 +96,39 @@ export default function SixSigmaReport() {
     setAthlete(foundAthlete);
   }, [athleteId, sessionId]);
 
-  if (!session || !athlete || !session.results.six_sigma) {
+  // Enhanced loading/error state
+  if (!session || !athlete) {
     return (
       <div className="p-8">
-        <p>Ładowanie...</p>
+        <p>Ładowanie danych sesji i zawodnika...</p>
+      </div>
+    );
+  }
+
+  if (!session.results?.six_sigma) {
+    return (
+      <div className="p-8 max-w-6xl mx-auto">
+        <Button
+          variant="ghost"
+          className="mb-4"
+          onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=overview`)}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Powrót do podsumowania
+        </Button>
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="pt-6">
+            <p className="text-amber-700 font-semibold mb-2">Brak danych Six Sigma</p>
+            <p className="text-sm text-amber-600">
+              Ta sesja nie zawiera danych kwestionariusza Six Sigma. 
+              Sesja mogła nie zostać ukończona lub dane zostały zapisane w nieprawidłowym formacie.
+            </p>
+            <div className="mt-4 text-xs text-amber-600">
+              <p>Session ID: {sessionId}</p>
+              <p>Dostępne wyniki: {Object.keys(session.results || {}).join(', ') || 'brak'}</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
