@@ -45,6 +45,27 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
         metric3: { label: 'Koszt koncentracji', value: `+${Math.round(results.concentrationCost || 0)} ms`, key: 'cost' }
       };
     }
+    if (training.game_type === 'control') {
+      return {
+        metric1: { label: 'Wynik', value: results.score || '-', key: 'score' },
+        metric2: { label: 'Czas', value: results.time ? `${results.time}s` : '-', key: 'time' },
+        metric3: { label: 'Błędy', value: results.errors || '-', key: 'errors' }
+      };
+    }
+    if (training.game_type === 'move') {
+      return {
+        metric1: { label: 'Typ', value: results.challengeType || '-', key: 'type' },
+        metric2: { label: 'Dystans', value: results.distance ? `${results.distance}m` : '-', key: 'distance' },
+        metric3: { label: 'Czas', value: results.time ? `${results.time}min` : '-', key: 'time' }
+      };
+    }
+    if (training.game_type === 'hrv_training') {
+      return {
+        metric1: { label: 'rMSSD', value: results.rmssd ? `${results.rmssd} ms` : '-', key: 'rmssd' },
+        metric2: { label: 'HR śr.', value: results.avgHR ? `${results.avgHR} bpm` : '-', key: 'avgHR' },
+        metric3: { label: 'Czas', value: results.duration ? `${results.duration}min` : '-', key: 'duration' }
+      };
+    }
     return {
       metric1: { label: 'Wynik', value: '-', key: 'score' },
       metric2: { label: 'Celność', value: '-', key: 'accuracy' },
@@ -57,6 +78,8 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
       case 'focus': return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'scan': return 'bg-green-100 text-green-800 border-green-300';
       case 'control': return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'move': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'hrv_training': return 'bg-pink-100 text-pink-800 border-pink-300';
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
@@ -92,7 +115,9 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
                 <SelectItem key={type} value={type}>
                   {type === 'focus' ? 'Sigma Focus' : 
                    type === 'scan' ? 'Sigma Scan' :
-                   type === 'control' ? 'Sigma Control' : type}
+                   type === 'control' ? 'Sigma Control' :
+                   type === 'move' ? 'Sigma Move' :
+                   type === 'hrv_training' ? 'HRV Training' : type}
                 </SelectItem>
               ))}
             </SelectContent>

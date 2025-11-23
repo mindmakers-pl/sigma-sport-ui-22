@@ -681,7 +681,7 @@ const ClubDetail = () => {
                           <Button 
                             size="sm"
                             className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-                            onClick={() => setActiveWizardAthleteId(athlete.id.toString())}
+                            onClick={() => navigate(`/zawodnicy/${athlete.id}?tab=dodaj-pomiar`)}
                           >
                             <Plus className="h-3 w-3" />
                             Pomiar
