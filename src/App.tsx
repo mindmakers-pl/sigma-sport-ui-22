@@ -21,6 +21,7 @@ import ScanGame from "./pages/ScanGame";
 import ControlGame from "./pages/ControlGame";
 import FocusGame from "./pages/FocusGame";
 import TrackerGame from "./pages/TrackerGame";
+import MemoGame from "./pages/MemoGame";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import SessionDetail from "./pages/SessionDetail";
@@ -69,10 +70,12 @@ const App = () => {
             <Route path="/control/:athleteId" element={<ControlGame />} />
             <Route path="/focus/:athleteId" element={<FocusGame />} />
             <Route path="/tracker/:athleteId" element={<TrackerGame />} />
+            <Route path="/memo/:athleteId" element={<MemoGame />} />
             <Route path="/scan/training" element={<ScanGame mode="training" />} />
             <Route path="/control/training" element={<ControlGame mode="training" />} />
             <Route path="/focus/training" element={<FocusGame mode="training" />} />
             <Route path="/tracker/training" element={<TrackerGame mode="training" />} />
+            <Route path="/memo/training" element={<MemoGame mode="training" />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

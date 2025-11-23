@@ -242,6 +242,18 @@ export const exerciseLibrary: Exercise[] = [
     ]
   },
   {
+    id: 'game-memo',
+    title: 'Sigma Memo',
+    description: 'Gra treningowa - pamięć robocza 2-Back. Klikaj gdy kwadrat pojawi się w tym samym miejscu co dwa kroki temu.',
+    duration: '2-3 min',
+    category: 'game',
+    objective: 'Pomiar pamięci roboczej - umiejętności buforowania informacji i stałej aktualizacji.',
+    steps: [
+      { title: 'Instrukcje', content: 'Obserwuj kwadrat pojawiający się na siatce 3×3. Kliknij gdy pojawi się w tym samym miejscu co DWA KROKI TEMU.' },
+      { title: 'Test', content: 'Wykonasz 22 próby. Pierwsze dwie to rozgrzewka - dopiero od trzeciej możesz zacząć klikać.' }
+    ]
+  },
+  {
     id: 'ex-7',
     title: 'Skrypt AUN',
     description: 'Technika Aktywacji Uwagi Natychmiastowej - szybkie skupienie przed akcją.',
