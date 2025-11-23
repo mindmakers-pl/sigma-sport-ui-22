@@ -151,7 +151,42 @@ const AthleteProfile = () => {
     if (id) {
       // Load sessions directly from localStorage
       const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-      const athleteSessions = allSessions
+      
+      // 🔧 One-time migration: normalize validation object for old sessions
+      let needsSave = false;
+      const migratedSessions = allSessions.map((session: any) => {
+        if (session.results?.six_sigma && !session.results.six_sigma.validation) {
+          console.log(`🔧 Migrating session ${session.id} - adding validation object`);
+          needsSave = true;
+          return {
+            ...session,
+            results: {
+              ...session.results,
+              six_sigma: {
+                ...session.results.six_sigma,
+                validation: {
+                  isValid: true,
+                  warnings: [],
+                  flags: {
+                    straightLining: false,
+                    reverseInconsistency: false,
+                    speedingDetected: false
+                  }
+                }
+              }
+            }
+          };
+        }
+        return session;
+      });
+      
+      // Save migrated sessions back to localStorage if any changes were made
+      if (needsSave) {
+        localStorage.setItem('athlete_sessions', JSON.stringify(migratedSessions));
+        console.log('✅ Migration complete - sessions normalized');
+      }
+      
+      const athleteSessions = migratedSessions
         .filter((s: any) => String(s.athlete_id) === String(id))
         .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setSavedSessions(athleteSessions);
@@ -365,7 +400,15 @@ const AthleteProfile = () => {
           competencyScores: mappedCompetencies,
           modifierScores: mappedModifiers,
           overallScore: sixSigmaFull.overallScore ? sixSigmaFull.overallScore / 100 : 0,
-          validation: sixSigmaFull.validation,
+          validation: sixSigmaFull.validation || {
+            isValid: true,
+            warnings: [],
+            flags: {
+              straightLining: false,
+              reverseInconsistency: false,
+              speedingDetected: false
+            }
+          },
           responses: allResponses
         };
         
