@@ -100,16 +100,16 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
 
       case 'challenge-select':
         return (
-          <div className="min-h-screen bg-background p-6">
-            <Card className="max-w-4xl mx-auto">
+          <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+            <Card className="max-w-4xl w-full bg-slate-900 border-slate-800">
               <CardContent className="pt-6">
-                <h2 className="text-2xl font-bold mb-6">Wybierz Wyzwanie</h2>
+                <h2 className="text-2xl font-bold mb-6 text-white">Wybierz Wyzwanie</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Button
                     variant="outline"
                     size="lg"
                     onClick={() => setCurrentStep('scan')}
-                    className="h-24"
+                    className="h-24 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
                   >
                     Sigma Scan
                   </Button>
@@ -117,7 +117,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
                     variant="outline"
                     size="lg"
                     onClick={() => setCurrentStep('focus')}
-                    className="h-24"
+                    className="h-24 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
                   >
                     Sigma Focus
                   </Button>
@@ -125,7 +125,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
                     variant="outline"
                     size="lg"
                     onClick={() => setCurrentStep('memo')}
-                    className="h-24"
+                    className="h-24 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
                   >
                     Sigma Memo
                   </Button>
@@ -133,7 +133,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
                     variant="outline"
                     size="lg"
                     onClick={() => setCurrentStep('feedback')}
-                    className="h-24"
+                    className="h-24 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
                   >
                     Sigma Feedback
                   </Button>
@@ -141,13 +141,13 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
                     variant="outline"
                     size="lg"
                     onClick={() => setCurrentStep('hrv_baseline')}
-                    className="h-24"
+                    className="h-24 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
                   >
                     HRV Baseline
                   </Button>
                 </div>
                 <div className="mt-6 flex justify-between">
-                  <Button variant="ghost" onClick={onClose}>
+                  <Button variant="ghost" onClick={onClose} className="text-slate-400 hover:text-white">
                     Anuluj
                   </Button>
                   <Button onClick={handleFinalSave}>
@@ -200,26 +200,23 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
 
       case 'complete':
         return (
-          <div className="min-h-screen bg-background flex items-center justify-center p-4">
-            <Card className="w-full max-w-md">
+          <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+            <Card className="w-full max-w-md bg-slate-900 border-slate-800">
               <CardContent className="pt-6 space-y-6">
                 <div className="text-center">
-                  <h2 className="text-3xl font-bold mb-4">
+                  <h2 className="text-3xl font-bold mb-4 text-white">
                     Zapisane!
                   </h2>
-                  <p className="text-muted-foreground text-lg mb-6">
+                  <p className="text-slate-400 text-lg mb-6">
                     Twoje wyniki zostały zapisane.
                   </p>
-                  <div className="text-sm text-muted-foreground mb-8">
-                    <p>Możesz kontynuować sesję i wybrać kolejne wyzwanie.</p>
-                  </div>
                 </div>
 
                 <div className="flex gap-3">
                   <Button 
                     variant="outline"
                     onClick={handleFinalSave}
-                    className="flex-1"
+                    className="flex-1 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
                   >
                     Zakończ Sesję
                   </Button>
@@ -227,7 +224,7 @@ const SessionWizardNew = ({ athleteId, onClose, onSaveSession }: SessionWizardNe
                     onClick={handleReturnToChallengeSelect}
                     className="flex-1"
                   >
-                    Wybierz Kolejne Wyzwanie
+                    Kolejne Wyzwanie
                   </Button>
                 </div>
               </CardContent>
