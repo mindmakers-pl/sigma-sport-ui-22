@@ -22,7 +22,6 @@ import Kwestionariusz from "@/components/forms/Kwestionariusz";
 import HRVBaselineForm from "@/components/forms/HRVBaselineForm";
 import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
 import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
-import { loadMockSessionsToStorage } from "@/utils/mockSessionData";
 import TrainingsTable from "@/components/TrainingsTable";
 import MeasurementSessionWizard from "@/components/MeasurementSessionWizard";
 
@@ -147,38 +146,19 @@ const AthleteProfile = () => {
     setReportTab(activeSubTab);
   }, [activeSubTab]);
 
-  // Load sessions on mount
+  // Load sessions on mount - no auto mock data generation
   useEffect(() => {
     if (id) {
-      const athleteName = athlete.name || 'Unknown';
-      
-      // Clean up old Sigma Sigma sessions - keep only the latest one
-      if (id === '999') {
-        const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-        const sigmaSessions = allSessions.filter((s: any) => s.athlete_id === id);
-        
-        if (sigmaSessions.length > 1) {
-          // Sort by date descending and keep only the latest
-          sigmaSessions.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-          const latestSession = sigmaSessions[0];
-          
-          // Remove all Sigma Sigma sessions except the latest
-          const cleanedSessions = allSessions.filter((s: any) => 
-            s.athlete_id !== id || s.id === latestSession.id
-          );
-          
-          localStorage.setItem('athlete_sessions', JSON.stringify(cleanedSessions));
-        }
-      }
-      
-      const sessions = loadMockSessionsToStorage(id, athleteName);
+      // Load sessions directly from localStorage
       const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
       const athleteSessions = allSessions
-        .filter((s: any) => s.athlete_id === id)
+        .filter((s: any) => String(s.athlete_id) === String(id))
         .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setSavedSessions(athleteSessions);
+      
+      console.log(`📊 Loaded ${athleteSessions.length} sessions for athlete ${id}`);
     }
-  }, [id, athlete.name]);
+  }, [id]);
 
   const handleMeasurementTaskComplete = (taskName: string, data: any) => {
     console.log(`✅ Measurement task "${taskName}" completed:`, data);
@@ -218,8 +198,10 @@ const AthleteProfile = () => {
     }
     
     localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
+    
+    // Force refresh savedSessions with proper type handling
     const athleteSessions = existingSessions
-      .filter((s: any) => s.athlete_id === id)
+      .filter((s: any) => String(s.athlete_id) === String(id))
       .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setSavedSessions(athleteSessions);
     
@@ -428,10 +410,11 @@ const AthleteProfile = () => {
     if (sessionIndex !== -1) {
       existingSessions[sessionIndex].inProgress = false;
       localStorage.setItem('athlete_sessions', JSON.stringify(existingSessions));
-      const athleteSessions = existingSessions
-        .filter((s: any) => s.athlete_id === id)
-        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setSavedSessions(athleteSessions);
+    // Force refresh savedSessions with proper type handling
+    const athleteSessions = existingSessions
+      .filter((s: any) => String(s.athlete_id) === String(id))
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    setSavedSessions(athleteSessions);
     }
 
     // Navigate to reports
@@ -1025,6 +1008,39 @@ const AthleteProfile = () => {
                         <pre className="whitespace-pre-wrap">{JSON.stringify(sessionResults, null, 2)}</pre>
                       </div>
                     </div>
+                    
+                    <div>
+                      <div className="font-semibold text-slate-700 mb-1">Saved Sessions in localStorage:</div>
+                      <div className="bg-white p-2 rounded border border-slate-200">
+                        {savedSessions.length} sessions for athlete {id}
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2 border-t border-slate-300">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          // Manual mock data generation
+                          const { addSigmaSigmaToStorage } = require('@/data/mockAthletes');
+                          const { addMockCompletedSessionToStorage } = require('@/data/mockCompletedSession');
+                          addSigmaSigmaToStorage();
+                          addMockCompletedSessionToStorage();
+                          
+                          // Refresh sessions
+                          setTimeout(() => {
+                            const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
+                            const athleteSessions = allSessions
+                              .filter((s: any) => String(s.athlete_id) === String(id))
+                              .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                            setSavedSessions(athleteSessions);
+                            console.log('✅ Mock data generated manually');
+                          }, 100);
+                        }}
+                      >
+                        🎲 Generuj mock data (ręcznie)
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1199,16 +1215,33 @@ const AthleteProfile = () => {
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <CardTitle>Historia pomiarów</CardTitle>
-                    <Select value={conditionsFilter} onValueChange={setConditionsFilter}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Filtruj warunki" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white z-50">
-                        <SelectItem value="wszystkie">Wszystkie warunki</SelectItem>
-                        <SelectItem value="gabinet">Gabinet (w ciszy)</SelectItem>
-                        <SelectItem value="trening">Trening (z dystraktorami)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          // Refresh sessions from localStorage
+                          const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
+                          const athleteSessions = allSessions
+                            .filter((s: any) => String(s.athlete_id) === String(id))
+                            .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                          setSavedSessions(athleteSessions);
+                          console.log(`🔄 Refreshed: Found ${athleteSessions.length} sessions for athlete ${id}`);
+                        }}
+                      >
+                        🔄 Odśwież historię
+                      </Button>
+                      <Select value={conditionsFilter} onValueChange={setConditionsFilter}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="Filtruj warunki" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white z-50">
+                          <SelectItem value="wszystkie">Wszystkie warunki</SelectItem>
+                          <SelectItem value="gabinet">Gabinet (w ciszy)</SelectItem>
+                          <SelectItem value="trening">Trening (z dystraktorami)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -1227,9 +1260,16 @@ const AthleteProfile = () => {
                                   day: 'numeric' 
                                 })}
                               </p>
-                              <Badge variant="outline" className="mt-1">
-                                {session.conditions}
-                              </Badge>
+                              <div className="flex gap-2 mt-1">
+                                <Badge variant="outline">
+                                  {session.conditions}
+                                </Badge>
+                                {session.inProgress && (
+                                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                                    ⏳ W trakcie
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                             <Badge variant="secondary">
                               {Object.values(session.taskStatus).filter(s => s === 'completed').length}/{Object.keys(session.taskStatus).length} testów
