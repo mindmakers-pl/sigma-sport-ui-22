@@ -9,14 +9,16 @@ import { useTrainings } from "@/hooks/useTrainings";
 import { useToast } from "@/hooks/use-toast";
 
 interface MemoGameProps {
+  athleteId?: string;
   mode?: 'measurement' | 'training';
   onComplete?: (data: any) => void;
 }
 
-const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
+const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const athleteId = searchParams.get("athleteId");
+  const athleteIdParam = searchParams.get("athleteId");
+  const athleteId = athleteIdProp || athleteIdParam;
   const { addTraining } = useTrainings(athleteId || undefined);
   const { toast } = useToast();
 
