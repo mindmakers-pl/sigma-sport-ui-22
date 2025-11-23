@@ -29,6 +29,7 @@ import ProgressReport from "./pages/ProgressReport";
 import SixSigmaReport from "./pages/SixSigmaReport";
 import { useEffect } from "react";
 import { addSigmaSigmaToStorage } from "./data/mockAthletes";
+import { addMockCompletedSessionToStorage } from "./data/mockCompletedSession";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => {
   // Initialize Sigma Sigma mock data on app load
   useEffect(() => {
     addSigmaSigmaToStorage();
+    addMockCompletedSessionToStorage();
   }, []);
 
   return (
