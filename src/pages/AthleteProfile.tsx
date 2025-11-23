@@ -24,7 +24,7 @@ import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
 import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
 import { loadMockSessionsToStorage } from "@/utils/mockSessionData";
 import TrainingsTable from "@/components/TrainingsTable";
-import SessionWizardNew from "@/components/SessionWizardNew";
+import QuestionnaireWizard from "@/components/QuestionnaireWizard";
 
 const AthleteProfile = () => {
   const { id } = useParams();
@@ -180,7 +180,14 @@ const AthleteProfile = () => {
   }, [id, athlete.name]);
 
   const handleTaskComplete = (data: any) => {
-    const taskName = currentView.replace('showing_', '').replace('playing_', '').replace('measuring_', '');
+    let taskName = currentView
+      .replace('showing_', '')
+      .replace('playing_', '')
+      .replace('measuring_', '');
+
+    if (taskName === 'wizard') {
+      taskName = 'kwestionariusz';
+    }
     
     // Check if this is a training session
     const currentTrainingStr = localStorage.getItem('current_training');
@@ -1732,10 +1739,9 @@ const AthleteProfile = () => {
           </div>
           
           {currentView === 'wizard' && (
-            <SessionWizardNew
-              athleteId={id || ''}
-              onClose={() => setCurrentView('kokpit')}
-              onSaveSession={handleSaveSessionFromWizard}
+            <QuestionnaireWizard
+              onComplete={handleTaskComplete}
+              onCancel={() => setCurrentView('kokpit')}
             />
           )}
 
