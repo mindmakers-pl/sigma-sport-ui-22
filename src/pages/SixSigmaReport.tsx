@@ -36,16 +36,30 @@ export default function SixSigmaReport() {
     competencyScores, 
     modifierScores, 
     overallScore, 
-    validation = {
-      isValid: true,
-      warnings: [],
-      flags: {
-        straightLining: false,
-        reverseInconsistency: false,
-        speedingDetected: false
-      }
-    }
+    validation 
   } = sixSigmaData;
+
+  // 🧪 Diagnostic logging for validation structure
+  console.log('🧪 Six Sigma data debug', {
+    sessionId: session.id,
+    hasValidation: !!validation,
+    validationType: typeof validation,
+    validationRaw: validation,
+    hasIsValid: validation && 'isValid' in validation
+  });
+
+  // Create safe validation object with guaranteed structure
+  const safeValidation = validation && typeof validation === 'object' && 'isValid' in validation
+    ? validation
+    : {
+        isValid: true,
+        warnings: [],
+        flags: {
+          straightLining: false,
+          reverseInconsistency: false,
+          speedingDetected: false
+        }
+      };
 
   // Find strongest and weakest competencies
   const sortedCompetencies = [...competencyScores].sort((a, b) => b.normalizedScore - a.normalizedScore);
@@ -95,7 +109,7 @@ export default function SixSigmaReport() {
     const insights: string[] = [];
 
     // Walidacja – tylko raz, w kafelku interpretacji, prostym językiem
-    if (!validation.isValid) {
+    if (!safeValidation.isValid) {
       insights.push(
         'Wygląda na to, że zaznaczałaś/eś odpowiedzi bardzo podobnie albo trochę na szybko. Przy kolejnym razie spróbuj czytać każde zdanie powoli i zaznaczać to, co naprawdę o Tobie.'
       );
@@ -148,12 +162,12 @@ export default function SixSigmaReport() {
     const insights: string[] = [];
     
     // Data quality check
-    if (validation.flags?.straightLining) {
+    if (safeValidation.flags?.straightLining) {
       insights.push('🚨 UWAGA: Wykryto straight-lining (większość odpowiedzi identyczna). Wyniki mogą być nierzetelne.');
       return insights;
     }
 
-    if (validation.flags?.reverseInconsistency) {
+    if (safeValidation.flags?.reverseInconsistency) {
       insights.push('⚠️ Niespójności w pytaniach odwrotnych – możliwe nieuważne odpowiadanie.');
     }
 
@@ -400,7 +414,7 @@ export default function SixSigmaReport() {
 
         <TabsContent value="coach" className="space-y-6">
           {/* Data quality validation */}
-          <Card className={validation.isValid ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+          <Card className={safeValidation.isValid ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
                 {validation.isValid ? (
