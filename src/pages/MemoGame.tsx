@@ -113,21 +113,8 @@ const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
 
   if (gameState === 'ready') {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col">
-        <div className="p-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleGoBack}
-            className="gap-2 text-slate-400 hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Powrót
-          </Button>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center p-8">
-          <Card className="max-w-2xl w-full p-8 space-y-6 bg-slate-900 border-slate-800">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-8">
+        <Card className="max-w-2xl w-full p-8 space-y-6 bg-slate-900 border-slate-800">
             <div className="space-y-4">
               <h1 className="text-3xl font-bold text-white">Sigma Memo</h1>
               <p className="text-lg text-slate-400">
@@ -172,7 +159,6 @@ const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
               START
             </Button>
           </Card>
-        </div>
       </div>
     );
   }
