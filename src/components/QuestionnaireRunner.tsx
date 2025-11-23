@@ -133,161 +133,148 @@ const QuestionnaireRunner = ({ questionnaireIds, onComplete, onCancel }: Questio
 
   if (showCompletion) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
-          <Card className="w-full max-w-md">
-            <CardContent className="pt-6 space-y-6">
-              <div className="text-center">
-                <h2 className="text-3xl font-bold mb-4">Świetna robota!</h2>
-                <p className="text-muted-foreground text-lg mb-6">
-                  Wszystkie kwestionariusze zostały wypełnione. Twoje odpowiedzi zostały zapisane.
-                </p>
-                <div className="text-sm text-muted-foreground mb-8">
-                  <p>Ukończone kwestionariusze: {completedQuestionnaires.length}</p>
-                </div>
-              </div>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-slate-900 border-slate-800">
+          <CardContent className="pt-6 space-y-6">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-4 text-white">Świetna robota!</h2>
+              <p className="text-slate-400 text-lg mb-6">
+                Wszystkie kwestionariusze zostały wypełnione.
+              </p>
+            </div>
 
-              <div className="pt-2 pb-2 border-t border-border">
-                <p className="text-green-500 text-sm text-center">✓ Zapisaliśmy Twoje odpowiedzi</p>
-              </div>
+            <div className="pt-2 pb-2 border-t border-slate-800">
+              <p className="text-green-400 text-sm text-center">✓ Zapisane</p>
+            </div>
 
-              <div className="flex gap-3 pt-4">
-                <Button variant="outline" onClick={onCancel} className="flex-1">
-                  Zakończ
-                </Button>
-                <Button onClick={handleFinish} className="flex-1">
-                  Następne Wyzwanie
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <Button onClick={handleFinish} className="w-full" size="lg">
+              Wybierz Wyzwanie
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (showIntro) {
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
         <div className="absolute top-4 left-4 z-10">
           <Button
             variant="ghost"
             size="sm"
             onClick={onCancel}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-slate-400 hover:text-white"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Powrót
           </Button>
         </div>
 
-        <div className="flex items-center justify-center min-h-screen">
-          <Card className="w-full max-w-md">
-            <CardContent className="pt-6 space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold mb-4">{questionnaire.name}</h2>
-                <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
-                  {questionnaire.description}
-                </p>
-              </div>
+        <Card className="w-full max-w-md bg-slate-900 border-slate-800">
+          <CardContent className="pt-6 space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold mb-4 text-white">{questionnaire.name}</h2>
+              <p className="text-slate-400 whitespace-pre-line leading-relaxed">
+                {questionnaire.description}
+              </p>
+            </div>
 
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">{randomizedQuestions.length}</span> pytań
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">{questionnaire.estimatedTime}</span>
-                </div>
+            <div className="flex items-center gap-4 text-sm text-slate-400">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-white">{randomizedQuestions.length}</span> pytań
               </div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-white">{questionnaire.estimatedTime}</span>
+              </div>
+            </div>
 
-              <Button onClick={() => {
-                setShowIntro(false);
-                setQuestionnaireStartTime(Date.now()); // Start tracking time
-              }} className="w-full" size="lg">
-                GO!
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+            <Button onClick={() => {
+              setShowIntro(false);
+              setQuestionnaireStartTime(Date.now());
+            }} className="w-full" size="lg">
+              GO!
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
       <div className="absolute top-4 left-4 z-10">
         <Button
           variant="ghost"
           size="sm"
           onClick={onCancel}
-          className="text-muted-foreground hover:text-foreground"
+          className="text-slate-400 hover:text-white"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Powrót
         </Button>
       </div>
       
-      <div className="flex items-center justify-center min-h-screen">
-        <Card className="w-full max-w-2xl">
-          <CardContent className="pt-6 space-y-6">
-            <div className="flex items-center justify-between mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handlePrevious}
-                disabled={currentQuestionIndex === 0}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Cofnij pytanie
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                {currentQuestionIndex + 1} / {randomizedQuestions.length}
-              </span>
-            </div>
+      <Card className="w-full max-w-2xl bg-slate-900 border-slate-800">
+        <CardContent className="pt-6 space-y-6">
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handlePrevious}
+              disabled={currentQuestionIndex === 0}
+              className="text-slate-400 hover:text-white disabled:text-slate-600"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Cofnij
+            </Button>
+            <span className="text-sm text-slate-400">
+              {currentQuestionIndex + 1} / {randomizedQuestions.length}
+            </span>
+          </div>
 
-            <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-2" />
 
-            <div className="py-8">
-              <h3 className="text-xl font-semibold mb-2">{questionnaire.name}</h3>
-              <p className="text-lg leading-relaxed">{currentQuestion.text}</p>
-            </div>
+          <div className="py-8">
+            <h3 className="text-xl font-semibold mb-2 text-white">{questionnaire.name}</h3>
+            <p className="text-lg leading-relaxed text-slate-300">{currentQuestion.text}</p>
+          </div>
 
-            <div className="space-y-4">
-              <div className="text-center text-sm text-muted-foreground mb-3">
-                <p className="mb-1">Jak bardzo to zdanie pasuje do Ciebie?</p>
-                <div className="flex justify-between px-2">
-                  <span>Zupełnie nie o mnie</span>
-                  <span>Trochę o mnie</span>
-                  <span>O mnie!</span>
-                </div>
-              </div>
-              <div className="grid grid-cols-5 gap-2">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => handleAnswer(value)}
-                    className={`
-                      h-16 rounded-lg border-2 transition-all
-                      hover:scale-105 active:scale-95 flex items-center justify-center
-                      ${answers[currentQuestion.id] === value
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border hover:border-primary/50'
-                      }
-                    `}
-                    style={{
-                      backgroundColor: answers[currentQuestion.id] === value
-                        ? undefined
-                        : `hsl(var(--primary) / ${0.1 + (value - 1) * 0.175})`
-                    }}
-                  >
-                    <span className="text-lg font-semibold">{value}</span>
-                  </button>
-                ))}
+          <div className="space-y-4">
+            <div className="text-center text-sm text-slate-400 mb-3">
+              <p className="mb-1">Jak bardzo to zdanie pasuje do Ciebie?</p>
+              <div className="flex justify-between px-2 text-xs">
+                <span>Zupełnie nie</span>
+                <span>Trochę</span>
+                <span>Tak!</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="grid grid-cols-5 gap-2">
+              {[1, 2, 3, 4, 5].map((value) => (
+                <button
+                  key={value}
+                  onClick={() => handleAnswer(value)}
+                  className={`
+                    h-16 rounded-lg border-2 transition-all
+                    hover:scale-105 active:scale-95 flex items-center justify-center
+                    ${answers[currentQuestion.id] === value
+                      ? 'border-primary bg-primary text-white'
+                      : 'border-slate-700 hover:border-primary/50 bg-slate-800'
+                    }
+                  `}
+                  style={{
+                    backgroundColor: answers[currentQuestion.id] === value
+                      ? undefined
+                      : `hsl(var(--primary) / ${0.1 + (value - 1) * 0.175})`
+                  }}
+                >
+                  <span className="text-lg font-semibold text-white">{value}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
