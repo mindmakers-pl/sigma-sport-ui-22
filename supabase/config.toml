@@ -1,0 +1,5 @@
+[project]
+name = "mindmakers"
+
+[functions.analyze-sigma-score]
+verify_jwt = false
