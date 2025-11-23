@@ -14,6 +14,7 @@ export interface Athlete {
   coach?: string;
   discipline?: string;
   notes?: string;
+  notes_history?: any; // JSONB field for notes history
   parent_first_name?: string;
   parent_last_name?: string;
   parent_phone?: string;
