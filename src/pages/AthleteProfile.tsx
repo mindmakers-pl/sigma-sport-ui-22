@@ -44,9 +44,7 @@ const AthleteProfile = () => {
     hrv_baseline: 'pending',
     scan: 'pending',
     focus: 'pending',
-    memo: 'pending',
-    sigma_move: 'pending',
-    hrv_training: 'pending'
+    memo: 'pending'
   });
 
   const [sessionResults, setSessionResults] = useState<Record<string, any>>({});
@@ -406,9 +404,7 @@ const AthleteProfile = () => {
       hrv_baseline: 'pending',
       scan: 'pending',
       focus: 'pending',
-      memo: 'pending',
-      sigma_move: 'pending',
-      hrv_training: 'pending',
+      memo: 'pending'
     });
     setSelectedChallengeType('');
   };
@@ -932,55 +928,6 @@ const AthleteProfile = () => {
                     </Button>
                   </CardContent>
                 </Card>
-
-                {/* Sigma Move */}
-                <Card className={`cursor-pointer transition-all ${taskStatus.sigma_move === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-slate-900">Sigma Move</h3>
-                      {taskStatus.sigma_move === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
-                    </div>
-                    <p className="text-sm text-slate-600 mb-4">Test mobilności i koordynacji</p>
-                    <div className="space-y-2">
-                      <Select value={selectedChallengeType} onValueChange={setSelectedChallengeType}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Wybierz test" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="plank">Plank</SelectItem>
-                          <SelectItem value="squat">Squat</SelectItem>
-                          <SelectItem value="lunge">Lunge</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button 
-                        size="sm" 
-                        className="w-full"
-                        onClick={() => setCurrentView('measuring_move')}
-                        disabled={!selectedChallengeType}
-                      >
-                        {taskStatus.sigma_move === 'completed' ? 'Powtórz' : 'Rozpocznij'}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* HRV Training */}
-                <Card className={`cursor-pointer transition-all ${taskStatus.hrv_training === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-slate-900">HRV Training</h3>
-                      {taskStatus.hrv_training === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
-                    </div>
-                    <p className="text-sm text-slate-600 mb-4">HRV pod obciążeniem</p>
-                    <Button 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => setCurrentView('measuring_training')}
-                    >
-                      {taskStatus.hrv_training === 'completed' ? 'Powtórz' : 'Rozpocznij'}
-                    </Button>
-                  </CardContent>
-                </Card>
               </div>
 
               <div className="flex justify-end pt-4 border-t border-slate-200">
@@ -1094,6 +1041,48 @@ const AthleteProfile = () => {
                         localStorage.setItem('current_training', JSON.stringify(training));
                         setCurrentView('playing_memo');
                       }}
+                    >
+                      Zagraj
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Sigma Move */}
+                <Card className="bg-slate-50 hover:bg-slate-100 border-slate-200 cursor-pointer transition-all">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-slate-900 mb-2">Sigma Move</h3>
+                    <p className="text-sm text-slate-600 mb-4">Test mobilności i koordynacji</p>
+                    <div className="space-y-2">
+                      <Select value={selectedChallengeType} onValueChange={setSelectedChallengeType}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Wybierz test" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="plank">Plank</SelectItem>
+                          <SelectItem value="squat">Squat</SelectItem>
+                          <SelectItem value="lunge">Lunge</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => setCurrentView('training_move')}
+                      >
+                        Zagraj
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* HRV Training */}
+                <Card className="bg-slate-50 hover:bg-slate-100 border-slate-200 cursor-pointer transition-all">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-slate-900 mb-2">HRV Training</h3>
+                    <p className="text-sm text-slate-600 mb-4">HRV pod obciążeniem</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => setCurrentView('training_hrv')}
                     >
                       Zagraj
                     </Button>
@@ -1690,14 +1679,14 @@ const AthleteProfile = () => {
             <MemoGame onComplete={handleTaskComplete} />
           )}
 
-          {currentView === 'measuring_move' && (
+          {currentView === 'training_move' && (
             <SigmaMoveForm 
               challengeType={selectedChallengeType} 
               onComplete={handleTaskComplete} 
             />
           )}
 
-          {currentView === 'measuring_training' && (
+          {currentView === 'training_hrv' && (
             <HRVTrainingForm onComplete={handleTaskComplete} />
           )}
         </DialogContent>
