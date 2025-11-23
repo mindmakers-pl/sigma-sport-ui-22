@@ -72,9 +72,14 @@ const ClubDetail = () => {
     email: "",
     phone: "",
     club: "",
+    coach: "",
     discipline: "",
     birthDate: undefined as Date | undefined,
     notes: "",
+    parentFirstName: "",
+    parentLastName: "",
+    parentPhone: "",
+    parentEmail: "",
   });
   
   // Nowe stany dla Sigma Teams
@@ -120,9 +125,14 @@ const ClubDetail = () => {
         email: "",
         phone: "",
         club: club.name, // Pre-fill with current club
+        coach: "",
         discipline: "",
         birthDate: undefined,
         notes: "",
+        parentFirstName: "",
+        parentLastName: "",
+        parentPhone: "",
+        parentEmail: "",
       });
     }
   }, [isAddAthleteDialogOpen, club.name]);
@@ -170,12 +180,19 @@ const ClubDetail = () => {
       lastName: newAthlete.lastName,
       gender: newAthlete.gender,
       club: newAthlete.club,
+      coach: newAthlete.coach,
       discipline: newAthlete.discipline,
       birthYear: birthYear,
+      birthDate: newAthlete.birthDate?.toISOString(),
       sessions: 0,
       email: newAthlete.email,
       phone: newAthlete.phone,
       notes: newAthlete.notes,
+      parentFirstName: newAthlete.parentFirstName,
+      parentLastName: newAthlete.parentLastName,
+      parentPhone: newAthlete.parentPhone,
+      parentEmail: newAthlete.parentEmail,
+      createdAt: new Date().toISOString(),
     };
     
     const updatedAthletes = [...existingAthletes, athleteToAdd];
@@ -374,7 +391,7 @@ const ClubDetail = () => {
                     <div className="space-y-6 pt-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <Label htmlFor="firstName">
+                          <Label htmlFor="firstName" className="text-slate-900 font-semibold">
                             Imię <span className="text-red-500">*</span>
                           </Label>
                           <Input
@@ -387,7 +404,7 @@ const ClubDetail = () => {
                         </div>
                         
                         <div>
-                          <Label htmlFor="lastName">
+                          <Label htmlFor="lastName" className="text-slate-900 font-semibold">
                             Nazwisko <span className="text-red-500">*</span>
                           </Label>
                           <Input
@@ -402,7 +419,7 @@ const ClubDetail = () => {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <Label htmlFor="email">E-mail</Label>
+                          <Label htmlFor="email" className="text-slate-900 font-semibold">E-mail</Label>
                           <Input
                             id="email"
                             type="email"
@@ -414,7 +431,7 @@ const ClubDetail = () => {
                         </div>
                         
                         <div>
-                          <Label htmlFor="phone">Numer telefonu</Label>
+                          <Label htmlFor="phone" className="text-slate-900 font-semibold">Numer telefonu</Label>
                           <Input
                             id="phone"
                             type="tel"
@@ -428,27 +445,77 @@ const ClubDetail = () => {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <Label htmlFor="club">
+                          <Label htmlFor="club" className="text-slate-900 font-semibold">
                             Klub <span className="text-red-500">*</span>
                           </Label>
                           <Input
                             id="club"
                             value={newAthlete.club}
-                            onChange={(e) => setNewAthlete({ ...newAthlete, club: e.target.value })}
+                            onChange={(e) => setNewAthlete({ ...newAthlete, club: e.target.value, coach: "" })}
                             placeholder="Wpisz nazwę klubu"
                             className="mt-2"
+                            list="clubs-list-dialog"
+                          />
+                          <datalist id="clubs-list-dialog">
+                            {(() => {
+                              const storedClubs = localStorage.getItem('clubs');
+                              if (storedClubs) {
+                                const clubsData = JSON.parse(storedClubs);
+                                return clubsData.map((c: any) => (
+                                  <option key={c.name} value={c.name} />
+                                ));
+                              }
+                              return null;
+                            })()}
+                          </datalist>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="coach" className="text-slate-900 font-semibold">
+                            Trener
+                          </Label>
+                          <Select
+                            value={newAthlete.coach}
+                            onValueChange={(value) => setNewAthlete({ ...newAthlete, coach: value })}
+                            disabled={!newAthlete.club}
+                          >
+                            <SelectTrigger className="mt-2">
+                              <SelectValue placeholder={newAthlete.club ? "Wybierz trenera" : "Najpierw wybierz klub"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(() => {
+                                if (!newAthlete.club) return null;
+                                const storedClubs = localStorage.getItem('clubs');
+                                if (storedClubs) {
+                                  const clubsData = JSON.parse(storedClubs);
+                                  const selectedClub = clubsData.find((c: any) => c.name === newAthlete.club);
+                                  if (selectedClub && selectedClub.coaches) {
+                                    return selectedClub.coaches.map((coach: any, index: number) => (
+                                      <SelectItem key={index} value={coach.name}>
+                                        {coach.name}
+                                      </SelectItem>
+                                    ));
+                                  }
+                                }
+                                return null;
+                              })()}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <DisciplineSelector
+                            value={newAthlete.discipline}
+                            onChange={(value) => setNewAthlete({ ...newAthlete, discipline: value })}
                           />
                         </div>
                         
-                        <DisciplineSelector
-                          value={newAthlete.discipline}
-                          onChange={(value) => setNewAthlete({ ...newAthlete, discipline: value })}
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <Label htmlFor="gender">Płeć</Label>
+                          <Label htmlFor="gender" className="text-slate-900 font-semibold">
+                            Płeć
+                          </Label>
                           <Select
                             value={newAthlete.gender}
                             onValueChange={(value) => setNewAthlete({ ...newAthlete, gender: value })}
@@ -463,10 +530,11 @@ const ClubDetail = () => {
                             </SelectContent>
                           </Select>
                         </div>
-                        
-                        <div>
-                          <Label>Data urodzenia</Label>
-                          <Popover>
+                      </div>
+
+                      <div>
+                        <Label className="text-slate-900 font-semibold">Data urodzenia</Label>
+                        <Popover>
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
@@ -477,13 +545,13 @@ const ClubDetail = () => {
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {newAthlete.birthDate ? (
-                                format(newAthlete.birthDate, "PPP", { locale: pl })
+                                format(newAthlete.birthDate, "dd MMM yyyy", { locale: pl })
                               ) : (
                                 <span>Wybierz datę</span>
                               )}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 bg-white" align="start">
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
                               mode="single"
                               selected={newAthlete.birthDate}
@@ -492,18 +560,14 @@ const ClubDetail = () => {
                                 date > new Date() || date < new Date("1950-01-01")
                               }
                               initialFocus
-                              captionLayout="dropdown-buttons"
-                              fromYear={1950}
-                              toYear={new Date().getFullYear()}
                               className="pointer-events-auto"
                             />
                           </PopoverContent>
                         </Popover>
                       </div>
-                    </div>
 
                       <div>
-                        <Label htmlFor="notes">Historia i notatki</Label>
+                        <Label htmlFor="notes" className="text-slate-900 font-semibold">Historia i notatki</Label>
                         <Textarea
                           id="notes"
                           value={newAthlete.notes}
@@ -514,7 +578,69 @@ const ClubDetail = () => {
                         />
                       </div>
 
-                      <div className="flex gap-4 pt-4 border-t">
+                      <div className="border-t border-slate-200 pt-4 space-y-4">
+                        <h3 className="text-slate-900 font-semibold">Dane kontaktowe rodzica/opiekuna (opcjonalne)</h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="parentFirstName" className="text-slate-900 font-semibold">
+                              Imię rodzica
+                            </Label>
+                            <Input
+                              id="parentFirstName"
+                              value={newAthlete.parentFirstName}
+                              onChange={(e) => setNewAthlete({ ...newAthlete, parentFirstName: e.target.value })}
+                              placeholder="Jan"
+                              className="mt-2"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="parentLastName" className="text-slate-900 font-semibold">
+                              Nazwisko rodzica
+                            </Label>
+                            <Input
+                              id="parentLastName"
+                              value={newAthlete.parentLastName}
+                              onChange={(e) => setNewAthlete({ ...newAthlete, parentLastName: e.target.value })}
+                              placeholder="Kowalski"
+                              className="mt-2"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="parentPhone" className="text-slate-900 font-semibold">
+                              Telefon rodzica
+                            </Label>
+                            <Input
+                              id="parentPhone"
+                              type="tel"
+                              value={newAthlete.parentPhone}
+                              onChange={(e) => setNewAthlete({ ...newAthlete, parentPhone: e.target.value })}
+                              placeholder="+48 123 456 789"
+                              className="mt-2"
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="parentEmail" className="text-slate-900 font-semibold">
+                              Email rodzica
+                            </Label>
+                            <Input
+                              id="parentEmail"
+                              type="email"
+                              value={newAthlete.parentEmail}
+                              onChange={(e) => setNewAthlete({ ...newAthlete, parentEmail: e.target.value })}
+                              placeholder="rodzic@example.com"
+                              className="mt-2"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 pt-4 border-t border-slate-200">
                         <Button 
                           variant="outline" 
                           onClick={() => setIsAddAthleteDialogOpen(false)}
