@@ -25,7 +25,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import SessionWizard from "@/components/SessionWizard";
+import SessionWizardNew from "@/components/SessionWizardNew";
 import ScanGame from "@/pages/ScanGame";
 import FocusGame from "@/pages/FocusGame";
 import ControlGame from "@/pages/ControlGame";
@@ -313,7 +313,7 @@ const ClubDetail = () => {
 
   if (activeWizardAthleteId) {
     return (
-      <SessionWizard
+      <SessionWizardNew
         athleteId={activeWizardAthleteId}
         onClose={() => setActiveWizardAthleteId(null)}
         onSaveSession={handleSaveSession}
