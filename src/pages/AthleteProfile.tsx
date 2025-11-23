@@ -41,7 +41,7 @@ const AthleteProfile = () => {
   const [selectedChallengeType, setSelectedChallengeType] = useState('');
   
   const [taskStatus, setTaskStatus] = useState({
-    kwestionariusz: 'pending',
+    six_sigma: 'pending',
     hrv_baseline: 'pending',
     scan: 'pending',
     focus: 'pending',
@@ -163,12 +163,58 @@ const AthleteProfile = () => {
   const handleMeasurementTaskComplete = (taskName: string, data: any) => {
     console.log(`✅ Measurement task "${taskName}" completed:`, data);
     
-    // Update task status
-    const updatedStatus = { ...taskStatus, [taskName]: 'completed' };
-    const updatedResults = { ...sessionResults, [taskName]: data };
+    // Transform kwestionariusz data to six_sigma format if needed
+    let transformedResults = { ...sessionResults };
+    
+    if (taskName === 'kwestionariusz' && data.responses) {
+      // Transform questionnaire responses to six_sigma format
+      const responses = data.responses;
+      
+      // Calculate competency scores (6 competencies)
+      const competencies = ['scan', 'focus', 'control', 'track', 'back', 'memo'];
+      const competencyScores = competencies.map(comp => {
+        const compResponses = responses.filter((r: any) => r.competency === comp);
+        const rawScore = compResponses.reduce((sum: number, r: any) => sum + r.value, 0);
+        const maxScore = compResponses.length * 5; // Each question max is 5
+        return {
+          competency: comp,
+          rawScore,
+          maxScore,
+          normalizedScore: maxScore > 0 ? rawScore / maxScore : 0
+        };
+      });
+      
+      // Calculate overall score
+      const totalRaw = competencyScores.reduce((sum, c) => sum + c.rawScore, 0);
+      const totalMax = competencyScores.reduce((sum, c) => sum + c.maxScore, 0);
+      const overallScore = totalMax > 0 ? totalRaw / totalMax : 0;
+      
+      // Save as six_sigma (not kwestionariusz)
+      transformedResults.six_sigma = {
+        overallScore,
+        competencyScores,
+        responses,
+        completedAt: data.completedAt
+      };
+    } else if (taskName === 'focus' && data.focus_accuracy_pct !== undefined) {
+      // Transform focus data to include both formats
+      transformedResults.focus = {
+        ...data,
+        accuracy: data.focus_accuracy_pct, // Add shorthand for display
+        totalTrials: data.focus_total_trials,
+        correctCount: data.focus_correct_count,
+        coachReport: data.focus_coach_report
+      };
+    } else {
+      transformedResults[taskName] = data;
+    }
+    
+    // Update task status (use six_sigma for display)
+    const statusKey = taskName === 'kwestionariusz' ? 'six_sigma' : taskName;
+    const updatedStatus = { ...taskStatus, [statusKey]: 'completed' };
     
     setTaskStatus(updatedStatus);
-    setSessionResults(updatedResults);
+    setSessionResults(transformedResults);
     
     // Auto-save to localStorage after each task
     const sessionId = currentSessionId || `session_${Date.now()}`;
@@ -182,7 +228,7 @@ const AthleteProfile = () => {
       athlete_name: athlete?.name || 'Unknown',
       date: new Date().toISOString(),
       conditions: measurementConditions,
-      results: updatedResults,
+      results: transformedResults,
       taskStatus: updatedStatus,
       inProgress: true // Sesja w trakcie
     };
@@ -424,7 +470,7 @@ const AthleteProfile = () => {
     setCurrentSessionId(null);
     setSessionResults({});
       setTaskStatus({
-        kwestionariusz: 'pending',
+        six_sigma: 'pending',
         hrv_baseline: 'pending',
         scan: 'pending',
         focus: 'pending',
@@ -864,12 +910,12 @@ const AthleteProfile = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Kwestionariusz */}
-                <Card className={`cursor-pointer transition-all ${taskStatus.kwestionariusz === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
+                {/* Six Sigma Questionnaire */}
+                <Card className={`cursor-pointer transition-all ${taskStatus.six_sigma === 'completed' ? 'bg-green-50 border-green-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-slate-900">Six Sigma</h3>
-                      {taskStatus.kwestionariusz === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                      {taskStatus.six_sigma === 'completed' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                     </div>
                     <p className="text-sm text-slate-600 mb-4">Ocena psychometryczna</p>
                     <Button 
@@ -877,7 +923,7 @@ const AthleteProfile = () => {
                       className="w-full"
                       onClick={() => setActiveTask('kwestionariusz')}
                     >
-                      {taskStatus.kwestionariusz === 'completed' ? 'Powtórz' : 'Rozpocznij'}
+                      {taskStatus.six_sigma === 'completed' ? 'Powtórz' : 'Rozpocznij'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -1285,25 +1331,31 @@ const AthleteProfile = () => {
                             {session.results.hrv_baseline && (
                               <div>
                                 <span className="text-xs text-slate-600 block mb-1">HRV Baseline</span>
-                                <span className="font-semibold text-lg">{session.results.hrv_baseline.hrv}</span>
+                                <span className="font-semibold text-lg">{session.results.hrv_baseline.rMSSD || session.results.hrv_baseline.hrv || 'N/A'}</span>
                               </div>
                             )}
                             {session.results.scan && (
                               <div>
                                 <span className="text-xs text-slate-600 block mb-1">Sigma Scan</span>
-                                <span className="font-semibold text-lg">{session.results.scan.scan_max_number_reached ?? session.results.scan.avgReactionTime ?? 'ms'}</span>
-                              </div>
-                            )}
-                            {session.results.control && (
-                              <div>
-                                <span className="text-xs text-slate-600 block mb-1">Sigma Control</span>
-                                <span className="font-semibold text-lg">{session.results.control.errors}</span>
+                                <span className="font-semibold text-lg">{session.results.scan.scan_max_number_reached ?? session.results.scan.maxNumber ?? 'N/A'}</span>
                               </div>
                             )}
                             {session.results.focus && (
                               <div>
                                 <span className="text-xs text-slate-600 block mb-1">Sigma Focus</span>
-                                <span className="font-semibold text-lg">{Math.round(session.results.focus.accuracy)}%</span>
+                                <span className="font-semibold text-lg">{Math.round(session.results.focus.accuracy || session.results.focus.focus_accuracy_pct || 0)}%</span>
+                              </div>
+                            )}
+                            {session.results.memo && (
+                              <div>
+                                <span className="text-xs text-slate-600 block mb-1">Sigma Memo</span>
+                                <span className="font-semibold text-lg">{Math.round(session.results.memo.accuracy || session.results.memo.memo_accuracy_pct || 0)}%</span>
+                              </div>
+                            )}
+                            {session.results.feedback && (
+                              <div>
+                                <span className="text-xs text-slate-600 block mb-1">Feedback</span>
+                                <span className="font-semibold text-lg">✓</span>
                               </div>
                             )}
                           </div>

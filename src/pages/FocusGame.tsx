@@ -475,35 +475,26 @@ export default function FocusGame({
     const incongruentResults = validTrials.filter(r => r.type === 'INCONGRUENT' && r.isCorrect).map(r => r.reactionTime);
     const medianCongruent = Math.round(calculateMedian(congruentResults));
     const medianIncongruent = Math.round(calculateMedian(incongruentResults));
+    const overallMedian = Math.round(calculateMedian(validTrials.filter(r => r.isCorrect).map(r => r.reactionTime)));
     const concentrationCost = medianIncongruent - medianCongruent;
-    const allCorrectRTs = [...congruentResults, ...incongruentResults];
-    const overallMedian = Math.round(calculateMedian(allCorrectRTs));
-
-    // Calculate max for chart scale
-    const maxTime = Math.max(medianCongruent, medianIncongruent);
-    const chartScale = maxTime > 0 ? maxTime * 1.2 : 1000;
-
-    // Prepare data for trend chart
-    const trendData = results.map((result, index) => ({
-      trial: index + 1,
-      reactionTime: Math.round(result.reactionTime),
-      type: result.type,
-      isCorrect: result.isCorrect
+    const chartScale = Math.max(medianCongruent, medianIncongruent);
+    const trendData = validTrials.map((r, idx) => ({
+      trial: idx + 1,
+      reactionTime: r.reactionTime,
+      type: r.type,
+      isCorrect: r.isCorrect
     }));
+    
     return <div className="min-h-screen bg-slate-950 p-4">
-        {mode === "training" && onGoToCockpit && <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4" onClick={onGoToCockpit}>
+        {!onComplete && <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Powrót
           </Button>}
         
-        <div className="flex items-center justify-center" style={{
-        minHeight: 'calc(100vh - 80px)'
-      }}>
+        <div className="flex items-center justify-center" style={{minHeight: 'calc(100vh - 80px)'}}>
         <Card className="max-w-4xl w-full border-slate-700 bg-slate-800 animate-scale-in">
           <CardContent className="pt-6 space-y-6">
-            <h2 
-              className="text-xl font-semibold text-white text-center mb-6"
-            >
+            <h2 className="text-xl font-semibold text-white text-center mb-6">
               Wynik wyzwania Sigma Focus
             </h2>
             
@@ -523,44 +514,36 @@ export default function FocusGame({
                 </div>
               </div>
 
-              {/* Middle Section: Comparison with title on card */}
+              {/* Middle Section: Comparison */}
               <div className="bg-slate-700/50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold text-white mb-4">Czas reakcji w zależności od trudności</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Bar Chart */}
                   <div className="space-y-4">
                     <p className="text-slate-300 text-sm font-medium">Typ trafienia:</p>
                     
-                    {/* ŁATWY Bar */}
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-slate-300 font-semibold">ŁATWY</span>
                         <span className="text-slate-200 font-bold">{medianCongruent} ms</span>
                       </div>
                       <div className="w-full bg-slate-800 rounded-full h-6 overflow-hidden">
-                        <div className="bg-green-600 h-full rounded-full transition-all duration-500" style={{
-                          width: `${medianCongruent / chartScale * 100}%`
-                        }} />
+                        <div className="bg-green-600 h-full rounded-full transition-all duration-500" style={{width: `${medianCongruent / chartScale * 100}%`}} />
                       </div>
                       <p className="text-xs text-slate-500">kolor jak tekst</p>
                     </div>
 
-                    {/* TRUDNE Bar */}
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-slate-300 font-semibold">TRUDNE</span>
                         <span className="text-slate-200 font-bold">{medianIncongruent} ms</span>
                       </div>
                       <div className="w-full bg-slate-800 rounded-full h-6 overflow-hidden">
-                        <div className="bg-red-600 h-full rounded-full transition-all duration-500" style={{
-                          width: `${medianIncongruent / chartScale * 100}%`
-                        }} />
+                        <div className="bg-red-600 h-full rounded-full transition-all duration-500" style={{width: `${medianIncongruent / chartScale * 100}%`}} />
                       </div>
                       <p className="text-xs text-slate-500">zmyłki</p>
                     </div>
                   </div>
 
-                  {/* Difference Card */}
                   <div className="flex flex-col justify-center pl-4 border-l border-slate-600">
                     <p className="text-slate-400 text-sm mb-2">Różnica</p>
                     <p className="text-3xl font-bold text-yellow-400 mb-2">+{concentrationCost} ms</p>
@@ -571,49 +554,23 @@ export default function FocusGame({
                 </div>
               </div>
 
-              {/* Trend Chart - Krzywa koncentracji */}
+              {/* Trend Chart */}
               <div className="bg-slate-700/50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold text-white mb-4">Krzywa koncentracji</h3>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={trendData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                      <XAxis dataKey="trial" stroke="#94a3b8" label={{
-                        value: 'Numer próby',
-                        position: 'insideBottom',
-                        offset: -5,
-                        fill: '#94a3b8'
-                      }} />
-                      <YAxis stroke="#94a3b8" label={{
-                        value: 'Czas reakcji (ms)',
-                        angle: -90,
-                        position: 'insideLeft',
-                        fill: '#94a3b8'
-                      }} />
-                      <Tooltip contentStyle={{
-                        backgroundColor: '#1e293b',
-                        border: '1px solid #475569',
-                        borderRadius: '8px'
-                      }} labelStyle={{
-                        color: '#e2e8f0'
-                      }} itemStyle={{
-                        color: '#e2e8f0'
-                      }} formatter={(value: any, name: any, props: any) => {
+                      <XAxis dataKey="trial" stroke="#94a3b8" label={{value: 'Numer próby', position: 'insideBottom', offset: -5, fill: '#94a3b8'}} />
+                      <YAxis stroke="#94a3b8" label={{value: 'Czas reakcji (ms)', angle: -90, position: 'insideLeft', fill: '#94a3b8'}} />
+                      <Tooltip contentStyle={{backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px'}} labelStyle={{color: '#e2e8f0'}} itemStyle={{color: '#e2e8f0'}} formatter={(value: any, name: any, props: any) => {
                         const type = props.payload.type === 'CONGRUENT' ? 'ŁATWY' : 'TRUDNE';
                         const correct = props.payload.isCorrect ? '✓' : '✗';
                         return [`${value} ms (${type}) ${correct}`, 'Czas reakcji'];
                       }} />
-                      <Legend wrapperStyle={{
-                        paddingTop: '10px'
-                      }} formatter={value => <span style={{
-                        color: '#e2e8f0'
-                      }}>{value}</span>} />
+                      <Legend wrapperStyle={{paddingTop: '10px'}} formatter={value => <span style={{color: '#e2e8f0'}}>{value}</span>} />
                       <Line type="monotone" dataKey="reactionTime" stroke="#3b82f6" strokeWidth={2} dot={(props: any) => {
-                        const {
-                          cx,
-                          cy,
-                          payload
-                        } = props;
+                        const {cx, cy, payload} = props;
                         const color = payload.type === 'CONGRUENT' ? '#22c55e' : '#ef4444';
                         const size = payload.isCorrect ? 4 : 6;
                         const opacity = payload.isCorrect ? 0.6 : 1;
@@ -668,6 +625,10 @@ export default function FocusGame({
               </Button>
               <Button size="lg" className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => {
                 const gameData = {
+                  accuracy: accuracy,
+                  totalTrials: TOTAL_TRIALS,
+                  correctCount: correctCount,
+                  coachReport: coachReport,
                   focus_trials: results,
                   focus_median_congruent_ms: medianCongruent,
                   focus_median_incongruent_ms: medianIncongruent,
