@@ -524,7 +524,7 @@ export default function FocusGame({
       isCorrect: result.isCorrect
     }));
     return <div className="min-h-screen bg-slate-950 p-4">
-        {onGoToCockpit && <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4" onClick={onGoToCockpit}>
+        {mode === "training" && onGoToCockpit && <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4" onClick={onGoToCockpit}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Powrót
           </Button>}
@@ -734,7 +734,7 @@ export default function FocusGame({
   const progress = (currentTrialIndex + 1) / TOTAL_TRIALS * 100;
   return <div className="min-h-screen bg-slate-950 flex flex-col relative">
       {/* Back button in top-left corner */}
-      {onGoToCockpit && <button onClick={onGoToCockpit} className="absolute top-4 left-4 text-slate-400 hover:text-white transition-colors z-10">
+      {mode === "training" && onGoToCockpit && <button onClick={onGoToCockpit} className="absolute top-4 left-4 text-slate-400 hover:text-white transition-colors z-10">
           ← Powrót
         </button>}
 
