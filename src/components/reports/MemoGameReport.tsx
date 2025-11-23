@@ -18,7 +18,7 @@ interface MemoGameReportProps {
   variant: 'athlete' | 'coach';
 }
 
-export function MemoGameReport({ results, variant }: MemoGameReportProps) {
+export default function MemoGameReport({ results, variant }: MemoGameReportProps) {
   const accuracy = results.memo_accuracy_pct;
   const medianRT = results.memo_median_rt_ms;
   const dPrime = results.memo_d_prime;

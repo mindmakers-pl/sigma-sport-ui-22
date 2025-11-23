@@ -15,7 +15,7 @@ interface TrackerGameReportProps {
   variant: 'athlete' | 'coach';
 }
 
-export function TrackerGameReport({ results, variant }: TrackerGameReportProps) {
+export default function TrackerGameReport({ results, variant }: TrackerGameReportProps) {
   const { level, finalScore, mistakes } = results.gameData;
   const accuracyPercent = finalScore.total > 0 
     ? ((finalScore.correct / finalScore.total) * 100).toFixed(1) 

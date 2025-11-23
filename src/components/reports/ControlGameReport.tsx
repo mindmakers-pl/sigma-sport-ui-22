@@ -18,7 +18,7 @@ interface ControlGameReportProps {
   variant: 'athlete' | 'coach';
 }
 
-export function ControlGameReport({ results, variant }: ControlGameReportProps) {
+export default function ControlGameReport({ results, variant }: ControlGameReportProps) {
   const { avgRT, minRT, maxRT, goHits, goMisses, noGoErrors, reactionTimes } = results.gameData;
   
   // Calculate metrics
