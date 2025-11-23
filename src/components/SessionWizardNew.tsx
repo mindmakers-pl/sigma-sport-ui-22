@@ -26,13 +26,25 @@ type WizardStep =
   | 'feedback'
   | 'hrv_baseline';
 
+const MEASUREMENT_SEQUENCE: WizardStep[] = [
+  'questionnaire-select',
+  'questionnaires',
+  'hrv_baseline',
+  'scan',
+  'focus',
+  'memo',
+  'feedback'
+];
+
 const SessionWizardNew = ({ athleteId, sessionId, onClose, onSaveSession }: SessionWizardNewProps) => {
-  const [currentStep, setCurrentStep] = useState<WizardStep>('questionnaire-select');
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [sessionResults, setSessionResults] = useState<Record<string, any>>({});
   const [selectedQuestionnaires, setSelectedQuestionnaires] = useState<string[]>([]);
   const { toast } = useToast();
   const { addSession, updateSession } = useSessions(athleteId);
   const { addTask } = useSessionTasks(sessionId);
+
+  const currentStep = MEASUREMENT_SEQUENCE[currentStepIndex];
 
   const handleStepComplete = async (stepName: string, data: any) => {
     const updatedResults = {
@@ -43,7 +55,6 @@ const SessionWizardNew = ({ athleteId, sessionId, onClose, onSaveSession }: Sess
     
     // Auto-save to Supabase
     if (sessionId) {
-      // Update existing session
       const { error } = await updateSession(sessionId, { 
         results: updatedResults 
       });
@@ -57,15 +68,13 @@ const SessionWizardNew = ({ athleteId, sessionId, onClose, onSaveSession }: Sess
         return;
       }
       
-      // Also save as session task
       await addTask({
         session_id: sessionId,
         task_type: stepName,
         task_data: data
       });
     } else {
-      // Create new session
-      const { data: newSession, error } = await addSession({
+      const { error } = await addSession({
         athlete_id: athleteId,
         date: new Date().toISOString(),
         results: updatedResults,
@@ -87,14 +96,20 @@ const SessionWizardNew = ({ athleteId, sessionId, onClose, onSaveSession }: Sess
       description: "Wynik został zapisany do sesji.",
     });
 
-    // Return to cockpit after each task
-    onClose();
+    // Advance to next step or close
+    const nextIndex = currentStepIndex + 1;
+    if (nextIndex < MEASUREMENT_SEQUENCE.length) {
+      setCurrentStepIndex(nextIndex);
+    } else {
+      onClose();
+    }
   };
 
   const handleQuestionnaireSelection = (questionnaireIds: string[]) => {
     setSelectedQuestionnaires(questionnaireIds);
     if (questionnaireIds.length > 0) {
-      setCurrentStep('questionnaires');
+      const nextIndex = currentStepIndex + 1;
+      setCurrentStepIndex(nextIndex);
     } else {
       onClose();
     }
@@ -144,7 +159,13 @@ const SessionWizardNew = ({ athleteId, sessionId, onClose, onSaveSession }: Sess
       description: "Dane zostały zapisane.",
     });
     
-    onClose();
+    // Advance to next step
+    const nextIndex = currentStepIndex + 1;
+    if (nextIndex < MEASUREMENT_SEQUENCE.length) {
+      setCurrentStepIndex(nextIndex);
+    } else {
+      onClose();
+    }
   };
 
   const renderCurrentStep = () => {
@@ -169,6 +190,7 @@ const SessionWizardNew = ({ athleteId, sessionId, onClose, onSaveSession }: Sess
       case 'scan':
         return (
           <ScanGame 
+            athleteId={athleteId}
             mode="measurement"
             onComplete={(data) => handleStepComplete('scan', data)}
             onGoToCockpit={onClose}
@@ -178,6 +200,7 @@ const SessionWizardNew = ({ athleteId, sessionId, onClose, onSaveSession }: Sess
       case 'focus':
         return (
           <FocusGame 
+            athleteId={athleteId}
             mode="measurement"
             onComplete={(data) => handleStepComplete('focus', data)}
             onGoToCockpit={onClose}
@@ -187,6 +210,7 @@ const SessionWizardNew = ({ athleteId, sessionId, onClose, onSaveSession }: Sess
       case 'memo':
         return (
           <MemoGame 
+            athleteId={athleteId}
             mode="measurement"
             onComplete={(data) => handleStepComplete('memo', data)}
           />

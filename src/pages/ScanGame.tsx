@@ -15,6 +15,7 @@ interface ClickRecord {
 }
 
 interface ScanGameProps {
+  athleteId?: string;
   onComplete?: (data: any) => void;
   onGoToCockpit?: () => void;
   mode?: "training" | "measurement";
@@ -23,9 +24,10 @@ interface ScanGameProps {
 const GAME_DURATION = 60; // 60 seconds
 const GRID_SIZE = 64; // 8x8 grid (0-63)
 
-const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameProps) => {
+const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode = "measurement" }: ScanGameProps) => {
   const navigate = useNavigate();
-  const { athleteId } = useParams();
+  const { athleteId: athleteIdParam } = useParams();
+  const athleteId = athleteIdProp || athleteIdParam;
   const { trainings } = useTrainings(athleteId);
   
   const [gameState, setGameState] = useState<GameState>("ready");

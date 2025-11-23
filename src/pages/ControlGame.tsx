@@ -7,14 +7,16 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useControlGame } from "@/hooks/useControlGame";
 
 interface ControlGameProps {
+  athleteId?: string;
   onComplete?: (data: any) => void;
   onGoToCockpit?: () => void;
   mode?: "training" | "measurement";
 }
 
-const ControlGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ControlGameProps) => {
+const ControlGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode = "measurement" }: ControlGameProps) => {
   const navigate = useNavigate();
-  const { athleteId } = useParams();
+  const { athleteId: athleteIdParam } = useParams();
+  const athleteId = athleteIdProp || athleteIdParam;
   
   const {
     gameState,

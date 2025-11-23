@@ -7,14 +7,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTrackerGame } from "@/hooks/useTrackerGame";
 
 interface TrackerGameProps {
+  athleteId?: string;
   onComplete?: (data: any) => void;
   onGoToCockpit?: () => void;
   mode?: "training" | "measurement";
 }
 
-const TrackerGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: TrackerGameProps) => {
+const TrackerGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode = "measurement" }: TrackerGameProps) => {
   const navigate = useNavigate();
-  const { athleteId } = useParams();
+  const { athleteId: athleteIdParam } = useParams();
+  const athleteId = athleteIdProp || athleteIdParam;
   
   const {
     gameState, balls, userGuesses, finalScore, level, mistakes, hrvInput, setHrvInput, containerRef,

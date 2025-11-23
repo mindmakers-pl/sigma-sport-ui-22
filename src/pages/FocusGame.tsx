@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ArrowLeft } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 interface FocusGameProps {
+  athleteId?: string;
   onComplete?: (data: any) => void;
   onGoToCockpit?: () => void;
   mode?: "training" | "measurement";
@@ -203,14 +204,14 @@ const COLOR_CLASSES: Record<ColorType, string> = {
   YELLOW: "text-yellow-400"
 };
 export default function FocusGame({
+  athleteId: athleteIdProp,
   onComplete,
   onGoToCockpit,
   mode = "training"
 }: FocusGameProps) {
   const navigate = useNavigate();
-  const {
-    athleteId
-  } = useParams();
+  const { athleteId: athleteIdParam } = useParams();
+  const athleteId = athleteIdProp || athleteIdParam;
 
   // Mock results for demonstration
   const mockResults: TrialResult[] = Array.from({
