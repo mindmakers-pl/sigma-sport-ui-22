@@ -32,7 +32,20 @@ export default function SixSigmaReport() {
   }
 
   const sixSigmaData = session.results.six_sigma;
-  const { competencyScores, modifierScores, overallScore, validation } = sixSigmaData;
+  const { 
+    competencyScores, 
+    modifierScores, 
+    overallScore, 
+    validation = {
+      isValid: true,
+      warnings: [],
+      flags: {
+        straightLining: false,
+        reverseInconsistency: false,
+        speedingDetected: false
+      }
+    }
+  } = sixSigmaData;
 
   // Find strongest and weakest competencies
   const sortedCompetencies = [...competencyScores].sort((a, b) => b.normalizedScore - a.normalizedScore);
