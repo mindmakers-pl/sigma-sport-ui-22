@@ -194,7 +194,17 @@ const AthleteProfile = () => {
         overallScore,
         competencyScores,
         responses,
-        completedAt: data.completedAt
+        completedAt: data.completedAt,
+        modifierScores: data.modifierScores || [],
+        validation: data.validation || {
+          isValid: true,
+          warnings: [],
+          flags: {
+            straightLining: false,
+            reverseInconsistency: false,
+            speedingDetected: false
+          }
+        }
       };
     } else if (taskName === 'focus' && data.focus_accuracy_pct !== undefined) {
       // Transform focus data to include both formats
