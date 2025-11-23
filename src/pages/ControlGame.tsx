@@ -210,7 +210,7 @@ const ControlGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: Contro
                   // Library/demo mode without athlete - only show Finish button
                   <Button 
                     className="w-full"
-                    onClick={() => navigate('/biblioteka')}
+                    onClick={() => navigate('/biblioteka?tab=wyzwania')}
                   >
                     Zakończ
                   </Button>

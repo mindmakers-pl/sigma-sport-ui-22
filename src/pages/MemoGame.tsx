@@ -305,7 +305,7 @@ const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
           ) : (
             // Library/demo mode without athlete - only show Finish button
             <Button 
-              onClick={() => navigate('/biblioteka')}
+              onClick={() => navigate('/biblioteka?tab=wyzwania')}
               className="w-full"
               size="lg"
             >

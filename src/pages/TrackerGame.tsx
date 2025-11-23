@@ -122,7 +122,7 @@ const TrackerGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: Tracke
                   // Library/demo mode without athlete - only show Finish button
                   <Button 
                     className="w-full"
-                    onClick={() => navigate('/biblioteka')}
+                    onClick={() => navigate('/biblioteka?tab=wyzwania')}
                   >
                     Zakończ
                   </Button>

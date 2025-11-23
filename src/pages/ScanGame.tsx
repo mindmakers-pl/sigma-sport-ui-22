@@ -380,11 +380,11 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
                   size="lg"
                   className="w-full"
                   onClick={() => {
-                    if (onGoToCockpit) {
-                      onGoToCockpit();
-                    } else {
-                      navigate('/biblioteka');
-                    }
+                  if (onGoToCockpit) {
+                    onGoToCockpit();
+                  } else {
+                    navigate('/biblioteka?tab=wyzwania');
+                  }
                   }}
                 >
                   Zakończ
