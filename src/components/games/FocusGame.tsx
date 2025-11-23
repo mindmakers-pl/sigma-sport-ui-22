@@ -173,9 +173,12 @@ export default function FocusGame({
     
     if (error) {
       console.error('❌ FocusGame training save error:', error);
+      const isRLSError = error.code === '42501' || error.message?.includes('row-level security');
       toast({
-        title: "Błąd",
-        description: "Nie udało się zapisać treningu",
+        title: "Błąd zapisu",
+        description: isRLSError 
+          ? "Brak uprawnień do zapisu danych. Skontaktuj się z administratorem." 
+          : "Nie udało się zapisać treningu",
         variant: "destructive",
       });
     } else {
