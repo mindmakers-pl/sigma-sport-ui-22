@@ -48,52 +48,55 @@ export default function SixSigmaReport() {
       insights.push("⚠️ Wykryto niespójności w odpowiedziach. Wyniki mogą być mało wiarygodne.");
     }
 
-    // Strength-based feedback
-    insights.push(`Twój największy atut to ${strongest.name}! To dobra podstawa do rozwijania innych obszarów.`);
+    // Strength-based feedback - treating self-report as perception
+    insights.push(`Dobrze widzieć, że czujesz się mocny/a w obszarze ${strongest.name}! To silna podstawa, na której możesz budować inne kompetencje.`);
 
-    // Weakest area with context
+    // Weakest area with context - perception-based language
     if (weakest.normalizedScore < 0.6) {
       const sleepModifier = modifierScores.find(m => m.modifier === 'sleep');
       const stressModifier = modifierScores.find(m => m.modifier === 'stress');
       
-      let weaknessExplanation = `Najbardziej możesz poprawić ${weakest.name}.`;
+      let weaknessExplanation = `Zauważamy, że w obszarze ${weakest.name} czujesz, że masz jeszcze przestrzeń do rozwoju.`;
       
       if (sleepModifier && sleepModifier.normalizedScore <= 0.4) {
-        weaknessExplanation += " Pamiętaj, że niewystarczająca regeneracja (sen) wpływa na wszystkie kompetencje.";
+        weaknessExplanation += " Zwróć uwagę, że niewystarczający sen może wpływać na to, jak oceniasz swoje kompetencje.";
       }
       if (stressModifier && stressModifier.normalizedScore <= 0.4) {
-        weaknessExplanation += " Wysoki stres pozasportowy też może wpływać na Twoje wyniki.";
+        weaknessExplanation += " Wysoki stres pozasportowy też może wpływać na Twoją percepcję własnych możliwości.";
       }
       
       insights.push(weaknessExplanation);
     }
 
-    // Specific competency advice
+    // Specific competency advice - perception-based
     competencyScores.forEach(comp => {
       if (comp.normalizedScore >= 0.85) {
-        // High scores - positive reinforcement
+        // High scores - positive reinforcement with perception language
         if (comp.competency === 'focus') {
-          insights.push("Masz świetną koncentrację! Ignorujesz rozpraszacze i trzymasz uwagę na zadaniu.");
+          insights.push("Dobrze widzieć, że czujesz, że łatwo utrzymujesz koncentrację mimo rozpraszaczy - to oznacza, że wypracowałeś/aś silne umiejętności uwagi!");
         }
         if (comp.competency === 'reset') {
-          insights.push("Szybko wracasz do gry po błędach - to ogromny atut w sporcie!");
+          insights.push("Dobrze widzieć, że czujesz, że szybko wracasz do gry po błędach - to oznacza wysoką odporność psychiczną!");
+        }
+        if (comp.competency === 'control') {
+          insights.push("Dobrze widzieć, że czujesz, że złe decyzje sędziego nie wyprowadzają Cię z równowagi - to oznacza dojrzałą kontrolę emocjonalną!");
         }
         if (comp.competency === 'confidence') {
-          insights.push("Wysoka pewność siebie - wierzysz w swoje umiejętności!");
+          insights.push("Dobrze widzieć, że wierzysz w swoje umiejętności - to mocny fundament sukcesu sportowego!");
         }
       } else if (comp.normalizedScore < 0.5) {
         // Low scores - actionable suggestions
         if (comp.competency === 'activation') {
-          insights.push("💡 Aktywacja: Przed startem spróbuj energicznej muzyki lub krótkiej wizualizacji dynamicznej akcji.");
+          insights.push("💡 Aktywacja: Jeśli czujesz, że brakuje Ci energii przed startem, spróbuj energicznej muzyki lub krótkiej wizualizacji dynamicznej akcji.");
         }
         if (comp.competency === 'control') {
-          insights.push("💡 Kontrola: Gdy czujesz presję, spróbuj oddechu 4-7-8 (wdech 4s, zatrzymaj 7s, wydech 8s).");
+          insights.push("💡 Kontrola: Gdy czujesz presję, spróbuj techniki oddechu 4-7-8 (wdech 4s, zatrzymaj 7s, wydech 8s) - pomoże to uspokoić ciało i umysł.");
         }
         if (comp.competency === 'reset') {
-          insights.push("💡 Reset: Po błędzie weź dwa głębokie oddechy i skup wzrok na piłce/punkcie odniesienia.");
+          insights.push("💡 Reset: Po błędzie weź dwa głębokie oddechy i skup wzrok na piłce/punkcie odniesienia - to pomoże Ci szybciej wrócić do gry.");
         }
         if (comp.competency === 'focus') {
-          insights.push("💡 Focus: Ćwicz koncentrację poprzez krótkie sesje mindfulness (5 min dziennie).");
+          insights.push("💡 Focus: Ćwicz koncentrację poprzez krótkie sesje mindfulness (5 min dziennie) - regularność przynosi efekty!");
         }
       }
     });
@@ -237,6 +240,20 @@ export default function SixSigmaReport() {
             </Card>
           )}
 
+          {/* Athlete interpretation - MOVED TO TOP */}
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+            <CardHeader>
+              <CardTitle>Twoje wyniki - co oznaczają dla Ciebie?</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {athleteInsights.map((insight, idx) => (
+                <p key={idx} className="text-sm leading-relaxed">
+                  {insight}
+                </p>
+              ))}
+            </CardContent>
+          </Card>
+
           {/* Quick summary tiles */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
@@ -310,20 +327,6 @@ export default function SixSigmaReport() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Athlete interpretation */}
-          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-            <CardHeader>
-              <CardTitle>Co To Oznacza?</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {athleteInsights.map((insight, idx) => (
-                <p key={idx} className="text-sm leading-relaxed">
-                  {insight}
-                </p>
-              ))}
             </CardContent>
           </Card>
         </TabsContent>
@@ -441,6 +444,42 @@ export default function SixSigmaReport() {
             </CardContent>
           </Card>
 
+          {/* Raw response data for coach/psychologist */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Surowe Dane Odpowiedzi</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Szczegółowy przegląd odpowiedzi zawodnika pytanie po pytaniu
+              </p>
+            </CardHeader>
+            <CardContent>
+              {sixSigmaData.responses && sixSigmaData.responses.length > 0 ? (
+                <div className="space-y-4">
+                  {sixSigmaData.responses.map((response: any, idx: number) => (
+                    <div key={idx} className="border-l-4 border-primary/20 pl-4 py-2">
+                      <div className="flex justify-between items-start mb-1">
+                        <p className="text-sm font-medium text-slate-900">
+                          Q{idx + 1}: {response.questionText}
+                        </p>
+                        <Badge variant="outline" className="ml-2">
+                          {response.value}/5
+                        </Badge>
+                      </div>
+                      <div className="flex gap-4 text-xs text-muted-foreground">
+                        <span>Kompetencja: {response.competency}</span>
+                        <span>Domena: {response.domain}</span>
+                        {response.isReverse && <span className="text-amber-600">Pytanie odwrócone</span>}
+                        {response.isKeyIndicator && <span className="text-primary font-semibold">Wskaźnik kluczowy</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Brak szczegółowych danych odpowiedzi dla tej sesji.</p>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Coach interpretation */}
           <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <CardHeader>
@@ -464,19 +503,55 @@ export default function SixSigmaReport() {
                 Pobierz wyniki w różnych formatach
               </p>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Button onClick={handleExportJSON} variant="outline" className="w-full justify-start">
-                <Download className="h-4 w-4 mr-2" />
-                Pobierz JSON
-              </Button>
-              <Button variant="outline" className="w-full justify-start" disabled>
-                <Download className="h-4 w-4 mr-2" />
-                Pobierz CSV (wkrótce)
-              </Button>
-              <Button variant="outline" className="w-full justify-start" disabled>
-                <Download className="h-4 w-4 mr-2" />
-                Pobierz PDF (wkrótce)
-              </Button>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-4">
+                <Button variant="outline" className="h-24 flex-col gap-2" onClick={handleExportJSON}>
+                  <Download className="h-6 w-6" />
+                  <span>Pobierz JSON</span>
+                  <span className="text-xs text-slate-500">Pełne dane</span>
+                </Button>
+                
+                <Button variant="outline" className="h-24 flex-col gap-2" onClick={() => {
+                  // CSV export for questionnaire responses
+                  if (sixSigmaData.responses && sixSigmaData.responses.length > 0) {
+                    const headers = ['questionId', 'questionText', 'competency', 'domain', 'type', 'value', 'isKeyIndicator'];
+                    const csvContent = [
+                      headers.join(','),
+                      ...sixSigmaData.responses.map((r: any) => 
+                        [r.questionId, `"${r.questionText}"`, r.competency, r.domain, r.isReverse ? 'reverse' : 'direct', r.value, r.isKeyIndicator ? 'yes' : 'no'].join(',')
+                      )
+                    ].join('\n');
+                    const blob = new Blob([csvContent], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `six-sigma-${session.id}-responses.csv`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                  }
+                }}>
+                  <Download className="h-6 w-6" />
+                  <span>Pobierz CSV</span>
+                  <span className="text-xs text-slate-500">Odpowiedzi (Excel)</span>
+                </Button>
+                
+                <Button variant="outline" className="h-24 flex-col gap-2" disabled>
+                  <Download className="h-6 w-6" />
+                  <span>Pobierz PDF</span>
+                  <span className="text-xs text-slate-500">Wkrótce</span>
+                </Button>
+              </div>
+
+              <div className="mt-6 p-4 bg-slate-50 rounded-lg">
+                <h4 className="font-semibold text-slate-900 mb-2">
+                  Informacje o danych:
+                </h4>
+                <ul className="text-sm text-slate-700 space-y-1 list-disc list-inside">
+                  <li><strong>JSON:</strong> Zawiera wszystkie surowe dane, wyniki kompetencji i metadane</li>
+                  <li><strong>CSV:</strong> Tabela wszystkich odpowiedzi z wartościami i metadanymi pytań</li>
+                  <li><strong>PDF (wkrótce):</strong> Obrandowany raport z wykresami i analizą</li>
+                </ul>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
