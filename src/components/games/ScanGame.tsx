@@ -27,13 +27,15 @@ interface ScanGameProps {
 const GAME_DURATION = 60; // 60 seconds
 const GRID_SIZE = 64; // 8x8 grid (0-63)
 
-const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode = "measurement" }: ScanGameProps) => {
+const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode }: ScanGameProps) => {
   const navigate = useNavigate();
   const { athleteId: athleteIdParam } = useParams();
   const athleteId = athleteIdProp || athleteIdParam;
-  const { trainings, addTraining } = useTrainings(athleteId);
-  const { toast } = useToast();
   const { isLibrary, isMeasurement, isTraining } = determineGameContext(athleteId, mode);
+  
+  // Only call Supabase hooks if NOT in library mode
+  const { trainings, addTraining } = useTrainings(isLibrary ? undefined : athleteId);
+  const { toast } = useToast();
   
   const [gameState, setGameState] = useState<GameState>("ready");
   const [gridNumbers, setGridNumbers] = useState<number[]>([]);

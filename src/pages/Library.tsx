@@ -65,7 +65,7 @@ const Library = () => {
       description: "Trening szybkości percepcji i reakcji wzrokowo-ruchowej",
       icon: Zap,
       color: "bg-blue-500",
-      route: "/scan/training",
+      route: "/biblioteka/gry/scan",
     },
     {
       id: "control",
@@ -73,7 +73,7 @@ const Library = () => {
       description: "Trening kontroli impulsów i podejmowania decyzji pod presją",
       icon: Target,
       color: "bg-orange-500",
-      route: "/control/training",
+      route: "/biblioteka/gry/control",
     },
     {
       id: "focus",
@@ -81,7 +81,15 @@ const Library = () => {
       description: "Trening koncentracji i odporności na dystrakcje",
       icon: Brain,
       color: "bg-purple-500",
-      route: "/focus/training",
+      route: "/biblioteka/gry/focus",
+    },
+    {
+      id: "memo",
+      title: "Sigma Memo",
+      description: "Trening pamięci roboczej 2-Back",
+      icon: Brain,
+      color: "bg-pink-500",
+      route: "/biblioteka/gry/memo",
     },
     {
       id: "tracker",
@@ -89,7 +97,7 @@ const Library = () => {
       description: "Trening śledzenia wielu obiektów i pamięci roboczej",
       icon: Eye,
       color: "bg-emerald-500",
-      route: "/tracker/training",
+      route: "/biblioteka/gry/tracker",
     },
   ];
 
