@@ -5,6 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTrackerGame } from "@/hooks/useTrackerGame";
+import { determineGameContext } from "@/utils/gameContext";
+import { useTrainings } from "@/hooks/useTrainings";
+import { useToast } from "@/hooks/use-toast";
 
 interface TrackerGameProps {
   athleteId?: string;
@@ -17,6 +20,9 @@ const TrackerGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode
   const navigate = useNavigate();
   const { athleteId: athleteIdParam } = useParams();
   const athleteId = athleteIdProp || athleteIdParam;
+  const { addTraining } = useTrainings(athleteId);
+  const { toast } = useToast();
+  const { isLibrary, isMeasurement, isTraining } = determineGameContext(athleteId, mode);
   
   const {
     gameState, balls, userGuesses, finalScore, level, mistakes, hrvInput, setHrvInput, containerRef,
@@ -114,20 +120,66 @@ const TrackerGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode
                   <Input type="text" value={hrvInput} onChange={(e) => setHrvInput(e.target.value)} placeholder="np. 65" className="bg-slate-700 border-slate-600 text-white mt-2" />
                 </div>
                 
-                {athleteId ? (
-                  // Training mode with athlete - show both buttons
-                  <div className="flex gap-4">
-                    <Button variant="outline" className="flex-1" onClick={handleGoBackToCockpit}>Wróć do kokpitu</Button>
-                    <Button className="flex-1" onClick={handleSaveAndContinue}>Zapisz i idź dalej</Button>
-                  </div>
-                ) : (
-                  // Library/demo mode without athlete - only show Finish button
+                {isLibrary && (
                   <Button 
                     className="w-full"
                     onClick={() => navigate('/biblioteka?tab=wyzwania')}
                   >
                     Zakończ
                   </Button>
+                )}
+
+                {isMeasurement && (
+                  <Button 
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={handleSaveAndContinue}
+                  >
+                    Następne Wyzwanie
+                  </Button>
+                )}
+
+                {isTraining && (
+                  <div className="flex gap-4">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
+                    >
+                      Zakończ
+                    </Button>
+                    <Button 
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                      onClick={async () => {
+                        const payload = { 
+                          gameData: { level, finalScore, mistakes }, 
+                          hrvData: hrvInput 
+                        };
+                        
+                        const { error } = await addTraining({
+                          athlete_id: athleteId!,
+                          task_type: 'tracker',
+                          date: new Date().toISOString(),
+                          results: payload
+                        });
+                        
+                        if (error) {
+                          toast({
+                            title: "Błąd",
+                            description: "Nie udało się zapisać treningu",
+                            variant: "destructive",
+                          });
+                        } else {
+                          toast({
+                            title: "Sukces",
+                            description: "Trening został zapisany",
+                          });
+                          navigate(`/zawodnicy/${athleteId}?tab=trening`);
+                        }
+                      }}
+                    >
+                      Zapisz trening
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>

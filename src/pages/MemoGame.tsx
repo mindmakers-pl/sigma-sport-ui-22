@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTrainings } from "@/hooks/useTrainings";
 import { useToast } from "@/hooks/use-toast";
+import { determineGameContext } from "@/utils/gameContext";
 
 interface MemoGameProps {
   athleteId?: string;
@@ -21,6 +22,7 @@ const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps)
   const athleteId = athleteIdProp || athleteIdParam;
   const { addTraining } = useTrainings(athleteId || undefined);
   const { toast } = useToast();
+  const { isLibrary, isMeasurement, isTraining } = determineGameContext(athleteId, mode);
 
   const {
     gameState,
@@ -285,27 +287,7 @@ const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps)
             </div>
           </div>
 
-          {athleteId ? (
-            // Training mode with athlete - show both buttons
-            <div className="flex gap-4">
-              <Button 
-                variant="outline"
-                onClick={handleGoBack}
-                className="flex-1"
-                size="lg"
-              >
-                Zakończ
-              </Button>
-              <Button 
-                onClick={handleSaveAndContinue}
-                className="flex-1"
-                size="lg"
-              >
-                Następne Wyzwanie
-              </Button>
-            </div>
-          ) : (
-            // Library/demo mode without athlete - only show Finish button
+          {isLibrary && (
             <Button 
               onClick={() => navigate('/biblioteka?tab=wyzwania')}
               className="w-full"
@@ -313,6 +295,41 @@ const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps)
             >
               Zakończ
             </Button>
+          )}
+
+          {isMeasurement && (
+            <>
+              <p className="text-center text-sm text-slate-400">
+                Wynik został zapisany do sesji
+              </p>
+              <Button 
+                onClick={handleSaveAndContinue}
+                className="w-full bg-green-600 hover:bg-green-700"
+                size="lg"
+              >
+                Następne Wyzwanie
+              </Button>
+            </>
+          )}
+
+          {isTraining && (
+            <div className="flex gap-4">
+              <Button 
+                variant="outline"
+                onClick={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
+                className="flex-1"
+                size="lg"
+              >
+                Zakończ
+              </Button>
+              <Button 
+                onClick={handleSaveAndContinue}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+                size="lg"
+              >
+                Zapisz trening
+              </Button>
+            </div>
           )}
 
           <p className="text-center text-sm text-slate-400">
