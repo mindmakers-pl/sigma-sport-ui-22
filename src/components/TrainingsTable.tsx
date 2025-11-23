@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTrainings } from "@/hooks/useTrainings";
+import { Loader2 } from "lucide-react";
 
 interface TrainingsTableProps {
   athleteId: string | undefined;
@@ -13,31 +15,22 @@ interface TrainingsTableProps {
 
 const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
   const navigate = useNavigate();
-  const [trainings, setTrainings] = useState<any[]>([]);
+  const { trainings, loading } = useTrainings(athleteId);
   const [filteredTrainings, setFilteredTrainings] = useState<any[]>([]);
   const [gameFilter, setGameFilter] = useState('wszystkie');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
-    const allTrainings = JSON.parse(localStorage.getItem('athlete_trainings') || '[]');
-    const athleteTrainings = allTrainings
-      .filter((t: any) => t.athlete_id === athleteId)
-      .sort((a: any, b: any) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
-    setTrainings(athleteTrainings);
-    setFilteredTrainings(athleteTrainings);
-  }, [athleteId]);
-
-  useEffect(() => {
     if (gameFilter === 'wszystkie') {
       setFilteredTrainings(trainings);
     } else {
-      setFilteredTrainings(trainings.filter(t => t.game_type === gameFilter));
+      setFilteredTrainings(trainings.filter(t => t.task_type === gameFilter));
     }
   }, [gameFilter, trainings]);
 
   const getGameMetrics = (training: any) => {
     const results = training.results;
-    if (training.game_type === 'focus') {
+    if (training.task_type === 'focus') {
       const coachReport = results.coachReport || {};
       return {
         metric1: { label: 'Mediana RT', value: `${Math.round(coachReport.overall?.medianRT || 0)} ms`, key: 'medianRT' },
@@ -45,21 +38,21 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
         metric3: { label: 'Koszt koncentracji', value: `+${Math.round(results.concentrationCost || 0)} ms`, key: 'cost' }
       };
     }
-    if (training.game_type === 'control') {
+    if (training.task_type === 'control') {
       return {
         metric1: { label: 'Wynik', value: results.score || '-', key: 'score' },
         metric2: { label: 'Czas', value: results.time ? `${results.time}s` : '-', key: 'time' },
         metric3: { label: 'Błędy', value: results.errors || '-', key: 'errors' }
       };
     }
-    if (training.game_type === 'move') {
+    if (training.task_type === 'move') {
       return {
         metric1: { label: 'Typ', value: results.challengeType || '-', key: 'type' },
         metric2: { label: 'Dystans', value: results.distance ? `${results.distance}m` : '-', key: 'distance' },
         metric3: { label: 'Czas', value: results.time ? `${results.time}min` : '-', key: 'time' }
       };
     }
-    if (training.game_type === 'hrv_training') {
+    if (training.task_type === 'hrv_training') {
       return {
         metric1: { label: 'rMSSD', value: results.rmssd ? `${results.rmssd} ms` : '-', key: 'rmssd' },
         metric2: { label: 'HR śr.', value: results.avgHR ? `${results.avgHR} bpm` : '-', key: 'avgHR' },
@@ -73,8 +66,8 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
     };
   };
 
-  const getGameBadgeColor = (gameType: string) => {
-    switch(gameType) {
+  const getGameBadgeColor = (taskType: string) => {
+    switch(taskType) {
       case 'focus': return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'scan': return 'bg-green-100 text-green-800 border-green-300';
       case 'control': return 'bg-purple-100 text-purple-800 border-purple-300';
@@ -84,7 +77,18 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
     }
   };
 
-  const uniqueGameTypes = [...new Set(trainings.map(t => t.game_type))];
+  const getTaskName = (taskType: string) => {
+    switch(taskType) {
+      case 'focus': return 'Sigma Focus';
+      case 'scan': return 'Sigma Scan';
+      case 'control': return 'Sigma Control';
+      case 'move': return 'Sigma Move';
+      case 'hrv_training': return 'HRV Training';
+      default: return taskType;
+    }
+  };
+
+  const uniqueGameTypes = [...new Set(trainings.map(t => t.task_type))];
   const showProgressReport = gameFilter !== 'wszystkie' && selectedIds.length >= 2;
 
   const toggleSelectAll = () => {
@@ -101,6 +105,14 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -113,11 +125,7 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
               <SelectItem value="wszystkie">Wszystkie gry</SelectItem>
               {uniqueGameTypes.map(type => (
                 <SelectItem key={type} value={type}>
-                  {type === 'focus' ? 'Sigma Focus' : 
-                   type === 'scan' ? 'Sigma Scan' :
-                   type === 'control' ? 'Sigma Control' :
-                   type === 'move' ? 'Sigma Move' :
-                   type === 'hrv_training' ? 'HRV Training' : type}
+                  {getTaskName(type)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -177,12 +185,12 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
                           />
                         </TableCell>
                         <TableCell>
-                          <Badge className={getGameBadgeColor(training.game_type)}>
-                            {training.game_name}
+                          <Badge className={getGameBadgeColor(training.task_type)}>
+                            {getTaskName(training.task_type)}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {new Date(training.completedAt).toLocaleDateString('pl-PL', {
+                          {new Date(training.date).toLocaleDateString('pl-PL', {
                             day: '2-digit',
                             month: '2-digit',
                             year: 'numeric',
@@ -229,12 +237,12 @@ const TrainingsTable = ({ athleteId }: TrainingsTableProps) => {
                             />
                           </div>
                         )}
-                        <Badge className={getGameBadgeColor(training.game_type)}>
-                          {training.game_name}
+                        <Badge className={getGameBadgeColor(training.task_type)}>
+                          {getTaskName(training.task_type)}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(training.completedAt).toLocaleDateString('pl-PL', {
+                        {new Date(training.date).toLocaleDateString('pl-PL', {
                           day: '2-digit',
                           month: '2-digit',
                           year: 'numeric'

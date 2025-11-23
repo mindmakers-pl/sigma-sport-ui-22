@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DisciplineSelectorMultipleProps {
   value: string[];
@@ -23,41 +24,49 @@ const DisciplineSelectorMultiple = ({ value, onChange, label = "Dyscypliny sport
   const [customDiscipline, setCustomDiscipline] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
 
-  // Pobierz unikalne dyscypliny z localStorage
+  // Fetch unique disciplines from Supabase
   useEffect(() => {
-    const getDisciplines = () => {
+    const fetchDisciplines = async () => {
       const uniqueDisciplines = new Set<string>();
       
-      // Z zawodników
-      const storedAthletes = localStorage.getItem('athletes');
-      if (storedAthletes) {
-        const athletesData = JSON.parse(storedAthletes);
-        athletesData.forEach((athlete: any) => {
-          if (athlete.discipline && athlete.discipline.trim() !== "") {
-            uniqueDisciplines.add(athlete.discipline);
-          }
-        });
+      try {
+        // From athletes
+        const { data: athletes } = await supabase
+          .from('athletes')
+          .select('discipline');
+        
+        if (athletes) {
+          athletes.forEach(athlete => {
+            if (athlete.discipline && athlete.discipline.trim() !== "") {
+              uniqueDisciplines.add(athlete.discipline);
+            }
+          });
+        }
+        
+        // From clubs
+        const { data: clubs } = await supabase
+          .from('clubs')
+          .select('disciplines');
+        
+        if (clubs) {
+          clubs.forEach(club => {
+            if (club.disciplines && Array.isArray(club.disciplines)) {
+              club.disciplines.forEach(disc => {
+                if (disc && disc.trim() !== "") {
+                  uniqueDisciplines.add(disc);
+                }
+              });
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching disciplines:', error);
       }
       
-      // Z klubów
-      const storedClubs = localStorage.getItem('clubs');
-      if (storedClubs) {
-        const clubsData = JSON.parse(storedClubs);
-        clubsData.forEach((club: any) => {
-          if (club.disciplines && Array.isArray(club.disciplines)) {
-            club.disciplines.forEach((disc: string) => {
-              if (disc && disc.trim() !== "") {
-                uniqueDisciplines.add(disc);
-              }
-            });
-          }
-        });
-      }
-      
-      return Array.from(uniqueDisciplines).sort();
+      setDisciplines(Array.from(uniqueDisciplines).sort());
     };
     
-    setDisciplines(getDisciplines());
+    fetchDisciplines();
   }, []);
 
   const handleAddDiscipline = () => {
