@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTrainings } from "@/hooks/useTrainings";
+import { useToast } from "@/hooks/use-toast";
 
 interface MemoGameProps {
   mode?: 'measurement' | 'training';
@@ -15,6 +17,8 @@ const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const athleteId = searchParams.get("athleteId");
+  const { addTraining } = useTrainings(athleteId || undefined);
+  const { toast } = useToast();
 
   const {
     gameState,
@@ -37,7 +41,7 @@ const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
     }
   };
 
-  const handleSaveAndContinue = () => {
+  const handleSaveAndContinue = async () => {
     if (!results) return;
 
     const gameData = {
@@ -76,22 +80,32 @@ const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
       trialsCount: gameData.memo_trials.length
     });
 
-    // Training mode: save to athlete_trainings or use onComplete
+    // Training mode: save to Supabase or use onComplete
     if (onComplete) {
       console.log('✅ Sigma Memo: Calling onComplete with data');
       onComplete(gameData);
     } else if (athleteId) {
-      const existingTrainings = JSON.parse(localStorage.getItem('athlete_trainings') || '[]');
-      const newTraining = {
-        id: Date.now().toString(),
-        athleteId,
-        gameName: 'Sigma Memo',
+      const { error } = await addTraining({
+        athlete_id: athleteId,
+        task_type: 'memo',
         date: new Date().toISOString(),
-        results: { memo: gameData },
-      };
-      localStorage.setItem('athlete_trainings', JSON.stringify([...existingTrainings, newTraining]));
-      console.log('💾 Sigma Memo: Zapisano do athlete_trainings');
-      navigate(`/zawodnicy/${athleteId}?tab=trening`);
+        results: gameData
+      });
+      
+      if (error) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się zapisać wyniku treningu",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sukces",
+          description: "Wynik treningu został zapisany",
+        });
+        console.log('💾 Sigma Memo: Zapisano do Supabase');
+        navigate(`/zawodnicy/${athleteId}?tab=trening`);
+      }
     } else {
       // Measurement mode: pass to wizard
       console.log('📊 Sigma Memo: Measurement mode results logged');

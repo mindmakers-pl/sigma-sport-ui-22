@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
+import { useTrainings } from "@/hooks/useTrainings";
 
 type GameState = "ready" | "playing" | "finished";
 
@@ -25,6 +26,7 @@ const GRID_SIZE = 64; // 8x8 grid (0-63)
 const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameProps) => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
+  const { trainings } = useTrainings(athleteId);
   
   const [gameState, setGameState] = useState<GameState>("ready");
   const [gridNumbers, setGridNumbers] = useState<number[]>([]);
@@ -138,14 +140,13 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
   };
 
   const getPreviousResults = () => {
-    // Get previous results from localStorage
-    const athleteTrainings = localStorage.getItem('athlete_trainings');
-    if (!athleteTrainings) return [];
+    // Get previous results from Supabase
+    if (!trainings || trainings.length === 0) return [];
 
-    const trainings = JSON.parse(athleteTrainings);
     const scanResults = trainings
-      .filter((t: any) => t.athleteId === athleteId && t.gameName === 'Sigma Scan')
-      .map((t: any) => t.results.scan_max_number_reached)
+      .filter((t) => t.task_type === 'scan')
+      .map((t) => (t.results as any)?.scan_max_number_reached)
+      .filter((r) => r !== undefined && r !== null)
       .slice(-5); // Last 5 results
 
     return scanResults;
