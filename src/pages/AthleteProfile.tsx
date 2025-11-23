@@ -235,6 +235,10 @@ const AthleteProfile = () => {
       const sixSigmaFull = scoredQuestionnaires.find((q: any) => 
         q.questionnaireId === 'six_sigma_full'
       );
+      // Find Six Sigma Mood (context modifiers)
+      const sixSigmaMood = scoredQuestionnaires.find((q: any) => 
+        q.questionnaireId === 'six_sigma_mood'
+      );
       
       if (sixSigmaFull) {
         console.log('✅ Znaleziono Six Sigma Full:', {
@@ -243,39 +247,55 @@ const AthleteProfile = () => {
           validation: sixSigmaFull.validation
         });
         
-        // Extract completion time from scored questionnaire
+        // Extract completion time from scored questionnaire (tylko część 6x6)
         const completionTime = sixSigmaFull.completionTimeSeconds || 0;
+        
+        // Base competency scores z pełnej baterii
+        const mappedCompetencies = sixSigmaFull.competencyScores.map((comp: any) => ({
+          competency: comp.competencyId,
+          name: comp.competencyName,
+          rawScore: comp.rawScore,
+          maxScore: comp.maxPossibleScore,
+          normalizedScore: comp.normalizedScore / 100, // 0-100 -> 0-1
+          interpretation: getScoreInterpretation(comp.normalizedScore)
+        }));
+
+        // Modifiers mogą pochodzić z Mood (preferowane) albo z tej samej baterii, jeśli kiedyś dodamy
+        const moodModifiers = sixSigmaMood?.modifierScores || [];
+        const baseModifiers = sixSigmaFull.modifierScores || [];
+        const allModifiers = [...baseModifiers, ...moodModifiers];
+
+        const mappedModifiers = allModifiers.map((mod: any) => ({
+          modifier: mod.modifierId,
+          name: mod.modifierName,
+          rawScore: mod.rawValue,
+          maxScore: 5,
+          normalizedScore: mod.normalizedScore / 100,
+          impact: getModifierImpact(mod.normalizedScore)
+        }));
+        
+        // Połącz surowe odpowiedzi z pełnej baterii i Mood (żeby eksport miał komplet kontekstu)
+        const fullResponses = sixSigmaFull.responses || [];
+        const moodResponses = sixSigmaMood?.responses || [];
+        const allResponses = [...fullResponses, ...moodResponses];
         
         // Transform scored questionnaire to session format
         sixSigmaResults = {
-          version: "6x6+6",
+          version: '6x6+6',
           questionnaireName: sixSigmaFull.questionnaireName,
           completionDate: sixSigmaFull.completedAt,
           completionTimeSeconds: completionTime,
-          competencyScores: sixSigmaFull.competencyScores.map((comp: any) => ({
-            competency: comp.competencyId,
-            name: comp.competencyName,
-            rawScore: comp.rawScore,
-            maxScore: comp.maxPossibleScore,
-            normalizedScore: comp.normalizedScore / 100, // Convert from 0-100 to 0-1
-            interpretation: getScoreInterpretation(comp.normalizedScore)
-          })),
-          modifierScores: sixSigmaFull.modifierScores.map((mod: any) => ({
-            modifier: mod.modifierId,
-            name: mod.modifierName,
-            rawScore: mod.rawValue,
-            maxScore: 5,
-            normalizedScore: mod.normalizedScore / 100, // Convert from 0-100 to 0-1
-            impact: getModifierImpact(mod.normalizedScore)
-          })),
+          competencyScores: mappedCompetencies,
+          modifierScores: mappedModifiers,
           overallScore: sixSigmaFull.overallScore ? sixSigmaFull.overallScore / 100 : 0,
           validation: sixSigmaFull.validation,
-          responses: sixSigmaFull.responses || [] // Include raw responses with metadata
+          responses: allResponses
         };
         
         console.log('✅ Transformed Six Sigma results:', {
           responsesCount: sixSigmaResults.responses.length,
           completionTime: sixSigmaResults.completionTimeSeconds,
+          modifiersCount: sixSigmaResults.modifierScores.length,
           overallScore: sixSigmaResults.overallScore
         });
       } else {
@@ -308,7 +328,8 @@ const AthleteProfile = () => {
     console.log('💾 Zapisuję sesję do localStorage:', {
       sessionId,
       hasSixSigma: !!sixSigmaResults,
-      responsesCount: sixSigmaResults?.responses?.length || 0
+      responsesCount: sixSigmaResults?.responses?.length || 0,
+      modifiersCount: sixSigmaResults?.modifierScores?.length || 0
     });
     
     const existingSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
