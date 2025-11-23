@@ -40,8 +40,8 @@ export const ScanGameResultSchema = z.object({
   scan_correct_clicks: z.number().min(0),
   scan_error_clicks: z.number().min(0),
   scan_skipped_numbers: z.array(z.number()).default([]),
-  scan_hrv_baseline: z.number().optional(),
-  scan_hrv_training: z.number().optional(),
+  scan_rmssd_ms: z.number().optional().nullable(),
+  scan_avg_hr_bpm: z.number().optional().nullable(),
   scan_game_completed_at: z.string().optional(),
 });
 
@@ -60,8 +60,8 @@ export const FocusGameResultSchema = z.object({
   focus_accuracy_pct: z.number().min(0).max(100),
   focus_total_trials: z.number().min(0),
   focus_correct_trials: z.number().min(0),
-  focus_hrv_baseline: z.number().optional(),
-  focus_hrv_training: z.number().optional(),
+  focus_rmssd_ms: z.number().optional().nullable(),
+  focus_avg_hr_bpm: z.number().optional().nullable(),
   focus_game_completed_at: z.string().optional(),
 });
 
@@ -79,8 +79,8 @@ export const MemoGameResultSchema = z.object({
     isCorrect: z.boolean(),
     isError: z.boolean().optional(),
   })).optional(),
-  memo_hrv_baseline: z.number().optional(),
-  memo_hrv_training: z.number().optional(),
+  memo_rmssd_ms: z.number().optional().nullable(),
+  memo_hr_bpm: z.number().optional().nullable(),
   memo_game_completed_at: z.string().optional(),
 });
 
@@ -129,6 +129,39 @@ export const SigmaMoveSchema = z.object({
 });
 
 // ============================================
+// CONTROL GAME RESULT
+// ============================================
+export const ControlGameResultSchema = z.object({
+  control_go_hits: z.number().min(0),
+  control_go_misses: z.number().min(0),
+  control_nogo_errors: z.number().min(0),
+  control_median_rt_ms: z.number().min(0),
+  control_total_trials: z.number().min(0),
+  control_trial_history: z.array(z.object({
+    trialNumber: z.number(),
+    type: z.enum(['Go', 'NoGo']),
+    result: z.string(),
+    reactionTime: z.number().optional(),
+  })).optional(),
+  control_rmssd_ms: z.number().optional().nullable(),
+  control_avg_hr_bpm: z.number().optional().nullable(),
+  control_game_completed_at: z.string().optional(),
+});
+
+// ============================================
+// TRACKER GAME RESULT
+// ============================================
+export const TrackerGameResultSchema = z.object({
+  tracker_level: z.number().min(1),
+  tracker_final_score_correct: z.number().min(0),
+  tracker_final_score_total: z.number().min(0),
+  tracker_mistakes: z.number().min(0),
+  tracker_rmssd_ms: z.number().optional().nullable(),
+  tracker_avg_hr_bpm: z.number().optional().nullable(),
+  tracker_game_completed_at: z.string().optional(),
+});
+
+// ============================================
 // UNION TYPE FOR ALL SESSION TASKS
 // ============================================
 export const SessionTaskSchema = z.discriminatedUnion('task_type', [
@@ -147,6 +180,14 @@ export const SessionTaskSchema = z.discriminatedUnion('task_type', [
   z.object({ 
     task_type: z.literal('memo'), 
     task_data: MemoGameResultSchema 
+  }),
+  z.object({ 
+    task_type: z.literal('control'), 
+    task_data: ControlGameResultSchema 
+  }),
+  z.object({ 
+    task_type: z.literal('tracker'), 
+    task_data: TrackerGameResultSchema 
   }),
   z.object({ 
     task_type: z.literal('hrv_baseline'), 
@@ -193,6 +234,8 @@ export type SixSigmaResult = z.infer<typeof SixSigmaResultSchema>;
 export type ScanGameResult = z.infer<typeof ScanGameResultSchema>;
 export type FocusGameResult = z.infer<typeof FocusGameResultSchema>;
 export type MemoGameResult = z.infer<typeof MemoGameResultSchema>;
+export type ControlGameResult = z.infer<typeof ControlGameResultSchema>;
+export type TrackerGameResult = z.infer<typeof TrackerGameResultSchema>;
 export type HRVBaseline = z.infer<typeof HRVBaselineSchema>;
 export type HRVTraining = z.infer<typeof HRVTrainingSchema>;
 export type SigmaFeedback = z.infer<typeof SigmaFeedbackSchema>;

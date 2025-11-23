@@ -146,21 +146,20 @@ export default function FocusGame({
     const concentrationCost = medianIncongruent - medianCongruent;
 
     const gameData = {
-      accuracy: accuracy,
-      totalTrials: totalTrials,
-      correctCount: correctCount,
-      coachReport: coachReport,
-      focus_trials: results,
+      focus_trials: validTrials.map((r: any) => ({
+        type: r.type,
+        isCorrect: r.isCorrect,
+        rt: r.reactionTime,
+        trialNumber: r.trialId
+      })),
       focus_median_congruent_ms: medianCongruent,
       focus_median_incongruent_ms: medianIncongruent,
-      focus_concentration_cost_ms: concentrationCost,
       focus_accuracy_pct: accuracy,
-      focus_correct_count: correctCount,
       focus_total_trials: totalTrials,
-      focus_valid_trials: validTrials.length,
-      focus_coach_report: coachReport,
+      focus_correct_trials: correctCount,
       focus_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
-      focus_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null
+      focus_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
+      focus_game_completed_at: new Date().toISOString(),
     };
     
     const { error } = await addTraining({
@@ -173,17 +172,19 @@ export default function FocusGame({
     setIsSaving(false);
     
     if (error) {
+      console.error('❌ FocusGame training save error:', error);
       toast({
         title: "Błąd",
         description: "Nie udało się zapisać treningu",
         variant: "destructive",
       });
     } else {
+      console.log('✅ FocusGame training saved to Supabase');
       toast({
         title: "Sukces",
         description: "Trening został zapisany",
       });
-      navigate(`/zawodnicy/${athleteId}?tab=trening`);
+      handleExit();
     }
   };
 

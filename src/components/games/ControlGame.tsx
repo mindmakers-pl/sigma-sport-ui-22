@@ -229,34 +229,34 @@ const ControlGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode
               onMeasurementComplete={handleSaveAndContinue}
               onTrainingEnd={handleExit}
               onTrainingSave={async () => {
-                const payload = {
-                  gameData: {
-                    avgRT: calculateAverageRT(),
-                    minRT: calculateMinRT(),
-                    maxRT: calculateMaxRT(),
-                    goHits: results.goHits,
-                    goMisses: results.goMisses,
-                    noGoErrors: results.noGoErrors,
-                    trialHistory,
-                    reactionTimes
-                  },
-                  hrvData: typeof manualHRV === 'string' ? manualHRV : ''
+                const gameData = {
+                  control_go_hits: results.goHits,
+                  control_go_misses: results.goMisses,
+                  control_nogo_errors: results.noGoErrors,
+                  control_median_rt_ms: calculateAverageRT(),
+                  control_total_trials: trialHistory.length,
+                  control_trial_history: trialHistory,
+                  control_rmssd_ms: typeof manualHRV === 'string' && manualHRV ? parseFloat(manualHRV) : null,
+                  control_avg_hr_bpm: null,
+                  control_game_completed_at: new Date().toISOString(),
                 };
                 
                 const { error } = await addTraining({
                   athlete_id: athleteId!,
                   task_type: 'control',
                   date: new Date().toISOString(),
-                  results: payload
+                  results: gameData
                 });
                 
                 if (error) {
+                  console.error('❌ ControlGame training save error:', error);
                   toast({
                     title: "Błąd",
                     description: "Nie udało się zapisać treningu",
                     variant: "destructive",
                   });
                 } else {
+                  console.log('✅ ControlGame training saved to Supabase');
                   toast({
                     title: "Sukces",
                     description: "Trening został zapisany",

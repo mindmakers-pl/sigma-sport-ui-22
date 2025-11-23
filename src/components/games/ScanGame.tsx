@@ -386,7 +386,7 @@ const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode }:
                         scan_skipped_numbers: result.skippedNumbers,
                         scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
                         scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
-                        scan_raw_clicks: clickHistory
+                        scan_game_completed_at: new Date().toISOString(),
                       };
                       
                       const { error } = await addTraining({
@@ -397,12 +397,14 @@ const ScanGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode }:
                       });
                       
                       if (error) {
+                        console.error('❌ ScanGame training save error:', error);
                         toast({
                           title: "Błąd",
                           description: "Nie udało się zapisać treningu",
                           variant: "destructive",
                         });
                       } else {
+                        console.log('✅ ScanGame training saved to Supabase');
                         toast({
                           title: "Sukces",
                           description: "Trening został zapisany",

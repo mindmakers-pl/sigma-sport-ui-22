@@ -1987,25 +1987,51 @@ const AthleteProfile = () => {
             />
           )}
 
-          {currentView === 'playing_memo' && (
-            <MemoGame 
-              athleteId={id}
-              mode="training"
-              onComplete={handleTrainingTaskComplete}
-            />
-          )}
-
-          {currentView === 'playing_tracker' && (
-            <TrackerGame 
-              athleteId={id}
-              mode="training"
-              onGoToCockpit={() => {
-                setCurrentView('trening');
-                setSearchParams({ tab: 'trening' });
-              }}
-              onComplete={handleTrainingTaskComplete}
-            />
-          )}
+        {currentView === 'playing_scan' && (
+          <ScanGame 
+            athleteId={id}
+            mode="training"
+            onGoToCockpit={() => {
+              navigate(`/zawodnicy/${id}?tab=trening`, { replace: true });
+            }}
+          />
+        )}
+        {currentView === 'playing_control' && (
+          <ControlGame 
+            athleteId={id}
+            mode="training"
+            onGoToCockpit={() => {
+              navigate(`/zawodnicy/${id}?tab=trening`, { replace: true });
+            }}
+          />
+        )}
+        {currentView === 'playing_focus' && (
+          <FocusGame 
+            athleteId={id}
+            mode="training"
+            onGoToCockpit={() => {
+              navigate(`/zawodnicy/${id}?tab=trening`, { replace: true });
+            }}
+          />
+        )}
+        {currentView === 'playing_memo' && (
+          <MemoGame 
+            athleteId={id}
+            mode="training"
+            onGoToCockpit={() => {
+              navigate(`/zawodnicy/${id}?tab=trening`, { replace: true });
+            }}
+          />
+        )}
+        {currentView === 'playing_tracker' && (
+          <TrackerGame 
+            athleteId={id}
+            mode="training"
+            onGoToCockpit={() => {
+              navigate(`/zawodnicy/${id}?tab=trening`, { replace: true });
+            }}
+          />
+        )}
 
           {currentView === 'training_move' && (
             <SigmaMoveForm 
