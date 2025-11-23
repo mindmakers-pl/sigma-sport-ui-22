@@ -72,6 +72,7 @@ export default function SessionDetail() {
       { id: 'scan', name: 'Sigma Scan', resultKey: 'scan', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=scan` },
       { id: 'control', name: 'Sigma Control', resultKey: 'control', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=control` },
       { id: 'focus', name: 'Sigma Focus', resultKey: 'focus', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=focus` },
+      { id: 'memo', name: 'Sigma Memo', resultKey: 'memo', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=memo` },
       { id: 'sigma_move', name: 'Sigma Move', resultKey: 'sigma_move', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=sigma_move` },
       { id: 'hrv_training', name: 'HRV Training', resultKey: 'hrv_training', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=hrv_training` }
     ];
@@ -106,7 +107,7 @@ export default function SessionDetail() {
                 {session.conditions}
               </Badge>
               <Badge variant="outline" className="text-sm">
-                {completedTasks.length}/7 testów
+                {completedTasks.length}/8 testów
               </Badge>
               <Badge variant="outline" className="text-sm">
                 {new Date(session.date).toLocaleDateString('pl-PL')}
@@ -857,6 +858,220 @@ export default function SessionDetail() {
                     <Download className="h-6 w-6" />
                     <span>Pobierz CSV</span>
                     <span className="text-xs text-slate-500">Dane kliknięć</span>
+                  </Button>
+                  
+                  <Button variant="outline" className="h-24 flex-col gap-2" disabled>
+                    <Download className="h-6 w-6" />
+                    <span>Pobierz PDF</span>
+                    <span className="text-xs text-slate-500">Wkrótce</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>;
+  }
+
+  // Sigma Memo detailed view
+  if (taskView === "memo" && session.results.memo) {
+    const memoData = session.results.memo;
+    
+    return <div className="p-8 max-w-6xl mx-auto">
+        <Button variant="ghost" className="mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}/sesja/${sessionId}?task=overview`)}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Powrót do podsumowania
+        </Button>
+
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">
+            Raport Sigma Memo
+          </h2>
+          <p className="text-slate-600">
+            {athlete.name} • {new Date(session.date).toLocaleDateString('pl-PL')}
+          </p>
+        </div>
+
+        <Tabs defaultValue="player" className="w-full">
+          <div className="mb-6">
+            <TabsList>
+              <TabsTrigger value="player">Dla Zawodnika</TabsTrigger>
+              <TabsTrigger value="coach">Dla Trenera</TabsTrigger>
+              <TabsTrigger value="export">Eksport Danych</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="player" className="space-y-6">
+            <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
+              <CardContent className="pt-6">
+                <h3 className="font-bold text-lg text-slate-900 mb-3">Sigma Score: Pamięć Robocza</h3>
+                <p className="text-slate-700 leading-relaxed mb-2">
+                  Test 2-Back mierzy pamięć roboczą - umiejętność trzymania informacji w głowie i stałego jej aktualizowania. W sporcie to jak "bufor taktyczny" - zapamiętywanie ostatnich akcji, przewidywanie ruchów przeciwnika, realizowanie złożonych schematów gry.
+                </p>
+                <p className="text-sm text-slate-600">
+                  Poniżej znajdziesz swoje wyniki: jak dokładnie rozpoznawałeś powtórzenia i jak szybko reagowałeś.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Twój wynik</CardTitle>
+                <p className="text-sm text-slate-600">Ogólna celność i czas reakcji</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-6 mb-6">
+                  <div className="bg-primary/10 p-6 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-2">Celność</p>
+                    <p className="text-5xl font-bold text-primary">{memoData.memo_accuracy_pct}%</p>
+                  </div>
+                  <div className="bg-blue-50 p-6 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-2">Czas reakcji</p>
+                    <p className="text-5xl font-bold text-blue-700">{memoData.memo_median_rt_ms}</p>
+                    <p className="text-sm text-slate-500 mt-1">ms</p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 p-6 rounded-lg">
+                  <h4 className="font-semibold text-slate-900 mb-4">Szczegóły wykonania</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white p-4 rounded border">
+                      <p className="text-sm text-slate-600 mb-1">Trafienia</p>
+                      <p className="text-2xl font-bold text-green-700">{memoData.memo_hits}</p>
+                    </div>
+                    <div className="bg-white p-4 rounded border">
+                      <p className="text-sm text-slate-600 mb-1">Pominięcia</p>
+                      <p className="text-2xl font-bold text-amber-700">{memoData.memo_misses}</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="coach" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Szczegółowe Metryki</CardTitle>
+                <p className="text-sm text-slate-600">Analiza signal detection theory</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-1">Trafienia (Hits)</p>
+                    <p className="text-2xl font-bold text-green-700">{memoData.memo_hits}</p>
+                    <p className="text-xs text-slate-600 mt-1">Poprawne wykrycia</p>
+                  </div>
+                  <div className="bg-amber-50 p-4 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-1">Pominięcia (Misses)</p>
+                    <p className="text-2xl font-bold text-amber-700">{memoData.memo_misses}</p>
+                    <p className="text-xs text-slate-600 mt-1">Niewychwycone targety</p>
+                  </div>
+                  <div className="bg-red-50 p-4 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-1">Fałszywe alarmy</p>
+                    <p className="text-2xl font-bold text-red-700">{memoData.memo_false_alarms}</p>
+                    <p className="text-xs text-slate-600 mt-1">Błędne kliknięcia</p>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-1">Poprawne odrzucenia</p>
+                    <p className="text-2xl font-bold text-blue-700">{memoData.memo_correct_rejections}</p>
+                    <p className="text-xs text-slate-600 mt-1">Trafne ignorowanie</p>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-purple-50 p-6 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-2">d-prime (Czułość)</p>
+                    <p className="text-4xl font-bold text-purple-700">{memoData.memo_d_prime.toFixed(2)}</p>
+                    <p className="text-xs text-slate-600 mt-3">
+                      Wskaźnik zdolności rozróżniania sygnału od szumu. Wyższa wartość = lepsza pamięć robocza.
+                    </p>
+                  </div>
+                  <div className="bg-indigo-50 p-6 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-2">Response Bias (c)</p>
+                    <p className="text-4xl font-bold text-indigo-700">{memoData.memo_response_bias.toFixed(2)}</p>
+                    <p className="text-xs text-slate-600 mt-3">
+                      Tendencja do odpowiedzi. Wartość ujemna = skłonność do klikania, dodatnia = ostrożność.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Analiza prób</CardTitle>
+                <p className="text-sm text-slate-600">Szczegółowe dane trial-by-trial</p>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <p className="text-sm text-slate-600 mb-2">
+                    Zarejestrowano {memoData.memo_trials?.length || 0} prób z których:
+                  </p>
+                  <ul className="text-sm space-y-1 list-disc list-inside text-slate-700">
+                    <li>Targety (2-back match): {memoData.memo_trials?.filter((t: any) => t.is_target).length || 0}</li>
+                    <li>Lures (1-back match): {memoData.memo_trials?.filter((t: any) => t.is_lure).length || 0}</li>
+                    <li>Non-targets: {memoData.memo_trials?.filter((t: any) => !t.is_target && !t.is_lure).length || 0}</li>
+                  </ul>
+                  <p className="text-xs text-slate-500 mt-3">
+                    Lures testują specyficzność pamięci - czy zawodnik rozróżnia 1-back od 2-back.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {(memoData.memo_rmssd_ms || memoData.memo_hr_bpm) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Dane HRV (Polar H10)</CardTitle>
+                  <p className="text-sm text-slate-600">Zmienność rytmu serca i tętno podczas testu</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {memoData.memo_rmssd_ms && (
+                      <div className="bg-blue-50 p-6 rounded-lg">
+                        <p className="text-sm text-slate-600 mb-2">rMSSD</p>
+                        <p className="text-4xl font-bold text-blue-700">{memoData.memo_rmssd_ms}</p>
+                        <p className="text-sm text-slate-500 mt-1">ms</p>
+                        <p className="text-xs text-slate-600 mt-3">
+                          Wyższa wartość = lepsza regeneracja układu nerwowego
+                        </p>
+                      </div>
+                    )}
+                    {memoData.memo_hr_bpm && (
+                      <div className="bg-red-50 p-6 rounded-lg">
+                        <p className="text-sm text-slate-600 mb-2">Średnie HR</p>
+                        <p className="text-4xl font-bold text-red-700">{memoData.memo_hr_bpm}</p>
+                        <p className="text-sm text-slate-500 mt-1">BPM</p>
+                        <p className="text-xs text-slate-600 mt-3">
+                          Tętno podczas wykonywania zadania
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="export" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Eksport Danych</CardTitle>
+                <p className="text-sm text-slate-600">Pobierz dane w różnych formatach</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button variant="outline" className="h-24 flex-col gap-2" onClick={handleExportJSON}>
+                    <Download className="h-6 w-6" />
+                    <span>Pobierz JSON</span>
+                    <span className="text-xs text-slate-500">Pełne dane sesji</span>
+                  </Button>
+                  
+                  <Button variant="outline" className="h-24 flex-col gap-2" onClick={handleExportCSV}>
+                    <Download className="h-6 w-6" />
+                    <span>Pobierz CSV</span>
+                    <span className="text-xs text-slate-500">Dane prób</span>
                   </Button>
                   
                   <Button variant="outline" className="h-24 flex-col gap-2" disabled>
