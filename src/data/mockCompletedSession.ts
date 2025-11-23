@@ -62,6 +62,92 @@ const generateMockScanClicks = () => {
   return clicks;
 };
 
+const generateMockMemoTrials = () => {
+  const trials = [];
+  const totalTrials = 22;
+  const sequence: number[] = [];
+  
+  // Generate position sequence
+  sequence.push(2, 5); // First two - no targets possible
+  
+  // Generate rest with targets and lures
+  const targets = [2, 5, 1, 7, 4, 3, 8, 0]; // Positions that will be targets
+  const lures = [5, 1, 7, 4]; // 1-back lures
+  
+  for (let i = 2; i < totalTrials; i++) {
+    if (i < 10 && targets.includes(i - 2)) {
+      sequence.push(sequence[i - 2]); // Target: match 2-back
+    } else if (i < 14 && lures.includes(i - 2)) {
+      sequence.push(sequence[i - 1]); // Lure: match 1-back
+    } else {
+      // Random non-matching position
+      let pos;
+      do {
+        pos = Math.floor(Math.random() * 9);
+      } while ((i >= 2 && pos === sequence[i - 2]) || (i >= 1 && pos === sequence[i - 1]));
+      sequence.push(pos);
+    }
+  }
+  
+  // Generate trial results
+  for (let i = 2; i < totalTrials; i++) {
+    const position = sequence[i];
+    const isTarget = sequence[i - 2] === position;
+    const isLure = i >= 1 && sequence[i - 1] === position;
+    const shouldRespond = isTarget;
+    
+    // 85% accuracy
+    const userResponded = shouldRespond ? Math.random() > 0.15 : Math.random() < 0.10;
+    const reactionTime = userResponded ? Math.round(400 + Math.random() * 200) : null;
+    
+    trials.push({
+      trial_index: i,
+      position: position,
+      is_target: isTarget,
+      is_lure: isLure,
+      user_responded: userResponded,
+      reaction_time_ms: reactionTime,
+      correct: userResponded === shouldRespond,
+      timestamp: Date.now() + i * 2500
+    });
+  }
+  
+  return trials;
+};
+
+const calculateMemoMetrics = (trials: any[]) => {
+  const hits = trials.filter(t => t.is_target && t.user_responded).length;
+  const misses = trials.filter(t => t.is_target && !t.user_responded).length;
+  const falseAlarms = trials.filter(t => !t.is_target && t.user_responded).length;
+  const correctRejections = trials.filter(t => !t.is_target && !t.user_responded).length;
+  
+  const accuracy = ((hits + correctRejections) / trials.length) * 100;
+  
+  const hitRTs = trials
+    .filter(t => t.is_target && t.user_responded && t.reaction_time_ms !== null)
+    .map(t => t.reaction_time_ms);
+  
+  const sortedRTs = hitRTs.sort((a, b) => a - b);
+  const medianRT = sortedRTs.length > 0 
+    ? sortedRTs[Math.floor(sortedRTs.length / 2)] 
+    : 0;
+  
+  // Calculate d-prime
+  const hitRate = Math.max(0.01, Math.min(0.99, hits / (hits + misses || 1)));
+  const faRate = Math.max(0.01, Math.min(0.99, falseAlarms / (falseAlarms + correctRejections || 1)));
+  
+  return {
+    hits,
+    misses,
+    falseAlarms,
+    correctRejections,
+    accuracy: Math.round(accuracy),
+    medianRT: Math.round(medianRT),
+    dPrime: 2.15,
+    responseBias: -0.12
+  };
+};
+
 export const mockCompletedSession = {
   id: `session_completed_${Date.now()}`,
   athlete_id: "999",
@@ -198,7 +284,26 @@ export const mockCompletedSession = {
       },
       rMSSD: "58",
       HR: "92"
-    }
+    },
+    
+    // Sigma Memo results
+    memo: (() => {
+      const mockTrials = generateMockMemoTrials();
+      const metrics = calculateMemoMetrics(mockTrials);
+      return {
+        memo_accuracy_pct: metrics.accuracy,
+        memo_median_rt_ms: metrics.medianRT,
+        memo_hits: metrics.hits,
+        memo_misses: metrics.misses,
+        memo_false_alarms: metrics.falseAlarms,
+        memo_correct_rejections: metrics.correctRejections,
+        memo_d_prime: metrics.dPrime,
+        memo_response_bias: metrics.responseBias,
+        memo_rmssd_ms: 61,
+        memo_hr_bpm: 88,
+        memo_trials: mockTrials
+      };
+    })()
   },
   taskStatus: {
     six_sigma: 'completed',
@@ -206,6 +311,7 @@ export const mockCompletedSession = {
     scan: 'completed',
     control: 'pending',
     focus: 'completed',
+    memo: 'completed',
     sigma_move: 'pending',
     hrv_training: 'pending'
   },
@@ -220,13 +326,14 @@ export function addMockCompletedSessionToStorage() {
     s.athlete_id === "999" && 
     s.results.six_sigma && 
     s.results.scan && 
-    s.results.focus
+    s.results.focus &&
+    s.results.memo
   );
   
   if (!existingSession) {
     sessions.push(mockCompletedSession);
     localStorage.setItem('athlete_sessions', JSON.stringify(sessions));
-    console.log('✅ Mock completed session (Six Sigma + Sigma Scan + Sigma Focus) added to storage');
+    console.log('✅ Mock completed session (Six Sigma + Sigma Scan + Sigma Focus + Sigma Memo) added to storage');
   } else {
     console.log('ℹ️ Mock completed session already exists');
   }

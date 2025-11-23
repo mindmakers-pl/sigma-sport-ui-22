@@ -8,9 +8,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 interface MemoGameProps {
   mode?: 'measurement' | 'training';
+  onComplete?: (data: any) => void;
 }
 
-const MemoGame = ({ mode }: MemoGameProps) => {
+const MemoGame = ({ mode, onComplete }: MemoGameProps) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const athleteId = searchParams.get("athleteId");
@@ -62,8 +63,10 @@ const MemoGame = ({ mode }: MemoGameProps) => {
       ...(manualHRV.hr && { memo_hr_bpm: parseFloat(manualHRV.hr) }),
     };
 
-    // Training mode: save to athlete_trainings
-    if (athleteId) {
+    // Training mode: save to athlete_trainings or use onComplete
+    if (onComplete) {
+      onComplete(gameData);
+    } else if (athleteId) {
       const existingTrainings = JSON.parse(localStorage.getItem('athlete_trainings') || '[]');
       const newTraining = {
         id: Date.now().toString(),

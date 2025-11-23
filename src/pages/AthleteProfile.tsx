@@ -16,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import ScanGame from "./ScanGame";
 import ControlGame from "./ControlGame";
 import FocusGame from "./FocusGame";
+import MemoGame from "./MemoGame";
 import Kwestionariusz from "@/components/forms/Kwestionariusz";
 import HRVBaselineForm from "@/components/forms/HRVBaselineForm";
 import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
@@ -1071,6 +1072,33 @@ const AthleteProfile = () => {
                     </Button>
                   </CardContent>
                 </Card>
+
+                {/* Memo */}
+                <Card className="bg-slate-50 hover:bg-slate-100 border-slate-200 cursor-pointer transition-all">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-slate-900 mb-2">Sigma Memo</h3>
+                    <p className="text-sm text-slate-600 mb-4">Trening pamięci roboczej 2-Back</p>
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => {
+                        const training = {
+                          id: `training_memo_${Date.now()}`,
+                          athlete_id: id,
+                          athlete_name: athlete.name,
+                          game_type: 'memo',
+                          game_name: 'Sigma Memo',
+                          date: new Date().toISOString(),
+                          results: {}
+                        };
+                        localStorage.setItem('current_training', JSON.stringify(training));
+                        setCurrentView('playing_memo');
+                      }}
+                    >
+                      Zagraj
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
             </CardContent>
           </Card>
@@ -1656,6 +1684,10 @@ const AthleteProfile = () => {
 
           {currentView === 'playing_focus' && (
             <FocusGame onComplete={handleTaskComplete} />
+          )}
+
+          {currentView === 'playing_memo' && (
+            <MemoGame onComplete={handleTaskComplete} />
           )}
 
           {currentView === 'measuring_move' && (
