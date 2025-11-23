@@ -63,11 +63,12 @@ const App = () => {
             <Route path="/focus/:athleteId" element={<FocusGame />} />
             <Route path="/tracker/:athleteId" element={<TrackerGame />} />
             <Route path="/memo/:athleteId" element={<MemoGame />} />
-            <Route path="/scan/training" element={<ScanGame mode="training" />} />
-            <Route path="/control/training" element={<ControlGame mode="training" />} />
-            <Route path="/focus/training" element={<FocusGame mode="training" />} />
-            <Route path="/tracker/training" element={<TrackerGame mode="training" />} />
-            <Route path="/memo/training" element={<MemoGame mode="training" />} />
+            {/* Library game routes - NO athleteId, NO mode -> isLibrary=true */}
+            <Route path="/biblioteka/gry/scan" element={<ScanGame />} />
+            <Route path="/biblioteka/gry/control" element={<ControlGame />} />
+            <Route path="/biblioteka/gry/focus" element={<FocusGame />} />
+            <Route path="/biblioteka/gry/memo" element={<MemoGame />} />
+            <Route path="/biblioteka/gry/tracker" element={<TrackerGame />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

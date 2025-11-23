@@ -17,13 +17,15 @@ interface ControlGameProps {
   mode?: "training" | "measurement";
 }
 
-const ControlGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode = "measurement" }: ControlGameProps) => {
+const ControlGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode }: ControlGameProps) => {
   const navigate = useNavigate();
   const { athleteId: athleteIdParam } = useParams();
   const athleteId = athleteIdProp || athleteIdParam;
-  const { addTraining } = useTrainings(athleteId);
-  const { toast } = useToast();
   const { isLibrary, isMeasurement, isTraining } = determineGameContext(athleteId, mode);
+  
+  // Only call Supabase hooks if NOT in library mode
+  const { addTraining } = useTrainings(isLibrary ? undefined : athleteId);
+  const { toast } = useToast();
   
   const {
     gameState,

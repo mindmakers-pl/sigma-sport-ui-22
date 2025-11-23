@@ -34,6 +34,14 @@ const AthleteProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  // Guard: redirect if no athlete ID
+  useEffect(() => {
+    if (!id) {
+      console.error('❌ AthleteProfile: No athlete ID provided');
+      navigate('/zawodnicy');
+    }
+  }, [id, navigate]);
+  
   // Supabase hooks
   const { athletes: allAthletes, updateAthlete, refetch: refetchAthletes } = useAthletes();
   const { sessions, addSession, updateSession, refetch: refetchSessions } = useSessions(id);

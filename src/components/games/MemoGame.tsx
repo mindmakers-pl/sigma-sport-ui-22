@@ -18,9 +18,11 @@ const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps)
   const navigate = useNavigate();
   const { athleteId: athleteIdParam } = useParams();
   const athleteId = athleteIdProp || athleteIdParam;
-  const { addTraining } = useTrainings(athleteId || undefined);
-  const { toast } = useToast();
   const { isLibrary, isMeasurement, isTraining } = determineGameContext(athleteId, mode);
+  
+  // Only call Supabase hooks if NOT in library mode
+  const { addTraining } = useTrainings(isLibrary ? undefined : athleteId);
+  const { toast } = useToast();
 
   const {
     gameState,
