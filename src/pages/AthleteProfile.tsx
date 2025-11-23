@@ -31,7 +31,7 @@ const AthleteProfile = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "informacje";
-  const activeSubTab = searchParams.get("subtab") || "historia";
+  const activeSubTab = searchParams.get("subtab") || "sigma-score";
   
   const [sessionA, setSessionA] = useState("baseline-m1");
   const [sessionB, setSessionB] = useState("ewaluacja-m7");
@@ -150,6 +150,26 @@ const AthleteProfile = () => {
   useEffect(() => {
     if (id) {
       const athleteName = athlete.name || 'Unknown';
+      
+      // Clean up old Sigma Sigma sessions - keep only the latest one
+      if (id === '999') {
+        const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
+        const sigmaSessions = allSessions.filter((s: any) => s.athlete_id === id);
+        
+        if (sigmaSessions.length > 1) {
+          // Sort by date descending and keep only the latest
+          sigmaSessions.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          const latestSession = sigmaSessions[0];
+          
+          // Remove all Sigma Sigma sessions except the latest
+          const cleanedSessions = allSessions.filter((s: any) => 
+            s.athlete_id !== id || s.id === latestSession.id
+          );
+          
+          localStorage.setItem('athlete_sessions', JSON.stringify(cleanedSessions));
+        }
+      }
+      
       const sessions = loadMockSessionsToStorage(id, athleteName);
       const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
       const athleteSessions = allSessions
@@ -1120,8 +1140,8 @@ const AthleteProfile = () => {
             setSearchParams({ tab: 'raporty', subtab: value });
           }}>
             <TabsList className="mb-6">
-              <TabsTrigger value="historia">Historia sesji</TabsTrigger>
               <TabsTrigger value="sigma-score">Sigma Score</TabsTrigger>
+              <TabsTrigger value="historia">Historia sesji</TabsTrigger>
               <TabsTrigger value="treningi">Raporty treningowe</TabsTrigger>
             </TabsList>
 
@@ -1292,212 +1312,261 @@ const AthleteProfile = () => {
               </Card>
             </TabsContent>
 
-            {/* Sigma Score */}
+            {/* Sigma Score - Latest Session Report */}
             <TabsContent value="sigma-score" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Porównanie pierwszego i ostatniego pomiaru</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="font-semibold text-lg mb-4">Pierwszy pomiar (23.02.2024)</h3>
-                      <div className="space-y-3">
-                        <div className="flex justify-between p-3 bg-slate-50 rounded">
-                          <span>HRV Baseline</span>
-                          <span className="font-semibold">60</span>
-                        </div>
-                        <div className="flex justify-between p-3 bg-slate-50 rounded">
-                          <span>Sigma Scan</span>
-                          <span className="font-semibold">9.8s</span>
-                        </div>
-                        <div className="flex justify-between p-3 bg-slate-50 rounded">
-                          <span>Sigma Control</span>
-                          <span className="font-semibold">8</span>
-                        </div>
-                        <div className="flex justify-between p-3 bg-slate-50 rounded">
-                          <span>Sigma Focus</span>
-                          <span className="font-semibold">62%</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-4">Ostatni pomiar (15.03.2024)</h3>
-                      <div className="space-y-3">
-                        <div className="flex justify-between p-3 bg-green-50 rounded">
-                          <span>HRV Baseline</span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold">68</span>
-                            <span className="text-xs text-green-600">+13%</span>
+              {(() => {
+                // Get latest session for this athlete
+                const allSessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
+                const athleteSessions = allSessions
+                  .filter((s: any) => s.athlete_id === id)
+                  .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                
+                const latestSession = athleteSessions[0];
+
+                if (!latestSession) {
+                  return (
+                    <Card>
+                      <CardContent className="py-12 text-center">
+                        <p className="text-slate-600 mb-4">Brak sesji pomiarowych</p>
+                        <Button onClick={() => {
+                          setSearchParams({ tab: 'dodaj-pomiar' });
+                        }}>
+                          Dodaj pierwszy pomiar
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+
+                const interpretation = latestSession.results?.sigma_score_interpretation;
+
+                return (
+                  <>
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle>Sigma Score Intelligence</CardTitle>
+                            <p className="text-sm text-slate-600 mt-1">
+                              Raport AI z ostatniej sesji pomiarowej •{' '}
+                              {new Date(latestSession.date).toLocaleDateString('pl-PL', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                              })}
+                            </p>
                           </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/zawodnicy/${id}/sesja/${latestSession.id}?task=sigma_score`)}
+                          >
+                            Szczegóły sesji
+                          </Button>
                         </div>
-                        <div className="flex justify-between p-3 bg-green-50 rounded">
-                          <span>Sigma Scan</span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold">8.2s</span>
-                            <span className="text-xs text-green-600">-16%</span>
+                      </CardHeader>
+                      <CardContent>
+                        {!interpretation ? (
+                          <div className="text-center py-12">
+                            <p className="text-slate-600 mb-6">
+                              Interpretacja AI nie została jeszcze wygenerowana dla tej sesji
+                            </p>
+                            <Button
+                              onClick={() => navigate(`/zawodnicy/${id}/sesja/${latestSession.id}?task=sigma_score`)}
+                            >
+                              Wygeneruj Sigma Score
+                            </Button>
                           </div>
-                        </div>
-                        <div className="flex justify-between p-3 bg-green-50 rounded">
-                          <span>Sigma Control</span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold">5</span>
-                            <span className="text-xs text-green-600">-37.5%</span>
-                          </div>
-                        </div>
-                        <div className="flex justify-between p-3 bg-green-50 rounded">
-                          <span>Sigma Focus</span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold">72%</span>
-                            <span className="text-xs text-green-600">+16%</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                        ) : (
+                          <Tabs defaultValue="zawodnik" className="w-full">
+                            <TabsList className="mb-6">
+                              <TabsTrigger value="zawodnik">Dla Zawodnika</TabsTrigger>
+                              <TabsTrigger value="trener">Dla Trenera</TabsTrigger>
+                            </TabsList>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profil psychofizyczny</CardTitle>
-                  <p className="text-sm text-muted-foreground">Porównanie aktualnych wyników</p>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <RadarChart data={[
-                      { category: 'HRV', value: 85, fullMark: 100 },
-                      { category: 'Reakcja', value: 82, fullMark: 100 },
-                      { category: 'Kontrola', value: 75, fullMark: 100 },
-                      { category: 'Koncentracja', value: 78, fullMark: 100 },
-                      { category: 'Mobilność', value: 70, fullMark: 100 }
-                    ]}>
-                      <PolarGrid />
-                      <PolarAngleAxis dataKey="category" />
-                      <PolarRadiusAxis domain={[0, 100]} />
-                      <Radar name="Aktualne wyniki" dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      <strong>Mocne strony:</strong> HRV i czas reakcji - utrzymuj obecny poziom treningów.<br/>
-                      <strong>Do rozwoju:</strong> Mobilność - rozważ zwiększenie treningów ruchowych.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+                            <TabsContent value="zawodnik" className="space-y-6">
+                              {/* Overall Assessment */}
+                              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 p-6 rounded-lg">
+                                <h3 className="font-bold text-lg text-slate-900 mb-3">Ogólna ocena</h3>
+                                <p className="text-slate-700 leading-relaxed">
+                                  {interpretation.overall_assessment}
+                                </p>
+                              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Progres HRV Baseline</CardTitle>
-                  <p className="text-sm text-muted-foreground">Wyższe wartości = lepsza regeneracja</p>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={[
-                      { date: '23.02', value: 60 },
-                      { date: '01.03', value: 62 },
-                      { date: '08.03', value: 65 },
-                      { date: '15.03', value: 68 }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-green-800">
-                      <strong>Trend wzrostowy (+13%)</strong> - Świetna regeneracja! Zawodniczka systematycznie poprawia parametry HRV.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+                              {/* Key Observations */}
+                              {interpretation.key_observations?.length > 0 && (
+                                <Card>
+                                  <CardHeader>
+                                    <CardTitle>Kluczowe obserwacje</CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="space-y-4">
+                                    {interpretation.key_observations.map((obs: any, idx: number) => (
+                                      <div key={idx} className="border-l-4 border-primary pl-4">
+                                        <h4 className="font-semibold text-slate-900 mb-1">{obs.competency}</h4>
+                                        <p className="text-sm text-slate-700 mb-2">{obs.finding}</p>
+                                        <p className="text-xs text-slate-600 italic">
+                                          Dowód: {obs.evidence}
+                                        </p>
+                                      </div>
+                                    ))}
+                                  </CardContent>
+                                </Card>
+                              )}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Progres Sigma Scan</CardTitle>
-                  <p className="text-sm text-muted-foreground">Niższe wartości = szybsza reakcja</p>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={[
-                      { date: '23.02', value: 9.8 },
-                      { date: '01.03', value: 9.1 },
-                      { date: '08.03', value: 8.5 },
-                      { date: '15.03', value: 8.2 }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-green-800">
-                      <strong>Postęp -16%</strong> - Znacząca poprawa czasu reakcji wizualnej!
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+                              {/* Recommendations */}
+                              {interpretation.recommendations?.length > 0 && (
+                                <Card>
+                                  <CardHeader>
+                                    <CardTitle>Rekomendacje treningowe</CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="space-y-4">
+                                    {interpretation.recommendations.map((rec: any, idx: number) => (
+                                      <div key={idx} className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                                        <h4 className="font-semibold text-green-900 mb-2">{rec.competency}</h4>
+                                        <p className="text-sm text-green-800 mb-2">{rec.action}</p>
+                                        <p className="text-xs text-green-700">Dlaczego: {rec.why}</p>
+                                      </div>
+                                    ))}
+                                  </CardContent>
+                                </Card>
+                              )}
+                            </TabsContent>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Progres Sigma Control</CardTitle>
-                  <p className="text-sm text-muted-foreground">Niższe wartości = lepsza kontrola</p>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={[
-                      { date: '23.02', value: 8 },
-                      { date: '01.03', value: 7 },
-                      { date: '08.03', value: 6 },
-                      { date: '15.03', value: 5 }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="hsl(var(--primary))" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-green-800">
-                      <strong>Poprawa -37.5%</strong> - Wyraźny postęp w kontroli emocji i koncentracji!
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+                            <TabsContent value="trener" className="space-y-6">
+                              {/* Overall Assessment */}
+                              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 p-6 rounded-lg">
+                                <h3 className="font-bold text-lg text-slate-900 mb-3">Ogólna ocena</h3>
+                                <p className="text-slate-700 leading-relaxed">
+                                  {interpretation.overall_assessment}
+                                </p>
+                              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Progres Sigma Focus</CardTitle>
-                  <p className="text-sm text-muted-foreground">Wyższe wartości = lepsza koncentracja</p>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={[
-                      { date: '23.02', value: 62 },
-                      { date: '01.03', value: 65 },
-                      { date: '08.03', value: 68 },
-                      { date: '15.03', value: 72 }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-green-800">
-                      <strong>Wzrost +16%</strong> - Znacząca poprawa zdolności koncentracji!
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+                              {/* Key Observations */}
+                              {interpretation.key_observations?.length > 0 && (
+                                <Card>
+                                  <CardHeader>
+                                    <CardTitle>Kluczowe obserwacje</CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="space-y-4">
+                                    {interpretation.key_observations.map((obs: any, idx: number) => (
+                                      <div key={idx} className="border-l-4 border-primary pl-4">
+                                        <h4 className="font-semibold text-slate-900 mb-1">{obs.competency}</h4>
+                                        <p className="text-sm text-slate-700 mb-2">{obs.finding}</p>
+                                        <p className="text-xs text-slate-600 italic mb-2">
+                                          Dowód: {obs.evidence}
+                                        </p>
+                                        <p className="text-sm text-slate-600">
+                                          <strong>Interpretacja:</strong> {obs.interpretation}
+                                        </p>
+                                      </div>
+                                    ))}
+                                  </CardContent>
+                                </Card>
+                              )}
+
+                              {/* Recommendations */}
+                              {interpretation.recommendations?.length > 0 && (
+                                <Card>
+                                  <CardHeader>
+                                    <CardTitle>Rekomendacje treningowe</CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="space-y-4">
+                                    {interpretation.recommendations.map((rec: any, idx: number) => (
+                                      <div key={idx} className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                                        <h4 className="font-semibold text-green-900 mb-2">{rec.competency}</h4>
+                                        <p className="text-sm text-green-800 mb-2">{rec.action}</p>
+                                        <p className="text-xs text-green-700">Dlaczego: {rec.why}</p>
+                                      </div>
+                                    ))}
+                                  </CardContent>
+                                </Card>
+                              )}
+
+                              {/* Contextual Factors */}
+                              {interpretation.contextual_factors?.length > 0 && (
+                                <Card>
+                                  <CardHeader>
+                                    <CardTitle>Czynniki kontekstowe</CardTitle>
+                                    <p className="text-sm text-slate-600">
+                                      Modyfikatory środowiskowe i stanowe
+                                    </p>
+                                  </CardHeader>
+                                  <CardContent className="space-y-3">
+                                    {interpretation.contextual_factors.map((factor: any, idx: number) => (
+                                      <div key={idx} className="bg-amber-50 border border-amber-200 p-3 rounded">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <Badge variant="outline">{factor.modifier}</Badge>
+                                          <span className="text-sm text-slate-700">{factor.impact}</span>
+                                        </div>
+                                        <p className="text-xs text-slate-600 ml-2">{factor.recommendation}</p>
+                                      </div>
+                                    ))}
+                                  </CardContent>
+                                </Card>
+                              )}
+
+                              {/* Attention Areas */}
+                              {interpretation.attention_areas?.length > 0 && (
+                                <Card>
+                                  <CardHeader>
+                                    <CardTitle>Obszary wymagające uwagi trenera</CardTitle>
+                                  </CardHeader>
+                                  <CardContent>
+                                    <ul className="space-y-2">
+                                      {interpretation.attention_areas.map((area: string, idx: number) => (
+                                        <li key={idx} className="flex items-start gap-2">
+                                          <span className="text-red-500 mt-1">⚠️</span>
+                                          <span className="text-sm text-slate-700">{area}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </CardContent>
+                                </Card>
+                              )}
+
+                              {/* Convergence Analysis */}
+                              {interpretation.convergence_analysis && (
+                                <Card>
+                                  <CardHeader>
+                                    <CardTitle>Analiza zbieżności</CardTitle>
+                                    <p className="text-sm text-slate-600">
+                                      Porównanie samooceny vs. wyników poznawczych
+                                    </p>
+                                  </CardHeader>
+                                  <CardContent>
+                                    <div className="bg-slate-50 p-4 rounded-lg">
+                                      <div className="flex items-center gap-3 mb-3">
+                                        <Badge 
+                                          variant={
+                                            interpretation.convergence_analysis.alignment_score === 'high' 
+                                              ? 'default' 
+                                              : interpretation.convergence_analysis.alignment_score === 'medium'
+                                              ? 'secondary'
+                                              : 'destructive'
+                                          }
+                                        >
+                                          {interpretation.convergence_analysis.alignment_score === 'high' 
+                                            ? 'Wysoka zbieżność' 
+                                            : interpretation.convergence_analysis.alignment_score === 'medium'
+                                            ? 'Średnia zbieżność'
+                                            : 'Niska zbieżność'}
+                                        </Badge>
+                                      </div>
+                                      <p className="text-sm text-slate-700">
+                                        {interpretation.convergence_analysis.notes}
+                                      </p>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              )}
+                            </TabsContent>
+                          </Tabs>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </>
+                );
+              })()}
             </TabsContent>
 
             {/* Treningi */}

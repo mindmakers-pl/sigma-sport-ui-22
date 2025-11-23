@@ -135,7 +135,7 @@ export default function SessionDetail() {
       { id: 'focus', name: 'Sigma Focus', resultKey: 'focus', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=focus` },
       { id: 'memo', name: 'Sigma Memo', resultKey: 'memo', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=memo` },
       { id: 'feedback', name: 'Sigma Feedback', resultKey: 'feedback', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=feedback` },
-      { id: 'sigma_score', name: 'Sigma Score', resultKey: 'sigma_score_interpretation', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=sigma_score` }
+      { id: 'sigma_score', name: 'Sigma Score', resultKey: 'always_available', navPath: `/zawodnicy/${athleteId}/sesja/${sessionId}?task=sigma_score` }
     ];
 
     return <div className="p-8 max-w-6xl mx-auto">
@@ -178,7 +178,10 @@ export default function SessionDetail() {
             {/* Test tiles grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {allTests.map(test => {
-                const isCompleted = session.results[test.resultKey];
+                // Special handling for Sigma Score - always available
+                const isCompleted = test.id === 'sigma_score' ? true : session.results[test.resultKey];
+                const hasInterpretation = test.id === 'sigma_score' && session.results.sigma_score_interpretation;
+                
                 return (
                   <Card 
                     key={test.id}
@@ -194,7 +197,13 @@ export default function SessionDetail() {
                         <h3 className={`font-semibold ${isCompleted ? 'text-slate-900' : 'text-slate-500'}`}>
                           {test.name}
                         </h3>
-                        {isCompleted ? (
+                        {test.id === 'sigma_score' ? (
+                          hasInterpretation ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                          ) : (
+                            <Badge variant="outline" className="text-xs">Do wygenerowania</Badge>
+                          )
+                        ) : isCompleted ? (
                           <CheckCircle2 className="h-5 w-5 text-green-600" />
                         ) : (
                           <XCircle className="h-5 w-5 text-slate-400" />
