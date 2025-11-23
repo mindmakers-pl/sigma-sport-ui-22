@@ -24,7 +24,7 @@ import SigmaMoveForm from "@/components/forms/SigmaMoveForm";
 import HRVTrainingForm from "@/components/forms/HRVTrainingForm";
 import { loadMockSessionsToStorage } from "@/utils/mockSessionData";
 import TrainingsTable from "@/components/TrainingsTable";
-import QuestionnaireWizard from "@/components/QuestionnaireWizard";
+import MeasurementSessionWizard from "@/components/MeasurementSessionWizard";
 
 const AthleteProfile = () => {
   const { id } = useParams();
@@ -37,6 +37,7 @@ const AthleteProfile = () => {
   const [sessionB, setSessionB] = useState("ewaluacja-m7");
   
   const [currentView, setCurrentView] = useState('kokpit');
+  const [activeTask, setActiveTask] = useState<string | null>(null);
   const [measurementConditions, setMeasurementConditions] = useState('gabinet');
   const [selectedChallengeType, setSelectedChallengeType] = useState('');
   
@@ -179,45 +180,15 @@ const AthleteProfile = () => {
     }
   }, [id, athlete.name]);
 
-  const handleTaskComplete = (data: any) => {
-    let taskName = currentView
-      .replace('showing_', '')
-      .replace('playing_', '')
-      .replace('measuring_', '');
-
-    if (taskName === 'wizard') {
-      taskName = 'kwestionariusz';
-    }
+  const handleMeasurementTaskComplete = (taskName: string, data: any) => {
+    console.log(`✅ Measurement task "${taskName}" completed:`, data);
     
-    // Check if this is a training session
-    const currentTrainingStr = localStorage.getItem('current_training');
-    if (currentTrainingStr && currentView.startsWith('playing_')) {
-      // This is a training session - save separately
-      const currentTraining = JSON.parse(currentTrainingStr);
-      const trainingRecord = {
-        ...currentTraining,
-        results: data,
-        completedAt: new Date().toISOString()
-      };
-      
-      // Save to trainings list
-      const existingTrainings = JSON.parse(localStorage.getItem('athlete_trainings') || '[]');
-      existingTrainings.push(trainingRecord);
-      localStorage.setItem('athlete_trainings', JSON.stringify(existingTrainings));
-      localStorage.removeItem('current_training');
-      
-      console.log('Trening zapisany:', trainingRecord);
-      setCurrentView('kokpit');
-      return;
-    }
-    
-    // Otherwise, it's a measurement session
+    // Update task status
     const updatedStatus = { ...taskStatus, [taskName]: 'completed' };
     const updatedResults = { ...sessionResults, [taskName]: data };
     
     setTaskStatus(updatedStatus);
     setSessionResults(updatedResults);
-    console.log(`Wynik z ${taskName}:`, data);
     
     // Auto-save to localStorage after each task
     const sessionId = currentSessionId || `session_${Date.now()}`;
@@ -252,7 +223,41 @@ const AthleteProfile = () => {
       .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setSavedSessions(athleteSessions);
     
+    console.log(`📊 Task status updated:`, updatedStatus);
+    console.log(`💾 Session saved to localStorage (ID: ${sessionId})`);
+    
+    // Return to cockpit
+    setActiveTask(null);
     setCurrentView('kokpit');
+  };
+
+  const handleTrainingTaskComplete = (data: any) => {
+    const taskName = currentView
+      .replace('showing_', '')
+      .replace('playing_', '')
+      .replace('measuring_', '');
+    
+    // Check if this is a training session
+    const currentTrainingStr = localStorage.getItem('current_training');
+    if (currentTrainingStr && currentView.startsWith('playing_')) {
+      // This is a training session - save separately
+      const currentTraining = JSON.parse(currentTrainingStr);
+      const trainingRecord = {
+        ...currentTraining,
+        results: data,
+        completedAt: new Date().toISOString()
+      };
+      
+      // Save to trainings list
+      const existingTrainings = JSON.parse(localStorage.getItem('athlete_trainings') || '[]');
+      existingTrainings.push(trainingRecord);
+      localStorage.setItem('athlete_trainings', JSON.stringify(existingTrainings));
+      localStorage.removeItem('current_training');
+      
+      console.log('Trening zapisany:', trainingRecord);
+      setCurrentView('kokpit');
+      return;
+    }
   };
 
   const handleSaveSessionFromWizard = (wizardResults: any) => {
@@ -887,7 +892,7 @@ const AthleteProfile = () => {
                     <Button 
                       size="sm" 
                       className="w-full"
-                      onClick={() => setCurrentView('wizard')}
+                      onClick={() => setActiveTask('kwestionariusz')}
                     >
                       {taskStatus.kwestionariusz === 'completed' ? 'Powtórz' : 'Rozpocznij'}
                     </Button>
@@ -905,7 +910,7 @@ const AthleteProfile = () => {
                     <Button 
                       size="sm" 
                       className="w-full"
-                      onClick={() => setCurrentView('measuring_baseline')}
+                      onClick={() => setActiveTask('hrv_baseline')}
                     >
                       {taskStatus.hrv_baseline === 'completed' ? 'Powtórz' : 'Rozpocznij'}
                     </Button>
@@ -923,7 +928,7 @@ const AthleteProfile = () => {
                     <Button 
                       size="sm" 
                       className="w-full"
-                      onClick={() => setCurrentView('playing_scan')}
+                      onClick={() => setActiveTask('scan')}
                     >
                       {taskStatus.scan === 'completed' ? 'Powtórz' : 'Rozpocznij'}
                     </Button>
@@ -941,7 +946,7 @@ const AthleteProfile = () => {
                     <Button 
                       size="sm" 
                       className="w-full"
-                      onClick={() => setCurrentView('playing_focus')}
+                      onClick={() => setActiveTask('focus')}
                     >
                       {taskStatus.focus === 'completed' ? 'Powtórz' : 'Rozpocznij'}
                     </Button>
@@ -959,7 +964,7 @@ const AthleteProfile = () => {
                     <Button 
                       size="sm" 
                       className="w-full"
-                      onClick={() => setCurrentView('playing_memo')}
+                      onClick={() => setActiveTask('memo')}
                     >
                       {taskStatus.memo === 'completed' ? 'Powtórz' : 'Rozpocznij'}
                     </Button>
@@ -977,7 +982,7 @@ const AthleteProfile = () => {
                     <Button 
                       size="sm" 
                       className="w-full"
-                      onClick={() => setCurrentView('showing_feedback')}
+                      onClick={() => setActiveTask('feedback')}
                     >
                       {taskStatus.feedback === 'completed' ? 'Edytuj' : 'Wypełnij'}
                     </Button>
@@ -1758,25 +1763,38 @@ const AthleteProfile = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Pełnoekranowy Dialog dla gier */}
-      <Dialog open={currentView !== 'kokpit'} onOpenChange={(open) => {
-        if (!open) setCurrentView('kokpit');
+      {/* Measurement Task Dialog */}
+      <Dialog open={activeTask !== null} onOpenChange={(open) => {
+        if (!open) setActiveTask(null);
       }}>
-        <DialogContent className="w-screen h-screen max-w-none p-0 border-0 bg-slate-900" aria-describedby="session-wizard-description">
+        <DialogContent className="w-screen h-screen max-w-none p-0 border-0 bg-slate-900" aria-describedby="measurement-task-description">
           <div className="sr-only">
-            <h2 id="session-wizard-title">Kreator sesji pomiarowej</h2>
-            <p id="session-wizard-description">Wypełnij kwestionariusze i wykonaj testy kognitywne</p>
+            <h2 id="measurement-task-title">Pomiar</h2>
+            <p id="measurement-task-description">Wykonaj wybrany test</p>
           </div>
           
-          {currentView === 'wizard' && (
-            <QuestionnaireWizard
-              onComplete={handleTaskComplete}
-              onCancel={() => setCurrentView('kokpit')}
+          {activeTask && (
+            <MeasurementSessionWizard
+              taskType={activeTask as any}
+              onComplete={handleMeasurementTaskComplete}
+              onCancel={() => setActiveTask(null)}
             />
           )}
+        </DialogContent>
+      </Dialog>
 
-          {/* Przycisk Powrót - zawsze widoczny ale nie podczas wizarda */}
-          {currentView !== 'wizard' && (
+      {/* Training Games Dialog */}
+      <Dialog open={currentView !== 'kokpit' && !activeTask} onOpenChange={(open) => {
+        if (!open) setCurrentView('kokpit');
+      }}>
+        <DialogContent className="w-screen h-screen max-w-none p-0 border-0 bg-slate-900" aria-describedby="training-game-description">
+          <div className="sr-only">
+            <h2 id="training-game-title">Trening</h2>
+            <p id="training-game-description">Graj w trybie treningowym</p>
+          </div>
+
+          {/* Przycisk Powrót dla treningów */}
+          {currentView.startsWith('playing_') && (
             <Button 
               variant="ghost" 
               className="absolute top-4 left-4 z-50 text-white hover:bg-slate-800"
@@ -1787,46 +1805,31 @@ const AthleteProfile = () => {
             </Button>
           )}
 
-          {currentView === 'showing_questionnaire' && (
-            <Kwestionariusz onComplete={handleTaskComplete} />
-          )}
-
-          {currentView === 'measuring_baseline' && (
-            <HRVBaselineForm onComplete={handleTaskComplete} />
-          )}
-
           {currentView === 'playing_scan' && (
-            <ScanGame onComplete={handleTaskComplete} />
+            <ScanGame onComplete={handleTrainingTaskComplete} />
           )}
 
           {currentView === 'playing_control' && (
-            <ControlGame onComplete={handleTaskComplete} />
+            <ControlGame onComplete={handleTrainingTaskComplete} />
           )}
 
           {currentView === 'playing_focus' && (
-            <FocusGame onComplete={handleTaskComplete} />
+            <FocusGame onComplete={handleTrainingTaskComplete} />
           )}
 
           {currentView === 'playing_memo' && (
-            <MemoGame onComplete={handleTaskComplete} />
-          )}
-
-          {currentView === 'showing_feedback' && (
-            <SigmaFeedbackForm 
-              onComplete={handleTaskComplete}
-              onGoToCockpit={() => setCurrentView('kokpit')}
-            />
+            <MemoGame onComplete={handleTrainingTaskComplete} />
           )}
 
           {currentView === 'training_move' && (
             <SigmaMoveForm 
               challengeType={selectedChallengeType} 
-              onComplete={handleTaskComplete} 
+              onComplete={handleTrainingTaskComplete} 
             />
           )}
 
           {currentView === 'training_hrv' && (
-            <HRVTrainingForm onComplete={handleTaskComplete} />
+            <HRVTrainingForm onComplete={handleTrainingTaskComplete} />
           )}
         </DialogContent>
       </Dialog>
