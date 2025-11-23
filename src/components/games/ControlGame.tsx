@@ -1,13 +1,14 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Scatter, ScatterChart, ZAxis } from "recharts";
 import { useControlGame } from "@/hooks/useControlGame";
 import { determineGameContext } from "@/utils/gameContext";
 import { useTrainings } from "@/hooks/useTrainings";
 import { useToast } from "@/hooks/use-toast";
+import { HRVInputFields } from "@/components/game-shared/HRVInputFields";
+import { GameResultsButtons } from "@/components/game-shared/GameResultsButtons";
 
 interface ControlGameProps {
   athleteId?: string;
@@ -52,7 +53,7 @@ const ControlGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode
         trialHistory,
         reactionTimes
       },
-      hrvData: manualHRV
+      hrvData: typeof manualHRV === 'string' ? manualHRV : ''
     };
     
     if (onComplete) {
@@ -201,85 +202,57 @@ const ControlGame = ({ athleteId: athleteIdProp, onComplete, onGoToCockpit, mode
               </CardContent>
             </Card>
 
-            <Card className="border-slate-700 bg-slate-800">
-              <CardContent className="pt-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">HRV ręcznie (opcjonalnie)</label>
-                  <Input type="text" value={manualHRV} onChange={(e) => setManualHRV(e.target.value)} placeholder="np. 65" className="bg-slate-700 border-slate-600 text-white" />
-                </div>
+            <HRVInputFields
+              rmssd=""
+              hr={typeof manualHRV === 'string' ? manualHRV : ''}
+              onRmssdChange={() => {}}
+              onHrChange={setManualHRV}
+            />
+            
+            <GameResultsButtons
+              isLibrary={isLibrary}
+              isMeasurement={isMeasurement}
+              isTraining={isTraining}
+              onLibraryComplete={() => navigate('/biblioteka?tab=wyzwania')}
+              onMeasurementComplete={handleSaveAndContinue}
+              onTrainingEnd={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
+              onTrainingSave={async () => {
+                const payload = {
+                  gameData: {
+                    avgRT: calculateAverageRT(),
+                    minRT: calculateMinRT(),
+                    maxRT: calculateMaxRT(),
+                    goHits: results.goHits,
+                    goMisses: results.goMisses,
+                    noGoErrors: results.noGoErrors,
+                    trialHistory,
+                    reactionTimes
+                  },
+                  hrvData: typeof manualHRV === 'string' ? manualHRV : ''
+                };
                 
-                {isLibrary && (
-                  <Button 
-                    className="w-full"
-                    onClick={() => navigate('/biblioteka?tab=wyzwania')}
-                  >
-                    Zakończ
-                  </Button>
-                )}
-
-                {isMeasurement && (
-                  <Button 
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    onClick={handleSaveAndContinue}
-                  >
-                    Następne Wyzwanie
-                  </Button>
-                )}
-
-                {isTraining && (
-                  <div className="flex gap-4">
-                    <Button 
-                      variant="outline" 
-                      className="flex-1" 
-                      onClick={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
-                    >
-                      Zakończ
-                    </Button>
-                    <Button 
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      onClick={async () => {
-                        const payload = {
-                          gameData: {
-                            avgRT: calculateAverageRT(),
-                            minRT: calculateMinRT(),
-                            maxRT: calculateMaxRT(),
-                            goHits: results.goHits,
-                            goMisses: results.goMisses,
-                            noGoErrors: results.noGoErrors,
-                            trialHistory,
-                            reactionTimes
-                          },
-                          hrvData: manualHRV
-                        };
-                        
-                        const { error } = await addTraining({
-                          athlete_id: athleteId!,
-                          task_type: 'control',
-                          date: new Date().toISOString(),
-                          results: payload
-                        });
-                        
-                        if (error) {
-                          toast({
-                            title: "Błąd",
-                            description: "Nie udało się zapisać treningu",
-                            variant: "destructive",
-                          });
-                        } else {
-                          toast({
-                            title: "Sukces",
-                            description: "Trening został zapisany",
-                          });
-                          navigate(`/zawodnicy/${athleteId}?tab=trening`);
-                        }
-                      }}
-                    >
-                      Zapisz trening
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                const { error } = await addTraining({
+                  athlete_id: athleteId!,
+                  task_type: 'control',
+                  date: new Date().toISOString(),
+                  results: payload
+                });
+                
+                if (error) {
+                  toast({
+                    title: "Błąd",
+                    description: "Nie udało się zapisać treningu",
+                    variant: "destructive",
+                  });
+                } else {
+                  toast({
+                    title: "Sukces",
+                    description: "Trening został zapisany",
+                  });
+                  navigate(`/zawodnicy/${athleteId}?tab=trening`);
+                }
+              }}
+            />
           </div>
         )}
       </div>

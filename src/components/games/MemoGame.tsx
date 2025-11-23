@@ -1,13 +1,12 @@
 import { useBackGame } from "@/hooks/useBackGame";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTrainings } from "@/hooks/useTrainings";
 import { useToast } from "@/hooks/use-toast";
 import { determineGameContext } from "@/utils/gameContext";
+import { HRVInputFields } from "@/components/game-shared/HRVInputFields";
+import { GameResultsButtons } from "@/components/game-shared/GameResultsButtons";
 
 interface MemoGameProps {
   athleteId?: string;
@@ -257,83 +256,24 @@ const MemoGame = ({ athleteId: athleteIdProp, mode, onComplete }: MemoGameProps)
             </div>
           </div>
 
-          {/* HRV Data Input */}
-          <div className="space-y-4 pt-4 border-t border-slate-800">
-            <h3 className="font-semibold text-white">Dane HRV (opcjonalne)</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="rmssd" className="text-slate-300">rMSSD (ms)</Label>
-                <Input
-                  id="rmssd"
-                  type="number"
-                  placeholder="np. 45"
-                  value={manualHRV.rmssd}
-                  onChange={(e) => setManualHRV(prev => ({ ...prev, rmssd: e.target.value }))}
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-              <div>
-                <Label htmlFor="hr" className="text-slate-300">HR (bpm)</Label>
-                <Input
-                  id="hr"
-                  type="number"
-                  placeholder="np. 72"
-                  value={manualHRV.hr}
-                  onChange={(e) => setManualHRV(prev => ({ ...prev, hr: e.target.value }))}
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-            </div>
-          </div>
+          {/* HRV Input Fields */}
+          <HRVInputFields
+            rmssd={manualHRV.rmssd}
+            hr={manualHRV.hr}
+            onRmssdChange={(val) => setManualHRV(prev => ({ ...prev, rmssd: val }))}
+            onHrChange={(val) => setManualHRV(prev => ({ ...prev, hr: val }))}
+            className="space-y-4 pt-4 border-t border-slate-800"
+          />
 
-          {isLibrary && (
-            <Button 
-              onClick={() => navigate('/biblioteka?tab=wyzwania')}
-              className="w-full"
-              size="lg"
-            >
-              Zakończ
-            </Button>
-          )}
-
-          {isMeasurement && (
-            <>
-              <p className="text-center text-sm text-slate-400">
-                Wynik został zapisany do sesji
-              </p>
-              <Button 
-                onClick={handleSaveAndContinue}
-                className="w-full bg-green-600 hover:bg-green-700"
-                size="lg"
-              >
-                Następne Wyzwanie
-              </Button>
-            </>
-          )}
-
-          {isTraining && (
-            <div className="flex gap-4">
-              <Button 
-                variant="outline"
-                onClick={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
-                className="flex-1"
-                size="lg"
-              >
-                Zakończ
-              </Button>
-              <Button 
-                onClick={handleSaveAndContinue}
-                className="flex-1 bg-green-600 hover:bg-green-700"
-                size="lg"
-              >
-                Zapisz trening
-              </Button>
-            </div>
-          )}
-
-          <p className="text-center text-sm text-slate-400">
-            Wynik został zapisany
-          </p>
+          <GameResultsButtons
+            isLibrary={isLibrary}
+            isMeasurement={isMeasurement}
+            isTraining={isTraining}
+            onLibraryComplete={() => navigate('/biblioteka?tab=wyzwania')}
+            onMeasurementComplete={handleSaveAndContinue}
+            onTrainingEnd={() => navigate(`/zawodnicy/${athleteId}?tab=trening`)}
+            onTrainingSave={handleSaveAndContinue}
+          />
         </Card>
       </div>
     );
