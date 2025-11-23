@@ -215,36 +215,6 @@ const ClubDetail = () => {
   // Określ defaultValue - sprint który jest 'in-progress'
   const defaultOpenSprint = allSprints.find(s => s.status === 'in-progress')?.id || allSprints[0].id;
 
-  // Dane radarowe dla porównania M1 i M2
-  const cognitiveDataM1 = [
-    { subject: 'Sigma Scan', m1: 65, m2: 78 },
-    { subject: 'Sigma Control', m1: 58, m2: 65 },
-    { subject: 'Sigma Focus', m1: 62, m2: 72 },
-  ];
-
-  // Dane HRV dla porównania M1 i M2
-  const hrvDataComparison = [
-    { name: 'HRV Baseline', m1: 58, m2: 65 },
-    { name: 'HRV Focus', m1: 45, m2: 52 },
-  ];
-
-  // Liderzy progresu
-  const topProgressLeaders = [
-    { name: "Kowalski Jan", metric: "Focus HRV", improvement: "+45ms" },
-    { name: "Nowak Anna", metric: "Focus HRV", improvement: "+42ms" },
-  ];
-
-  const topHRVLeaders = [
-    { name: "Nowak Anna", metric: "HRV Baseline", improvement: "+12ms" },
-    { name: "Kowalski Jan", metric: "HRV Baseline", improvement: "+10ms" },
-  ];
-
-  // Obszary do poprawy
-  const needsImprovement = [
-    { name: "Lewandowski Adam", metric: "Focus HRV", improvement: "-5ms" },
-    { name: "Wiśniewski Piotr", metric: "Focus HRV", improvement: "+2ms" },
-  ];
-
   const filteredAthletes = athletes.filter(athlete => {
     // Filter by archive status
     if (!showArchived && athlete.archived) return false;
@@ -1563,140 +1533,15 @@ const ClubDetail = () => {
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Kafelek 1: Progres Kognitywny Klubu */}
+            {/* Placeholder dla raportów */}
             <Card>
-              <CardHeader>
-                <CardTitle>Progres kognitywny klubu</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RadarChart data={cognitiveDataM1}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="subject" />
-                    <Radar 
-                      name="M1 (Październik)" 
-                      dataKey="m1" 
-                      stroke="hsl(var(--muted-foreground))" 
-                      fill="hsl(var(--muted-foreground))" 
-                      fillOpacity={0.3}
-                      strokeWidth={1}
-                    />
-                    <Radar 
-                      name="M2 (Listopad)" 
-                      dataKey="m2" 
-                      stroke="hsl(var(--primary))" 
-                      fill="hsl(var(--primary))" 
-                      fillOpacity={0.6}
-                      strokeWidth={2}
-                    />
-                    <Legend />
-                  </RadarChart>
-                </ResponsiveContainer>
-                <p className="text-sm text-muted-foreground text-center mt-4">
-                  Klub poprawił się w "Kontroli" i "Focusie"
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Kafelek 2: Progres Fizjologiczny Klubu */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Progres fizjologiczny klubu</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={hrvDataComparison}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="m1" fill="hsl(var(--muted-foreground))" name="M1 (Październik)" />
-                    <Bar dataKey="m2" fill="hsl(var(--primary))" name="M2 (Listopad)" />
-                  </BarChart>
-                </ResponsiveContainer>
-                <p className="text-sm text-muted-foreground text-center mt-4">
-                  Klub poprawił regenerację i lepiej radzi sobie ze stresem
+              <CardContent className="py-12 text-center">
+                <p className="text-muted-foreground">
+                  Raporty klubowe będą dostępne po przeprowadzeniu pomiarów zawodników
                 </p>
               </CardContent>
             </Card>
           </div>
-
-          {/* Kafelek 3: Liderzy Progresu */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                Liderzy progresu
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-semibold mb-3 text-sm text-muted-foreground">Największy postęp (Focus HRV)</h3>
-                  <div className="space-y-2">
-                    {topProgressLeaders.map((leader, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="w-6 h-6 flex items-center justify-center p-0">
-                            {idx + 1}
-                          </Badge>
-                          <span className="font-medium">{leader.name}</span>
-                        </div>
-                        <span className="text-green-600 font-semibold">{leader.improvement}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-3 text-sm text-muted-foreground">Największy postęp (HRV Baseline)</h3>
-                  <div className="space-y-2">
-                    {topHRVLeaders.map((leader, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="w-6 h-6 flex items-center justify-center p-0">
-                            {idx + 1}
-                          </Badge>
-                          <span className="font-medium">{leader.name}</span>
-                        </div>
-                        <span className="text-green-600 font-semibold">{leader.improvement}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Kafelek 4: Obszary do Poprawy */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingDown className="h-5 w-5 text-orange-600" />
-                Obszary do poprawy
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <h3 className="font-semibold mb-3 text-sm text-muted-foreground">Najmniejszy postęp (Focus HRV)</h3>
-                <div className="space-y-2">
-                  {needsImprovement.map((athlete, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="w-6 h-6 flex items-center justify-center p-0">
-                          {idx + 1}
-                        </Badge>
-                        <span className="font-medium">{athlete.name}</span>
-                      </div>
-                      <span className={athlete.improvement.startsWith("-") ? "text-red-600 font-semibold" : "text-muted-foreground font-semibold"}>
-                        {athlete.improvement}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {/* ZAKŁADKA 4: Informacje o klubie */}

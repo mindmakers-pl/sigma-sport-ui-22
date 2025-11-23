@@ -658,7 +658,7 @@ export default function FocusGame({
               <Button 
                 size="lg"
                 className="w-full"
-                onClick={() => navigate('/biblioteka')}
+                onClick={() => navigate('/biblioteka?tab=wyzwania')}
               >
                 Zakończ
               </Button>
