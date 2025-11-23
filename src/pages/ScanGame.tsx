@@ -1,30 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 
-type GameState = "ready" | "playing" | "transition" | "finished";
-type Shape = "circle" | "square" | "triangle" | "diamond" | "hexagon";
-type Color = "black" | "gray" | "white" | "emerald" | "violet";
+type GameState = "ready" | "playing" | "finished";
 
-interface GridItem {
-  shape: Shape;
-  color: Color;
-  isTarget: boolean;
-}
-
-interface TrialResult {
-  trialNumber: number;
-  reactionTime: number;
-  targetPosition: number; // 0-99, pozycja celu na gridzie
-  clickedPosition: number; // 0-99, kliknięte pole
-  isCorrect: boolean; // czy kliknięto cel
+interface ClickRecord {
+  number: number;
   timestamp: number;
+  wasCorrect: boolean;
 }
-
-const MAX_TRIALS = 10;
 
 interface ScanGameProps {
   onComplete?: (data: any) => void;
@@ -32,161 +19,135 @@ interface ScanGameProps {
   mode?: "training" | "measurement";
 }
 
+const GAME_DURATION = 60; // 60 seconds
+
 const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameProps) => {
   const navigate = useNavigate();
   const { athleteId } = useParams();
+  
   const [gameState, setGameState] = useState<GameState>("ready");
-  const [currentTrial, setCurrentTrial] = useState<number>(1);
-  const [resultsList, setResultsList] = useState<TrialResult[]>([]);
-  const [errorCount, setErrorCount] = useState<number>(0);
-  const [grid, setGrid] = useState<GridItem[]>([]);
-  const [targetPosition, setTargetPosition] = useState<number>(0);
+  const [gridNumbers, setGridNumbers] = useState<number[]>([]);
+  const [selectedNumbers, setSelectedNumbers] = useState<Set<number>>(new Set());
+  const [clickHistory, setClickHistory] = useState<ClickRecord[]>([]);
+  const [nextExpected, setNextExpected] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState<number>(GAME_DURATION);
   const [startTime, setStartTime] = useState<number | null>(null);
-  const [manualHRV, setManualHRV] = useState<string>("");
+  
+  const [manualRMSSD, setManualRMSSD] = useState<string>("");
+  const [manualHR, setManualHR] = useState<string>("");
 
-  const setupTrial = () => {
-    const shapes: Shape[] = ["circle", "square", "triangle", "diamond", "hexagon"];
-    const colors: Color[] = ["black", "gray", "white", "emerald", "violet"];
-    
-    // Stwórz tablicę 100 elementów z dystraktorami
-    const newGrid: GridItem[] = Array(100).fill(null).map(() => {
-      let shape: Shape;
-      let color: Color;
-      
-      // Losuj kształt i kolor, ale wykluczaj kombinację circle + emerald
-      do {
-        shape = shapes[Math.floor(Math.random() * shapes.length)];
-        color = colors[Math.floor(Math.random() * colors.length)];
-      } while (shape === "circle" && color === "emerald");
-      
-      return {
-        shape,
-        color,
-        isTarget: false,
-      };
-    });
-
-    // Losowa pozycja dla celu (Zielone Koło)
-    const targetIndex = Math.floor(Math.random() * 100);
-    newGrid[targetIndex] = {
-      shape: "circle",
-      color: "emerald",
-      isTarget: true,
-    };
-
-    setGrid(newGrid);
-    setTargetPosition(targetIndex);
-    setGameState("playing");
-    setStartTime(Date.now());
+  // Generate random grid
+  const generateGrid = () => {
+    const numbers = Array.from({ length: 100 }, (_, i) => i);
+    // Fisher-Yates shuffle
+    for (let i = numbers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+    }
+    return numbers;
   };
+
+  // Timer effect
+  useEffect(() => {
+    if (gameState !== "playing") return;
+    
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setGameState("finished");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [gameState]);
 
   const handleStartGame = () => {
+    setGridNumbers(generateGrid());
+    setSelectedNumbers(new Set());
+    setClickHistory([]);
+    setNextExpected(0);
+    setTimeLeft(GAME_DURATION);
+    setStartTime(Date.now());
     setGameState("playing");
-    setCurrentTrial(1);
-    setResultsList([]);
-    setErrorCount(0);
-    setupTrial();
   };
 
-  const handleClick = (clickedIndex: number, isTarget: boolean) => {
-    if (gameState !== "playing" || startTime === null) return;
+  const handleNumberClick = (number: number) => {
+    if (gameState !== "playing") return;
 
-    const reactionTime = Date.now() - startTime;
-    const trialResult: TrialResult = {
-      trialNumber: currentTrial,
-      reactionTime,
-      targetPosition,
-      clickedPosition: clickedIndex,
-      isCorrect: isTarget,
-      timestamp: Date.now()
-    };
+    const newSelected = new Set(selectedNumbers);
+    
+    // Toggle selection
+    if (newSelected.has(number)) {
+      // Unclick - remove from selection
+      newSelected.delete(number);
+      setSelectedNumbers(newSelected);
+      return;
+    }
 
-    setResultsList(prev => [...prev, trialResult]);
+    // Click - add to selection
+    newSelected.add(number);
+    setSelectedNumbers(newSelected);
 
-    if (isTarget) {
-      // Kliknięto cel (Zielone Koło)
-      const nextTrial = currentTrial + 1;
-      setCurrentTrial(nextTrial);
-      
-      if (nextTrial > MAX_TRIALS) {
-        setGameState("finished");
-        console.log("Gra zakończona - zapisano wynik automatycznie");
+    const wasCorrect = number === nextExpected;
+    
+    setClickHistory(prev => [...prev, {
+      number,
+      timestamp: Date.now(),
+      wasCorrect
+    }]);
+
+    if (wasCorrect) {
+      setNextExpected(prev => prev + 1);
+    }
+  };
+
+  const calculateResult = () => {
+    // Find the highest correct sequential number
+    let maxCorrect = -1;
+    for (let i = 0; i <= 99; i++) {
+      if (selectedNumbers.has(i)) {
+        maxCorrect = i;
       } else {
-        // Przejście do ciemnego ekranu między próbami
-        setGameState("transition");
-        const transitionTime = Math.random() * 2500 + 500; // 500-3000ms
-        setTimeout(() => {
-          setupTrial();
-        }, transitionTime);
+        break; // sequence broken
       }
-    } else {
-      // Kliknięto dystraktor (błąd)
-      setErrorCount(prev => prev + 1);
     }
-  };
 
-  const getShapeClass = (item: GridItem) => {
-    const colorMap = {
-      black: "bg-slate-900",
-      gray: "bg-slate-500",
-      white: "bg-white border border-slate-400",
-      emerald: "bg-emerald-300",
-      violet: "bg-violet-50 border border-violet-200",
-    };
-
-    const baseClass = "w-[85%] h-[85%] transition-transform duration-150";
-    const colorClass = colorMap[item.color];
-
-    switch (item.shape) {
-      case "circle":
-        return `${baseClass} ${colorClass} rounded-full`;
-      case "square":
-        return `${baseClass} ${colorClass}`;
-      case "triangle":
-        return `${baseClass} ${colorClass} clip-triangle`;
-      case "diamond":
-        return `${baseClass} ${colorClass} rotate-45`;
-      case "hexagon":
-        return `${baseClass} ${colorClass} clip-hexagon`;
-      default:
-        return `${baseClass} ${colorClass}`;
+    // Find skipped numbers
+    const skippedNumbers: number[] = [];
+    for (let i = 0; i <= maxCorrect; i++) {
+      if (!selectedNumbers.has(i)) {
+        skippedNumbers.push(i);
+      }
     }
-  };
 
-  const calculateStats = () => {
-    if (resultsList.length === 0) return { average: 0, median: 0, accuracy: 0 };
+    // Count error clicks (clicked but not in correct sequence)
+    const errorClicks = clickHistory.filter(c => !c.wasCorrect && selectedNumbers.has(c.number)).length;
 
-    // Pobierz tylko czasy reakcji z poprawnych prób (isCorrect: true)
-    const reactionTimes = resultsList
-      .filter(trial => trial.isCorrect)
-      .map(trial => trial.reactionTime);
-
-    if (reactionTimes.length === 0) return { average: 0, median: 0, accuracy: 0 };
-
-    const average = Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length);
-    
-    const sorted = [...reactionTimes].sort((a, b) => a - b);
-    const median = sorted.length % 2 === 0
-      ? Math.round((sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2)
-      : sorted[Math.floor(sorted.length / 2)];
-    
-    const accuracy = Math.round(((MAX_TRIALS / (MAX_TRIALS + errorCount)) * 100));
-    
-    return { average, median, accuracy };
-  };
-
-  const handleSaveAndContinue = () => {
-    const finalPayload = {
-      gameData: {
-        average: calculateStats().average,
-        median: calculateStats().median,
-        accuracy: calculateStats().accuracy,
-        errors: errorCount,
-        results: resultsList
-      },
-      hrvData: manualHRV
+    return {
+      maxNumber: maxCorrect,
+      correctClicks: maxCorrect + 1,
+      errorClicks,
+      skippedNumbers,
+      totalClicks: clickHistory.length,
+      duration: GAME_DURATION
     };
-    console.log('Zapisuję dane:', finalPayload);
+  };
+
+  const getPreviousResults = () => {
+    // Get previous results from localStorage
+    const athleteTrainings = localStorage.getItem('athlete_trainings');
+    if (!athleteTrainings) return [];
+
+    const trainings = JSON.parse(athleteTrainings);
+    const scanResults = trainings
+      .filter((t: any) => t.athleteId === athleteId && t.gameName === 'Sigma Scan')
+      .map((t: any) => t.results.scan_max_number_reached)
+      .slice(-5); // Last 5 results
+
+    return scanResults;
   };
 
   return (
@@ -204,15 +165,28 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
       
       <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
         {gameState === "ready" && (
-          <Card className="max-w-md w-full border-slate-700 bg-slate-800 animate-scale-in">
-            <CardContent className="pt-6 text-center space-y-6">
-              <h1 className="text-3xl font-bold text-white mb-2">Wyzwanie Sigma Scan</h1>
-              <p className="text-lg text-slate-300 leading-relaxed">
-                Znajdź <span className="text-green-500 font-semibold">Zielone Koło</span> tak szybko, jak potrafisz
-              </p>
-              <p className="text-sm text-slate-400">
-                Przeprowadzisz {MAX_TRIALS} prób
-              </p>
+          <Card className="max-w-2xl w-full border-slate-700 bg-slate-800 animate-scale-in">
+            <CardContent className="pt-6 space-y-6">
+              <h1 className="text-3xl font-bold text-white text-center mb-4">Siatka Koncentracji</h1>
+              
+              <div className="bg-slate-700/50 p-6 rounded-lg space-y-4 text-slate-200">
+                <p className="text-lg leading-relaxed">
+                  Przed Tobą tabela 10 na 10 pól, w których zapisane są różne dwucyfrowe liczby od <span className="font-bold text-white">00 do 99</span> (każda liczba dokładnie raz).
+                </p>
+                <p className="text-lg leading-relaxed">
+                  Twoim celem jest znaleźć <span className="font-bold text-green-400">jak najdłuższy ciąg kolejnych liczb</span> zaczynając od 00 i idąc w górę: 00, 01, 02, 03, itd.
+                </p>
+                <p className="text-lg leading-relaxed">
+                  Po znalezieniu i naciśnięciu <span className="font-bold text-white">00</span>, szukasz <span className="font-bold text-white">01</span>, potem <span className="font-bold text-white">02</span>, i tak dalej, w jak najkrótszym czasie.
+                </p>
+                <p className="text-lg leading-relaxed">
+                  Będziesz mieć na to dokładnie <span className="font-bold text-yellow-400">1 minutę (60 sekund)</span>.
+                </p>
+                <p className="text-lg leading-relaxed font-semibold text-green-400">
+                  Nie pomijaj numerów, poluj kolejno i szukaj do skutku.
+                </p>
+              </div>
+
               <Button 
                 size="lg" 
                 className="w-full text-lg"
@@ -225,71 +199,114 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
         )}
 
         {gameState === "playing" && (
-          <div className="w-full max-w-4xl animate-fade-in">
+          <div className="w-full max-w-5xl animate-fade-in">
             <div className="mb-4 text-center">
-              <p className="text-white text-xl font-semibold">
-                Próba {currentTrial} / {MAX_TRIALS}
-              </p>
+              <div className="flex items-center justify-between max-w-md mx-auto">
+                <div className="text-white">
+                  <span className="text-sm text-slate-400">Szukasz:</span>
+                  <span className="text-3xl font-bold ml-2 text-green-400">
+                    {nextExpected.toString().padStart(2, '0')}
+                  </span>
+                </div>
+                <div className="text-white">
+                  <span className="text-sm text-slate-400">Czas:</span>
+                  <span className="text-3xl font-bold ml-2 text-yellow-400">
+                    {timeLeft}s
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-10 gap-3 bg-slate-800 p-6 rounded-lg">
-              {grid.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleClick(index, item.isTarget)}
-                  className="aspect-square hover:scale-110 transition-transform duration-150 flex items-center justify-center"
-                >
-                  <div className={getShapeClass(item)} />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {gameState === "transition" && (
-          <div className="w-full max-w-4xl animate-fade-in">
-            <div className="h-96 flex items-center justify-center">
-              <div className="w-4 h-4 bg-slate-600 rounded-full animate-pulse" />
+            
+            <div className="grid grid-cols-10 gap-2 bg-slate-800 p-4 rounded-lg">
+              {gridNumbers.map((number, index) => {
+                const isSelected = selectedNumbers.has(number);
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleNumberClick(number)}
+                    className={`
+                      aspect-square
+                      bg-slate-700 hover:bg-slate-600
+                      rounded
+                      flex items-center justify-center
+                      text-2xl font-bold
+                      transition-all duration-150
+                      ${isSelected ? 'text-slate-500' : 'text-white'}
+                    `}
+                  >
+                    {number.toString().padStart(2, '0')}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
 
         {gameState === "finished" && (
-          <Card className="max-w-md w-full border-slate-700 bg-slate-800 animate-scale-in">
+          <Card className="max-w-lg w-full border-slate-700 bg-slate-800 animate-scale-in">
             <CardContent className="pt-6 text-center space-y-6">
-              <h2 className="text-2xl font-bold text-white">Wynik wyzwania Sigma Scan</h2>
+              <h2 className="text-2xl font-bold text-white">Wynik Siatki Koncentracji</h2>
               
               <div className="space-y-4 py-4">
-                <div className="bg-slate-700/50 p-4 rounded-lg">
-                  <p className="text-slate-400 text-sm mb-1">Średni Czas Reakcji</p>
-                  <p className="text-3xl font-bold text-primary">{calculateStats().average} ms</p>
-                </div>
-                
-                <div className="bg-slate-700/50 p-4 rounded-lg">
-                  <p className="text-slate-400 text-sm mb-1">Mediana Czasu Reakcji</p>
-                  <p className="text-3xl font-bold text-primary">{calculateStats().median} ms</p>
-                </div>
-                
-                <div className="bg-slate-700/50 p-4 rounded-lg">
-                  <p className="text-slate-400 text-sm mb-1">Celność</p>
-                  <p className="text-3xl font-bold text-green-500">{calculateStats().accuracy}%</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Błędy: {errorCount} / Próby: {MAX_TRIALS}
+                <div className="bg-slate-700/50 p-6 rounded-lg">
+                  <p className="text-slate-400 text-sm mb-1">Najwyższa osiągnięta liczba</p>
+                  <p className="text-5xl font-bold text-green-400">
+                    {calculateResult().maxNumber >= 0 
+                      ? calculateResult().maxNumber.toString().padStart(2, '0')
+                      : '--'}
+                  </p>
+                  <p className="text-sm text-slate-400 mt-2">
+                    Poprawnie zaznaczonych: {calculateResult().correctClicks}
                   </p>
                 </div>
 
-                {/* Formularz HRV */}
-                <div className="bg-slate-700/50 p-4 rounded-lg">
-                  <p className="text-slate-400 text-sm mb-3">Powiązany pomiar HRV (ms)</p>
-                  <Input
-                    type="number"
-                    value={manualHRV}
-                    onChange={(e) => setManualHRV(e.target.value)}
-                    placeholder="np. 35"
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                  <p className="text-xs text-slate-500 mt-2">
-                    Wprowadź wartość HRV zmierzoną podczas tego wyzwania
-                  </p>
+                {getPreviousResults().length > 0 && (
+                  <div className="bg-slate-700/50 p-4 rounded-lg">
+                    <p className="text-slate-400 text-sm mb-3">Twoje ostatnie wyniki</p>
+                    <div className="flex gap-2 justify-center flex-wrap">
+                      {getPreviousResults().map((result: number, idx: number) => (
+                        <div key={idx} className="bg-slate-600 px-3 py-1 rounded text-white font-mono">
+                          {result.toString().padStart(2, '0')}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {calculateResult().skippedNumbers.length > 0 && (
+                  <div className="bg-amber-900/20 border border-amber-700/50 p-4 rounded-lg">
+                    <p className="text-amber-400 text-sm mb-2">Pominięte liczby</p>
+                    <p className="text-amber-300 font-mono">
+                      {calculateResult().skippedNumbers.map(n => n.toString().padStart(2, '0')).join(', ')}
+                    </p>
+                  </div>
+                )}
+
+                {/* HRV Input */}
+                <div className="bg-slate-700/50 p-4 rounded-lg space-y-3">
+                  <p className="text-slate-400 text-sm">Pomiar HRV (opcjonalnie)</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-slate-500 block mb-1">rMSSD (ms)</label>
+                      <Input
+                        type="number"
+                        value={manualRMSSD}
+                        onChange={(e) => setManualRMSSD(e.target.value)}
+                        placeholder="np. 45"
+                        className="bg-slate-700 border-slate-600 text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-500 block mb-1">Średnie HR (bpm)</label>
+                      <Input
+                        type="number"
+                        value={manualHR}
+                        onChange={(e) => setManualHR(e.target.value)}
+                        placeholder="np. 72"
+                        className="bg-slate-700 border-slate-600 text-white"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -319,27 +336,28 @@ const ScanGame = ({ onComplete, onGoToCockpit, mode = "measurement" }: ScanGameP
                   size="lg" 
                   className="flex-1 bg-green-600 hover:bg-green-700"
                   onClick={() => {
+                    const result = calculateResult();
                     const gameData = {
-                      // Surowe dane z każdej próby
-                      trials: resultsList,
-                      
-                      // Agregaty
-                      average: calculateStats().average,
-                      median: calculateStats().median,
-                      accuracy: calculateStats().accuracy,
-                      errors: errorCount,
-                      totalTrials: MAX_TRIALS,
-                      
-                      // HRV
-                      hrv: manualHRV ? parseFloat(manualHRV) : null
+                      gameName: "Sigma Scan",
+                      timestamp: Date.now(),
+                      results: {
+                        scan_max_number_reached: result.maxNumber,
+                        scan_duration_s: result.duration,
+                        scan_correct_clicks: result.correctClicks,
+                        scan_error_clicks: result.errorClicks,
+                        scan_skipped_numbers: result.skippedNumbers,
+                        scan_rmssd_ms: manualRMSSD ? parseFloat(manualRMSSD) : null,
+                        scan_avg_hr_bpm: manualHR ? parseFloat(manualHR) : null,
+                      },
+                      rawClicks: clickHistory
                     };
+                    
                     if (onComplete) {
                       onComplete(gameData);
                     } else {
                       navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`);
                     }
                   }}
-                  disabled={!manualHRV.trim()}
                 >
                   Następne Wyzwanie
                 </Button>
