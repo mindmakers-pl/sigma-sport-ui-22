@@ -4,12 +4,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Brain, Zap, Target, FileText, ClipboardList, Eye } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import BackButton from "@/components/BackButton";
 import { questionnaires } from "@/data/libraryData";
 
 const Library = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") || "scenariusze";
   const [exerciseModule, setExerciseModule] = useState("wszystkie");
   const [exerciseStrategy, setExerciseStrategy] = useState("wszystkie");
 
@@ -184,7 +186,7 @@ const Library = () => {
         <p className="text-slate-600 mt-2">Zasoby treningowe i narzędzia diagnostyczne</p>
       </div>
 
-      <Tabs defaultValue="scenariusze" className="w-full">
+      <Tabs value={tab} onValueChange={(value) => setSearchParams({ tab: value })} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="scenariusze">Scenariusze treningów</TabsTrigger>
           <TabsTrigger value="wyzwania">Wyzwania</TabsTrigger>

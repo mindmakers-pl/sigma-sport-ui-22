@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { determineGameContext } from "@/utils/gameContext";
+import { determineGameContext, getGameBackPath } from "@/utils/gameContext";
 import { useTrainings } from "@/hooks/useTrainings";
 import { useToast } from "@/hooks/use-toast";
 import { useFocusGame } from "@/hooks/useFocusGame";
@@ -58,6 +58,27 @@ export default function FocusGame({
   const [coachReport, setCoachReport] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Unified exit handler
+  const handleExit = () => {
+    if (onGoToCockpit) {
+      onGoToCockpit();
+    } else {
+      navigate(getGameBackPath(athleteId, mode, isLibrary));
+    }
+  };
+
+  // ESC key handler
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleExit();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [handleExit]);
+
   // Generate coach report when game finishes
   useEffect(() => {
     if (gameState === 'finished' && results.length > 0 && !coachReport) {
@@ -69,7 +90,7 @@ export default function FocusGame({
   }, [gameState, results, coachReport]);
 
   const handleLibraryComplete = () => {
-    navigate('/biblioteka?tab=wyzwania');
+    handleExit();
   };
 
   const handleMeasurementComplete = () => {
@@ -108,7 +129,7 @@ export default function FocusGame({
   };
 
   const handleTrainingEnd = () => {
-    navigate(`/zawodnicy/${athleteId}?tab=trening`);
+    handleExit();
   };
 
   const handleTrainingSave = async () => {
@@ -166,16 +187,17 @@ export default function FocusGame({
     }
   };
 
-  // Ready screen
   if (gameState === "ready") {
     return (
       <div className="min-h-screen bg-slate-950 p-4">
-        {!onComplete && (
-          <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Powrót
-          </Button>
-        )}
+        <Button 
+          variant="ghost" 
+          className="text-white hover:text-white hover:bg-slate-800 mb-4 absolute top-4 left-4 z-50"
+          onClick={handleExit}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Powrót
+        </Button>
         
         <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
           <div className="max-w-3xl w-full bg-slate-900 rounded-2xl p-12 space-y-8 shadow-2xl">
@@ -252,12 +274,14 @@ export default function FocusGame({
     
     return (
       <div className="min-h-screen bg-slate-950 p-4">
-        {!onComplete && (
-          <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4" onClick={() => navigate(`/zawodnicy/${athleteId}?tab=dodaj-pomiar`)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Powrót
-          </Button>
-        )}
+        <Button 
+          variant="ghost" 
+          className="text-white hover:text-white hover:bg-slate-800 mb-4 absolute top-4 left-4 z-50"
+          onClick={handleExit}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Powrót
+        </Button>
         
         <div className="flex items-center justify-center" style={{minHeight: 'calc(100vh - 80px)'}}>
           <Card className="max-w-4xl w-full border-slate-700 bg-slate-800 animate-scale-in">
@@ -396,11 +420,14 @@ export default function FocusGame({
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col relative">
       {/* Back button in top-left corner */}
-      {mode === "training" && onGoToCockpit && (
-        <button onClick={onGoToCockpit} className="absolute top-4 left-4 text-slate-400 hover:text-white transition-colors z-10">
-          ← Powrót
-        </button>
-      )}
+      <Button 
+        variant="ghost" 
+        className="text-white hover:text-white hover:bg-slate-800 absolute top-4 left-4 z-50"
+        onClick={handleExit}
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Powrót
+      </Button>
 
       {/* Very thin progress bar at top */}
       <div className="h-0.5">
@@ -436,7 +463,7 @@ export default function FocusGame({
             <div className="text-white text-6xl font-bold opacity-0">+</div>
           )}
           {phaseState === "stimulus" && currentTrial && (
-            <div className={`text-7xl font-bold ${COLOR_CLASSES[currentTrial.stimulusColor]}`}>
+            <div className={`text-4xl md:text-5xl lg:text-6xl font-bold ${COLOR_CLASSES[currentTrial.stimulusColor]}`}>
               {currentTrial.stimulusWord}
             </div>
           )}
