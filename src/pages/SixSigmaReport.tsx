@@ -6,95 +6,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useSessions } from "@/hooks/useSessions";
+import { useAthletes } from "@/hooks/useAthletes";
 
 export default function SixSigmaReport() {
   const { athleteId, sessionId } = useParams();
   const navigate = useNavigate();
+  const { sessions } = useSessions(athleteId);
+  const { athletes } = useAthletes();
   const [session, setSession] = useState<any>(null);
   const [athlete, setAthlete] = useState<any>(null);
 
   useEffect(() => {
-    const sessions = JSON.parse(localStorage.getItem('athlete_sessions') || '[]');
-    let foundSession = sessions.find((s: any) => s.id === sessionId);
-    
-    // 🔧 In-component migration for this specific session
-    if (foundSession && foundSession.results) {
-      let needsSave = false;
-      const results = foundSession.results;
-      
-      // Case 1: Has kwestionariusz but not six_sigma (old format)
-      if (results.kwestionariusz && !results.six_sigma) {
-        console.log(`🔧 Migrating session ${sessionId}: kwestionariusz → six_sigma`);
-        results.six_sigma = {
-          ...results.kwestionariusz,
-          validation: results.kwestionariusz.validation || {
-            isValid: true,
-            warnings: [],
-            flags: {
-              straightLining: false,
-              reverseInconsistency: false,
-              speedingDetected: false
-            }
-          },
-          competencyScores: results.kwestionariusz.competencyScores || [],
-          modifierScores: results.kwestionariusz.modifierScores || [],
-          overallScore: results.kwestionariusz.overallScore || 0
-        };
-        needsSave = true;
-      }
-      
-      // Case 2: Has six_sigma but missing fields
-      if (results.six_sigma) {
-        let migrated = false;
-        
-        if (!results.six_sigma.validation) {
-          console.log(`🔧 Adding validation to session ${sessionId}`);
-          results.six_sigma.validation = {
-            isValid: true,
-            warnings: [],
-            flags: {
-              straightLining: false,
-              reverseInconsistency: false,
-              speedingDetected: false
-            }
-          };
-          migrated = true;
-        }
-        
-        if (!results.six_sigma.competencyScores || !Array.isArray(results.six_sigma.competencyScores)) {
-          console.log(`🔧 Adding competencyScores to session ${sessionId}`);
-          results.six_sigma.competencyScores = [];
-          migrated = true;
-        }
-        
-        if (!results.six_sigma.modifierScores || !Array.isArray(results.six_sigma.modifierScores)) {
-          console.log(`🔧 Adding modifierScores to session ${sessionId}`);
-          results.six_sigma.modifierScores = [];
-          migrated = true;
-        }
-        
-        if (migrated) {
-          needsSave = true;
-        }
-      }
-      
-      // Save migrated session
-      if (needsSave) {
-        const sessionIndex = sessions.findIndex((s: any) => s.id === sessionId);
-        if (sessionIndex !== -1) {
-          sessions[sessionIndex] = foundSession;
-          localStorage.setItem('athlete_sessions', JSON.stringify(sessions));
-          console.log('✅ Session migrated and saved:', sessionId);
-        }
-      }
-    }
-    
+    const foundSession = sessions.find((s: any) => s.id === sessionId);
     setSession(foundSession);
 
-    const athletes = JSON.parse(localStorage.getItem('athletes') || '[]');
-    const foundAthlete = athletes.find((a: any) => a.id === parseInt(athleteId || "0"));
+    const foundAthlete = athletes.find((a: any) => a.id === athleteId);
     setAthlete(foundAthlete);
-  }, [athleteId, sessionId]);
+  }, [athleteId, sessionId, sessions, athletes]);
 
   // Enhanced loading/error state
   if (!session || !athlete) {
@@ -366,7 +295,7 @@ export default function SixSigmaReport() {
       metadata: {
         sessionId: session.id,
         athleteId: athlete.id,
-        athleteName: athlete.name,
+        athleteName: `${athlete.first_name} ${athlete.last_name}`,
         date: new Date(session.date).toISOString(),
         exportedAt: new Date().toISOString()
       },
@@ -409,7 +338,7 @@ export default function SixSigmaReport() {
           Raport Six Sigma
         </h2>
         <p className="text-muted-foreground">
-          {athlete.name} • {new Date(session.date).toLocaleDateString('pl-PL')}
+          {athlete?.first_name} {athlete?.last_name} • {new Date(session.date).toLocaleDateString('pl-PL')}
         </p>
         <Badge variant="outline" className="mt-2">
           Psychometria

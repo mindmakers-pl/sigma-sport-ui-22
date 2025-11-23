@@ -1,24 +1,23 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Download } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { useTrainings } from "@/hooks/useTrainings";
 
 const ProgressReport = () => {
   const { athleteId, gameType } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const selectedIds = searchParams.get('ids')?.split(',') || [];
-  const [trainings, setTrainings] = useState<any[]>([]);
+  const { trainings: allTrainings } = useTrainings(athleteId);
   const [gameName, setGameName] = useState('');
 
-  useEffect(() => {
-    const allTrainings = JSON.parse(localStorage.getItem('athlete_trainings') || '[]');
-    let filtered = allTrainings
-      .filter((t: any) => t.athlete_id === athleteId && t.game_type === gameType);
+  const trainings = useMemo(() => {
+    let filtered = allTrainings.filter((t: any) => t.task_type === gameType);
     
     // If specific IDs are selected, filter to only those
     if (selectedIds.length > 0) {
@@ -26,14 +25,24 @@ const ProgressReport = () => {
     }
     
     // Sort by date
-    filtered.sort((a: any, b: any) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime());
+    filtered.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
-    setTrainings(filtered);
-    
-    if (filtered.length > 0) {
-      setGameName(filtered[0].game_name);
+    return filtered;
+  }, [allTrainings, gameType, selectedIds]);
+
+  useEffect(() => {
+    if (trainings.length > 0) {
+      // Extract game name from results or task_type
+      const gameTypeMap: Record<string, string> = {
+        'focus': 'Focus Game',
+        'scan': 'Scan Game',
+        'memo': 'Memo Game',
+        'control': 'Control Game',
+        'tracker': 'Tracker Game'
+      };
+      setGameName(gameTypeMap[gameType || ''] || gameType || '');
     }
-  }, [athleteId, gameType, selectedIds]);
+  }, [trainings, gameType]);
 
   if (trainings.length === 0) {
     return (
@@ -64,15 +73,16 @@ const ProgressReport = () => {
 
   if (gameType === 'focus') {
     trendData = trainings.map((t, index) => {
-      const coachReport = t.results.coachReport || {};
+      const results = t.results?.results || t.results || {};
+      const coachReport = results.coachReport || {};
       return {
         session: `T${index + 1}`,
-        date: new Date(t.completedAt).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' }),
+        date: new Date(t.date).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' }),
         medianRT: Math.round(coachReport.overall?.medianRT || 0),
         easyRT: Math.round(coachReport.coachMetrics?.congruent?.medianRT || 0),
         hardRT: Math.round(coachReport.coachMetrics?.incongruent?.medianRT || 0),
         accuracy: Math.round((coachReport.overall?.accuracy || 0) * 100),
-        concentrationCost: Math.round(t.results.concentrationCost || 0),
+        concentrationCost: Math.round(results.concentrationCost || 0),
         iqr: Math.round(coachReport.overall?.iqr || 0)
       };
     });

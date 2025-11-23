@@ -2,35 +2,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Activity, TrendingUp, Calendar, Award, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import BackButton from "@/components/BackButton";
+import { useSessions } from "@/hooks/useSessions";
 
 const AthletePanel = () => {
   const navigate = useNavigate();
-  const [athleteData, setAthleteData] = useState<any>(null);
-  const [sessions, setSessions] = useState<any[]>([]);
+  
+  // TODO: Replace with actual authenticated athlete ID when auth is implemented
+  const mockAthleteId = "athlete-1";
+  const { sessions } = useSessions(mockAthleteId);
 
   useEffect(() => {
-    // Ustaw rolę na zawodnika gdy wchodzimy do panelu
+    // Set athlete role when entering panel (temporary UI state)
     localStorage.setItem("userRole", "athlete");
-    
-    // W przyszłości pobierzemy z localStorage dane zalogowanego zawodnika
-    // Na razie mockujemy podstawowe dane
-    const mockAthlete = {
-      id: "athlete-1",
-      name: "Jan Kowalski",
-      club: "KS Cracovia",
-      discipline: "Piłka nożna"
-    };
-    setAthleteData(mockAthlete);
-
-    // Pobierz sesje zawodnika z localStorage
-    const allSessions = localStorage.getItem(`sessions_${mockAthlete.id}`);
-    if (allSessions) {
-      setSessions(JSON.parse(allSessions));
-    }
-    
-    // Wymuś odświeżenie nawigacji
     window.dispatchEvent(new Event('storage'));
   }, []);
 
@@ -73,7 +58,7 @@ const AthletePanel = () => {
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-foreground mb-2">Panel Zawodnika</h1>
         <p className="text-muted-foreground">
-          {athleteData ? `Witaj ${athleteData.name}! Oto Twoje statystyki i postępy` : "Ładowanie..."}
+          Witaj! Oto Twoje statystyki i postępy
         </p>
       </div>
 
