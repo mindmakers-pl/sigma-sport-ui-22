@@ -1,10 +1,8 @@
-
-
 # Dokumentacja Funkcjonalna Aplikacji Sigma Sport
 
 ---
 
-## 1. ROLE UZYTKOWNIKOW
+## 1. ROLE UŻYTKOWNIKÓW
 
 Aplikacja obsługuje 3 role (przełączane przez `localStorage`, brak prawdziwej autentykacji):
 
@@ -43,16 +41,16 @@ Aplikacja obsługuje 3 role (przełączane przez `localStorage`, brak prawdziwej
 
 ---
 
-## 3. INWENTARYZACJA WIDOKOW
+## 3. INWENTARYZACJA WIDOKÓW
 
 ### 3.1 Landing Page (`/landing` → `Index.tsx`)
-**Funkcjonalnosci:** Strona marketingowa - Navbar, Hero, Features, CTA, Footer.
+**Funkcjonalności:** Strona marketingowa - Navbar, Hero, Features, CTA, Footer.
 **Backend:** Brak. Strona statyczna.
 
 ---
 
 ### 3.2 Dashboard / Kokpit Trenera (`/` → `Dashboard.tsx`)
-**Funkcjonalnosci:**
+**Funkcjonalności:**
 - Statystyki: liczba aktywnych zawodników, klubów, treningów w tygodniu (hardcoded: "48"), średnia wydajność (hardcoded: "87%")
 - Szybkie akcje: Dodaj zawodnika (nawigacja do `/zawodnicy`), Dodaj klub (nawigacja do `/kluby`)
 - Rozpocznij pomiar: wyszukiwarka zawodników z autokompletacją, nawigacja do `zawodnicy/:id?tab=dodaj-pomiar`
@@ -67,19 +65,19 @@ Aplikacja obsługuje 3 role (przełączane przez `localStorage`, brak prawdziwej
 ---
 
 ### 3.3 Panel Zawodnika (`/panel-zawodnika` → `AthletePanel.tsx`)
-**Funkcjonalnosci:**
+**Funkcjonalności:**
 - Statystyki: sesje w miesiącu (z DB), średni HRV (hardcoded: "68"), dni treningowe (hardcoded: "12"), osiągnięcia (hardcoded: "5")
 - Lista ostatnich sesji (5 najnowszych)
 - Dostępne wyzwania: Scan, Control, Focus, Tracker
 
 **Backend:**
 - `useSessions(mockAthleteId)` → `supabase.from('sessions').select('*').eq('athlete_id', ...)`
-- UWAGA: używa hardcoded `mockAthleteId = "athlete-1"` - nie działa z prawdziwymi danymi
+- ⚠️ UWAGA: używa hardcoded `mockAthleteId = "athlete-1"` - nie działa z prawdziwymi danymi
 
 ---
 
 ### 3.4 Panel Admin (`/panel-admin` → `AdminPanel.tsx`)
-**Funkcjonalnosci:**
+**Funkcjonalności:**
 - Statystyki: liczba trenerów, zawodników, klubów
 - Lista trenerów z możliwością dodawania (Dialog: imię, email, telefon)
 - Skróty nawigacyjne do Zawodników, Klubów, Biblioteki
@@ -92,7 +90,7 @@ Aplikacja obsługuje 3 role (przełączane przez `localStorage`, brak prawdziwej
 ---
 
 ### 3.5 Lista Zawodników (`/zawodnicy` → `Athletes.tsx`, 712 linii)
-**Funkcjonalnosci:**
+**Funkcjonalności:**
 - Tabela zawodników z paginacją (10/stronę)
 - Wyszukiwanie po imieniu/nazwisku
 - Filtry: klub, dyscyplina
@@ -156,7 +154,7 @@ Najbardziej złożony widok aplikacji. Zawiera 6 zakładek (tabs):
 ---
 
 ### 3.7 Szczegóły Sesji (`/zawodnicy/:athleteId/sesja/:sessionId` → `SessionDetail.tsx`, 1528 linii)
-**Funkcjonalnosci:**
+**Funkcjonalności:**
 - Przegląd zakończonej sesji pomiarowej
 - Lista zakończonych zadań (z `session.results`)
 - Raporty per zadanie: FocusGameReport, ScanGameReport, MemoGameReport
@@ -172,7 +170,7 @@ Najbardziej złożony widok aplikacji. Zawiera 6 zakładek (tabs):
 ---
 
 ### 3.8 Raport Six Sigma (`/zawodnicy/:athleteId/sesja/:sessionId/six-sigma` → `SixSigmaReport.tsx`, 773 linii)
-**Funkcjonalnosci:**
+**Funkcjonalności:**
 - Pełny raport kwestionariusza Six Sigma
 - Wyniki kompetencji z interpretacją
 - Walidacja danych (straight-lining, speeding, reverse inconsistency)
@@ -186,7 +184,7 @@ Najbardziej złożony widok aplikacji. Zawiera 6 zakładek (tabs):
 ---
 
 ### 3.9 Szczegóły Treningu (`/zawodnicy/:athleteId/trening/:trainingId` → `TrainingDetail.tsx`, 203 linii)
-**Funkcjonalnosci:**
+**Funkcjonalności:**
 - Wyświetlanie wyników pojedynczego treningu
 - Raporty per gra: FocusGameReport, ScanGameReport, MemoGameReport, ControlGameReport, TrackerGameReport
 - Eksport JSON i CSV
@@ -197,7 +195,7 @@ Najbardziej złożony widok aplikacji. Zawiera 6 zakładek (tabs):
 ---
 
 ### 3.10 Raport Postępów (`/zawodnicy/:athleteId/postepy/:gameType` → `ProgressReport.tsx`, 394 linii)
-**Funkcjonalnosci:**
+**Funkcjonalności:**
 - Porównanie wyników wielu treningów tego samego typu (np. wszystkie Focus)
 - Wykresy trendu (LineChart)
 - Opcjonalne filtrowanie po wybranych ID treningów (query param `ids`)
@@ -209,7 +207,7 @@ Najbardziej złożony widok aplikacji. Zawiera 6 zakładek (tabs):
 ---
 
 ### 3.11 Lista Klubów (`/kluby` → `Clubs.tsx`, 172 linii)
-**Funkcjonalnosci:**
+**Funkcjonalności:**
 - Lista klubów jako karty
 - Dodawanie klubu (Dialog: nazwa, miasto, dyscypliny)
 - Liczba członków klubu (liczona z tabeli athletes po `club_id`)
@@ -222,7 +220,7 @@ Najbardziej złożony widok aplikacji. Zawiera 6 zakładek (tabs):
 ---
 
 ### 3.12 Szczegóły Klubu (`/kluby/:id` → `ClubDetail.tsx`, 1628 linii)
-**Funkcjonalnosci:**
+**Funkcjonalności:**
 - Zakładki: Zawodnicy, Sigma Teams (Go, Sprints, Pro), Statystyki
 - Tab Zawodnicy: tabela z filtrowaniem, dodawanie zawodnika do klubu, archiwizacja
 - Tab Sigma Teams Go: scenariusz treningowy z 12 spotkaniami, konspekty ćwiczeń, uruchamianie gier (ScanGame, FocusGame, ControlGame)
@@ -237,7 +235,7 @@ Najbardziej złożony widok aplikacji. Zawiera 6 zakładek (tabs):
 ---
 
 ### 3.13 Zarządzanie Klubem (`/kluby/:id/zarzadzaj` → `ClubManagement.tsx`, 613 linii)
-**Funkcjonalnosci:**
+**Funkcjonalności:**
 - Edycja nazwy, miasta, dyscyplin klubu
 - Zarządzanie trenerami klubu (dodawanie/usuwanie z `coaches` JSONB)
 - Zakupione programy (Sigma Teams Go, Sprints, Pro) - przełączniki
@@ -249,7 +247,7 @@ Najbardziej złożony widok aplikacji. Zawiera 6 zakładek (tabs):
 ---
 
 ### 3.14 Biblioteka (`/biblioteka` → `Library.tsx`, 372 linii)
-**Funkcjonalnosci:**
+**Funkcjonalności:**
 - 4 zakładki: Scenariusze treningów, Wyzwania, Ćwiczenia, Kwestionariusze
 - Scenariusze: 6 modułów treningowych (dane statyczne)
 - Wyzwania: 5 gier (Scan, Control, Focus, Memo, Tracker) → nawigacja do `/biblioteka/gry/:game`
@@ -261,25 +259,25 @@ Najbardziej złożony widok aplikacji. Zawiera 6 zakładek (tabs):
 ---
 
 ### 3.15 Szczegóły Ćwiczenia (`/biblioteka/cwiczenie/:id` → `ExerciseDetail.tsx`, 505 linii)
-**Funkcjonalnosci:** Opis ćwiczenia, kroki, wskazówki trenerskie, sprzęt. Dane hardcoded.
+**Funkcjonalności:** Opis ćwiczenia, kroki, wskazówki trenerskie, sprzęt. Dane hardcoded.
 **Backend:** Brak.
 
 ---
 
 ### 3.16 Szczegóły Kwestionariusza (`/biblioteka/kwestionariusz/:id` → `QuestionnaireDetail.tsx`, 351 linii)
-**Funkcjonalnosci:** Podgląd i interaktywne wypełnienie kwestionariusza Six Sigma (Full, Lite, Mood). Losowa kolejność pytań. Wyświetlanie wyników po ukończeniu.
+**Funkcjonalności:** Podgląd i interaktywne wypełnienie kwestionariusza Six Sigma (Full, Lite, Mood). Losowa kolejność pytań. Wyświetlanie wyników po ukończeniu.
 **Backend:** Brak. Dane z `sixSigmaQuestionnaires.ts`.
 
 ---
 
 ### 3.17 Trening - widok zawodnika (`/trening` → `Training.tsx`, 176 linii)
-**Funkcjonalnosci:** Lista dostępnych gier treningowych (Scan, Control, Focus, Tracker). Historia treningów (hardcoded). Nawigacja do gry.
+**Funkcjonalności:** Lista dostępnych gier treningowych (Scan, Control, Focus, Tracker). Historia treningów (hardcoded). Nawigacja do gry.
 **Backend:** Brak (hardcoded historia).
 
 ---
 
 ### 3.18 Ustawienia (`/ustawienia` → `Settings.tsx`, 172 linii)
-**Funkcjonalnosci:** Formularz profilu (imię, nazwisko, email, telefon). Preferencje powiadomień (przełączniki).
+**Funkcjonalności:** Formularz profilu (imię, nazwisko, email, telefon). Preferencje powiadomień (przełączniki).
 **Backend:** Brak. Dane w `localStorage`.
 
 ---
@@ -305,7 +303,7 @@ Każda gra może działać w 3 kontekstach:
 
 ---
 
-## 4. SCIEZKI UZYTKOWNIKA
+## 4. ŚCIEŻKI UŻYTKOWNIKA
 
 ### 4.1 Trener: Przeprowadzenie sesji pomiarowej
 ```text
@@ -394,7 +392,7 @@ Każda gra może działać w 3 kontekstach:
 |------|-----------|---------------|
 | `libraryData.ts` | Ćwiczenia, scenariusze treningów, kwestionariusze (metadata), sprinty Sigma Teams | Library, ExerciseDetail, ClubDetail |
 | `sixSigmaQuestionnaires.ts` | Pełna definicja 3 kwestionariuszy Six Sigma (pytania, skale, kompetencje) | QuestionnaireDetail, QuestionnaireRunner |
-| `sixSigmaScoring.ts` | Logika scoringowa kwestionariuszy (walidacja, normalizacja, interpretacja) | Powinien być używany przez QuestionnaireRunner, ale **aktualnie nie jest wywołwany** |
+| `sixSigmaScoring.ts` | Logika scoringowa kwestionariuszy (walidacja, normalizacja, interpretacja) | Powinien być używany przez QuestionnaireRunner, ale **aktualnie nie jest wywoływany** |
 | `sessionSchemas.ts` | Schematy walidacji Zod dla danych sesji | AthleteProfile (validateTaskData) |
 
 ---
@@ -407,4 +405,3 @@ Każda gra może działać w 3 kontekstach:
 4. **Dashboard** - statystyki "Treningi w tym tygodniu" (48) i "Średnia wydajność" (87%) są hardcoded
 5. **scoreQuestionnaire()** z `sixSigmaScoring.ts` nie jest wywoływany - dane kwestionariuszy nie są scorowane
 6. **session_tasks** - tabela istnieje w DB, ale jest używana tylko do odczytu w SessionDetail; zadania sesji są zapisywane jako JSON w `sessions.results`
-
